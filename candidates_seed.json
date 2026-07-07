@@ -1,0 +1,1286 @@
+[
+ {
+  "state": "AK",
+  "primary_date": "2026-08-18",
+  "primary_held": false,
+  "race_rating": "Likely R",
+  "race_type": "open",
+  "candidates": [
+   {
+    "name": "Bernadette Wilson",
+    "party": "R",
+    "role": "Owner of Denali Disposal",
+    "status": "major-contender",
+    "website": "https://bernadetteforgovernor.com/",
+    "notes": "former Americans for Prosperity-Alaska state director; running mate Sen. Mike Shower\n[workforce] Says Alaska has one of the highest rates of public employees per capita and would reduce the state workforce: 'It's time for us to look at the bloat. Is it going to be painful? Absolutely, it is.' (https://alaskapublic.org/news/politics/2025-05-13/conservative-activist-bernadette-wilson-joins-2026-alaska-governors-race)\n[performance] Signed the ATR Taxpayer Protection Pledge, framing spending discipline rather than new revenue as the budget fix; declined both the Alaska Watchman DOGE survey and the Northern Journal AI survey. (https://atr.org/bernadette-wilson-and-ag-treg-taylor-sign-taxpayer-protection-pledge-in-alaska-governor-race/)"
+   },
+   {
+    "name": "Treg Taylor",
+    "party": "R",
+    "role": "Former Alaska Attorney General (2021-2025)",
+    "status": "major-contender",
+    "website": "https://tregforak.com/",
+    "notes": "top traditionally funded GOP fundraiser (~$880K, 89% in-state)\n[regulatory] In the Alaska Watchman government-efficiency survey, said he would focus government on core functions, modernize agencies, and fix Alaska's permitting systems; as AG helped draft Trump's day-one executive order on Alaska resource development. (https://alaskawatchman.com/2026/03/26/which-of-alaskas-gubernatorial-candidates-plan-to-doge-alaska/)\n[performance] Plans to 'leverage technology' to identify fraud and inefficiencies in state programs, citing his Medicaid fraud recovery record as attorney general. (https://alaskawatchman.com/2026/03/26/which-of-alaskas-gubernatorial-candidates-plan-to-doge-alaska/)"
+   },
+   {
+    "name": "Dave Bronson",
+    "party": "R",
+    "role": "Former Mayor of Anchorage (2021-2024); retired U.S. Air Force and airline pilot",
+    "status": "major-contender",
+    "website": "https://www.davebronson.com/",
+    "notes": "[performance] Pledges to 'DOGE the state budget' with zero-based budgeting where departments justify budgets from scratch, plus a top-to-bottom audit of state spending in year one. (https://alaskawatchman.com/2026/03/26/which-of-alaskas-gubernatorial-candidates-plan-to-doge-alaska/)\n[workforce] DOGE-style review would include a personnel audit 'because we need to know where we have too many people and where we have too few people' across state agencies. (https://www.alaskasnewssource.com/2025/10/02/former-anchorage-mayor-announces-governor-bid/)\n[digital] In Northern Journal's AI survey, proposed using AI to cut waste, streamline permitting, and improve rural emergency response, paired with privacy protections and transparency requirements. (https://www.northernjournal.com/alaska-governors-race-survey-ai-policy-and-news-sources/)"
+   },
+   {
+    "name": "Click Bishop",
+    "party": "R",
+    "role": "Former state senator (2013-2025)",
+    "status": "major-contender",
+    "website": "https://www.clickbishopforgovernor.com/",
+    "notes": "former Alaska Commissioner of Labor and Workforce Development; labor-backed (IBEW Local 1547 co-endorsement); running mate Greta Schuerch\n[workforce] Platform centers on expanding education and workforce opportunities so Alaskans can 'stay and succeed' in-state; unusual GOP candidate drawing organized-labor support, building on his Labor Department tenure. (https://alaskabeacon.com/2026/04/24/an-alaska-gop-governor-candidate-is-getting-a-boost-from-organized-labor/)\n[digital] In Northern Journal's AI survey, framed AI as a tool to support but not replace human judgment, prioritizing reducing paperwork and improving customer service in state agencies. (https://www.northernjournal.com/alaska-governors-race-survey-ai-policy-and-news-sources/)"
+   },
+   {
+    "name": "Tom Begich",
+    "party": "D",
+    "role": "Former Alaska Senate minority leader (2019-2023)",
+    "status": "major-contender",
+    "website": "https://www.tombegichforalaska.com/",
+    "notes": "leading Democrat after Claman's withdrawal\n[workforce] Centerpiece workforce plank: revive defined-benefit pensions for public employees and teachers, arguing pensions are essential to retaining workers and stabilizing the state workforce. (https://www.kfsk.org/2026/03/30/gubernatorial-candidate-tom-begich-shares-vision-on-state-revenue-education-and-ferries-during-visit-to-petersburg/)\n[digital] In Northern Journal's AI survey, said he would require every state agency to develop an AI strategy within 90 days, use AI to reduce administrative burden without replacing state workers, keep humans in decision loops, and coordinate with unions on cybersecurity. (https://www.northernjournal.com/alaska-governors-race-survey-ai-policy-and-news-sources/)"
+   },
+   {
+    "name": "Bill Walker",
+    "party": "I",
+    "role": "Former Governor of Alaska (2014-2018)",
+    "status": "major-contender",
+    "website": null,
+    "notes": "filed just before the June 1, 2026 deadline with former revenue commissioner Randy Hoffbeck as running mate\n[performance] Campaign centered on a long-term fiscal plan to stabilize the state budget; ticket message is 'We're not running to manage decline. We're running to grow Alaska again.' (https://alaskabeacon.com/2026/05/28/former-alaska-gov-bill-walker-files-for-possible-run-in-2026-governors-race/)\n[digital] In Northern Journal's AI survey, opposed AI for decision-making or policy creation but supports responsible AI use for efficiency and data modeling, and would develop an 'AI code of responsibility' with department commissioners. (https://www.northernjournal.com/alaska-governors-race-survey-ai-policy-and-news-sources/)"
+   }
+  ]
+ },
+ {
+  "state": "AL",
+  "primary_date": "2026-05-19",
+  "primary_held": true,
+  "race_rating": "Safe R",
+  "race_type": "open",
+  "candidates": [
+   {
+    "name": "Tommy Tuberville",
+    "party": "R",
+    "role": "U.S. Senator from Alabama (2021-present); former Auburn football coach",
+    "status": "primary-winner",
+    "website": "https://www.coachforgovernor.com/",
+    "notes": "Won GOP primary with ~85%, Trump-endorsed (https://www.nbcnews.com/politics/2026-election/alabama-governor-primary-election-winners-tommy-tuberville-rcna345002)\n[regulatory] Campaign issues page pledges to 'get rid of waste,' reduce taxes, and 'work with President Trump to cut red tape and bring more manufacturing jobs back to Alabama.' (https://www.coachforgovernor.com/issues)\n[regulatory] At his January 2026 candidacy filing, said he would bring a DOGE-aligned waste/fraud/abuse focus to state government: 'You have a lot of different agencies here, we want to make them all better... save the taxpayers' money.' (https://www.wbrc.com/2026/01/06/tuberville-officially-files-2026-alabama-governors-race/)\n[workforce] Senate DOGE caucus member; championed Trump's DOGE Workforce Optimization Initiative including federal-employee buyouts and headcount cuts, signaling likely approach to the state workforce as governor. (https://1819news.com/news/item/u-s-sen-tommy-tuberville-doge)"
+   },
+   {
+    "name": "Doug Jones",
+    "party": "D",
+    "role": "Former U.S. Senator from Alabama (2018-2021); former U.S. Attorney",
+    "status": "primary-winner",
+    "website": "https://www.dougjones.com/",
+    "notes": "Won Democratic primary with ~78% in a six-candidate field (https://www.nbcnews.com/politics/2026-primary-elections/alabama-governor-results)\n[regulatory] 'Create Jobs Worth Staying For' priority explicitly pledges to 'cut red tape through reforms like occupational licensing changes.' (https://www.dougjones.com/priorities)\n[performance] 'Restore Faith in Government' priority pledges to 'end practices that weaken accountability' plus transparency reforms (accountability framing rather than explicit KPI management). (https://www.dougjones.com/priorities)\n[digital] AI-adjacent stance only: opposes AI data centers that would raise Alabamians' electricity bills; no affirmative digital-government/IT-modernization plank found. (https://www.branch.vote/races/2026-alabama-primary-election-al-state-governor-al-state-d/candidates/doug-jones)"
+   }
+  ]
+ },
+ {
+  "state": "AR",
+  "primary_date": "2026-03-03",
+  "primary_held": true,
+  "race_rating": "Safe R",
+  "race_type": "incumbent-running",
+  "candidates": [
+   {
+    "name": "Sarah Huckabee Sanders",
+    "party": "R",
+    "role": "Governor of Arkansas (2023-present)",
+    "status": "incumbent",
+    "website": "https://sarahforgovernor.com",
+    "notes": "[civil service & state workforce] Enacted a state employee pay plan overhaul (approx. $100M+) raising pay to labor-market rates for 14,500+ employees, consolidating ~2,200 job titles into ~800, and clarifying promotion ladders, targeting hard-to-fill roles like nurses, corrections officers, and state troopers. (https://governor.arkansas.gov/news_post/sanders-announces-new-state-employee-pay-plan/)\n[regulatory/permitting reform] Signed a February 2026 executive order requiring all cabinet agencies and licensing boards to review permits/licenses within 120 days, eliminate or digitize unnecessary steps, publish permit timelines, build single online application portals, and provide real-time status updates; framed as removing 'red tape' for economic development. (https://governor.arkansas.gov/news_post/sanders-signs-executive-order-to-speed-permitting-for-economic-development-projects/)\n[government efficiency (Arkansas Forward)] Arkansas Forward is her flagship government-efficiency initiative, credited with identifying over $118M in savings; the state launched a real-time public dashboard tracking cost-saving efforts, and the pay plan and permitting order are both branded under it. (https://arkansasadvocate.com/briefs/arkansas-officials-launch-real-time-dashboard-of-state-government-cost-saving-efforts/)\n[digital government / AI in government] Launched an AI & Analytics Center of Excellence working group to study safe AI use in state government; received its effectiveness and safety report in February 2026 and approved a statewide AI acceptable-use policy, with the Department of Shared Administrative Services hiring a chief AI officer. Also led 17 GOP governors in pushing Congress to strip the 10-year state AI regulation moratorium from the federal budget bill. (https://governor.arkansas.gov/news_post/sanders-receives-ai-center-of-excellence-effectiveness-and-safety-report/)\n[AI in government (working group launch)] Established the working group tasked with recommending how AI can maximize productivity and efficiency in Arkansas state government along with security, privacy, and use-policy guardrails. (https://governor.arkansas.gov/news_post/governor-sanders-launches-ai-working-group/)"
+   },
+   {
+    "name": "Fredrick J. Love",
+    "party": "D",
+    "role": "Arkansas State Senator, District 15 (2023-present",
+    "status": "primary-winner",
+    "website": "https://www.fredloveforarkansas.com/",
+    "notes": "previously state representative 2011-2023)\n[performance/outcomes management (rhetorical)] Campaign frames governing success as 'measured not by headlines, but by lives improved'; platform is values-based with no detailed positions found on state workforce, regulatory reform, digital government, or performance management. Primary campaign focused on regional economic hubs, protecting Medicaid expansion, and ending the LEARNS Act voucher program. (https://www.fredloveforarkansas.com/)"
+   },
+   {
+    "name": "Colt Shelby",
+    "party": "L",
+    "role": "Farmer",
+    "status": "primary-winner",
+    "website": "https://colt4arkansas.org",
+    "notes": null
+   }
+  ]
+ },
+ {
+  "state": "AZ",
+  "primary_date": "2026-07-21",
+  "primary_held": false,
+  "race_rating": "Toss-up",
+  "race_type": "incumbent-running",
+  "candidates": [
+   {
+    "name": "Katie Hobbs",
+    "party": "D",
+    "role": "Governor of Arizona (2023-present)",
+    "status": "incumbent",
+    "website": "https://katiehobbs.org/",
+    "notes": "[digital-government] Created Arizona's first AI Steering Committee (19 members, May 2025) to develop a statewide policy framework for responsible AI use in government, with recommendations due spring 2026. (https://azgovernor.gov/office-arizona-governor/news/2025/05/governor-katie-hobbs-announces-members-arizonas-first-ai)\n[performance-management] Launched the Arizona Capacity and Efficiency (ACE) Initiative in March 2026 \u2014 an explicitly anti-DOGE efficiency program using AI and emerging tech to find ~$100M in savings over three years without shuttering agencies or cutting jobs ('We will not slash and burn'). (https://statescoop.com/arizona-governor-katie-hobbs-government-efficiency/)\n[regulatory-reform] Mixed permitting/housing record: vetoed the Arizona Starter Homes Act (HB 2570) as 'a step too far' on preempting local zoning, but signed the 2024 casitas/ADU density bill, says she supports streamlining local permit processes, and negotiated a compromise starter-homes framework in 2025. (https://ktar.com/story/5567281/gov-katie-hobbs-vetoes-arizona-starter-homes-act-which-drew-pushback-from-cities/)\n[civil-service] EO 2026-01 directs agencies to crack down on worker misclassification and orders the Dept. of Administration to review state workforce retention policies; earlier EO extended employment protections to LGBTQ state employees and contractors. (https://azgovernor.gov/office-arizona-governor/executive-order/2026-01)"
+   },
+   {
+    "name": "Andy Biggs",
+    "party": "R",
+    "role": "U.S. Representative, AZ-5 (2017-present); Trump-endorsed",
+    "status": "major-contender",
+    "website": "https://biggsforarizona.com/",
+    "notes": "[performance-management] Pledged at a Turning Point USA event (April 2026) to 'DOGE the heck out of the state' \u2014 a DOGE-style efficiency and spending-cut audit of Arizona state government. (https://www.youtube.com/watch?v=NkegwhuDzOg)\n[civil-service] Wants a lieutenant-governor running mate who 'knows how to work with DOGE groups' to restructure state agencies and the state workforce. (https://www.axios.com/local/phoenix/2026/03/03/arizona-first-lieutenant-governor-running-mates-biggs-hobbs-schweikert)\n[regulatory-reform] Platform centers on 'reducing government interference,' eliminating income taxes, and increasing single-family housing supply via land/water management. (https://biggsforarizona.com/issues/)"
+   },
+   {
+    "name": "David Schweikert",
+    "party": "R",
+    "role": "U.S. Representative, AZ-1 (2011-present)",
+    "status": "major-contender",
+    "website": "https://davidschweikert.com/",
+    "notes": "[digital-government] Core campaign theme is 'dramatic modernization' of Arizona government \u2014 pledges to 'utilize technological advances to deliver state services efficiently and effectively,' citing federal AI adoption saving hundreds of thousands of labor hours as a model for the state. (https://www.thecentersquare.com/arizona/article_eaa024e6-7c85-4d66-a35c-18b2ee6d0ee0.html)\n[regulatory-reform] Issues page pledges 'cutting job-killing regulations, keeping taxes down, and actively recruiting new businesses'; self-described 'classic free-market conservative.' (https://davidschweikert.com/issues/)\n[performance-management] Promises budget reform to 'root out waste and fraud'; argues government should use data science and AI-driven efficiencies to improve auditability of business processes and de-obligate wasted funds. (https://schweikert.house.gov/2025/03/11/arizona-congressman-cites-data-as-solution-toward-tackling-reckless-government-spending/)"
+   }
+  ]
+ },
+ {
+  "state": "CA",
+  "primary_date": "2026-06-02",
+  "primary_held": true,
+  "race_rating": "Safe D",
+  "race_type": "open",
+  "candidates": [
+   {
+    "name": "Xavier Becerra",
+    "party": "D",
+    "role": "Former U.S. Secretary of Health and Human Services; former California Attorney General",
+    "status": "primary-winner",
+    "website": "https://www.xavierbecerra2026.com/",
+    "notes": "[regulatory-reform] Pro-housing platform: 90-day mandate for cities/counties to approve or deny building permits; direct state boards/commissions (incl. Coastal Commission) to prioritize housing production; state enforcement incl. fines against cities reneging on housing-element commitments; supports expanding SB 79 and SB 684; statewide impact-fee reform. Critics note he touted using CEQA to block a San Diego project as AG. (https://cayimby.org/blog/on-the-race-for-california-governor-an-abundance-of-pro-housing-candidates/)\n[regulatory-reform] Campaigned on declaring a state of emergency to cut through red tape strangling new construction (final gubernatorial debate). (https://www.realclearpolitics.com/articles/2026/05/15/becerra_feels_the_heat_in_final_governors_debate_154127.html)\n[digital-government] Priorities page has an AI plank framed around economic distribution ('AI should broaden opportunity, not concentrate it'), not government IT modernization; no explicit digital-government agenda found. (https://www.xavierbecerra2026.com/priorities/)\n[performance-management] On homelessness: 'We have spent billions, and the results are not good enough... a reason to govern differently' \u2014 an outcomes-accountability framing without a detailed performance-management mechanism. (https://www.xavierbecerra2026.com/priorities/)"
+   },
+   {
+    "name": "Steve Hilton",
+    "party": "R",
+    "role": "Former Fox News host",
+    "status": "primary-winner",
+    "website": "https://stevehiltonforgovernor.com/",
+    "notes": "founder of Golden Together; former chief strategy adviser to UK PM David Cameron; author of 'Califailure' (2025)\n[regulatory-reform] Centerpiece agenda: sunset the entire regulatory code so rules expire unless explicitly renewed (cites Idaho's ~95% reduction); regulatory budgets requiring agencies to eliminate rules before adding new ones; 'permit paybacks' refunding fees for late permit processing; CEQA reform incl. barring private CEQA lawsuits via ballot initiative and capping builder impact fees. (https://stevehiltonforgovernor.com/)\n[civil-service] Proposes cutting 'bloat and bureaucracy,' streamlining duplicative agencies, and attacks government unions and pension costs; as Cameron's strategy director his final memo advocated severely reducing civil servant headcount and benefits. (https://en.wikipedia.org/wiki/Steve_Hilton)\n[digital-government] Policy page 'Keep California the AI Capital of the World': light-touch AI regulation, government's role is 'preparing people\u2014not controlling technology'; oriented to the AI industry rather than state IT modernization. (https://stevehiltonforgovernor.com/policy/keep-california-the-ai-capital-of-the-world/)\n[performance-management] Outcomes-transparency agenda in education: 'A grade for every school, a grade for every teacher,' framing California's results as a management failure rather than a resource shortage. (https://stevehiltonforgovernor.com/)"
+   }
+  ]
+ },
+ {
+  "state": "CO",
+  "primary_date": "2026-06-30",
+  "primary_held": true,
+  "race_rating": "Safe D",
+  "race_type": "open",
+  "candidates": [
+   {
+    "name": "Phil Weiser",
+    "party": "D",
+    "role": "Colorado Attorney General (since 2019)",
+    "status": "primary-winner",
+    "website": "https://philforcolorado.com/",
+    "notes": "[regulatory-reform] Day-one executive order commitment: EO requiring all executive-branch rulemakings to follow principles of necessity, understandability, ability to comply, transparency, and avoiding excess, plus a 'rigorous regulatory review' explicitly modeled on Gov. Hickenlooper's 2012 EO D 2012-002 (update, eliminate outdated, repeal unnecessary rules). Pledges cost-benefit analysis for proposed rules and small-business exemptions, citing his Colorado Privacy Act rulemaking as AG. (https://philforcolorado.com/serving-people-a-government-that-works-for-coloradans/)\n[regulatory-reform] Housing permitting reform: day-one EO to streamline housing programs and eliminate redundancies; appoint a Chief Housing Officer; 'all-out government review of housing programs to identify red tape'; speed permitting and partner with local governments to lower fees for homes under $600,000; goal of 40,000 attainable homes; supports eliminating parking minimums and allowing ADUs. (https://coloradonewsline.com/2025/11/14/weiser-permitting-renter-protections-housing-plan/)\n[regulatory-reform] Regulatory philosophy: 'regulations should be treated like cooking with garlic: just enough and not more than you need'; Colorado Blueprint pledges reviewing all regulations on costs and benefits and removing unnecessary burdens, streamlined childcare-provider licensing, a Business Navigator for entrepreneurs, and rejecting one-size-fits-all rules for rural Colorado. Won the primary over Sen. Michael Bennet by ~10 points (AP call June 30). (https://coloradosun.com/2026/06/02/michael-bennet-phil-weiser-colorado-governor-democratic-primary-issue-guide/)\n[performance-management] Day-one EO: any taxpayer who contacts a state agency must receive a response within 48 hours. Would create a state operations and performance-management team in the Governor's Office, a Colorado Innovation Team led by a Chief Innovation Officer, a Program Evaluation and Responsiveness Team, updated procurement processes, and partnership with the State Auditor's fraud hotline using the Colorado False Claims Act. (https://philforcolorado.com/weiser-will-lead-state-government-to-be-innovative-and-get-results-for-coloradans/)\n[civil-service] Commits that state hiring will 'prioritize merit, experience, and qualifications\u2014not partisanship'; pledges regular dialogue with Colorado WINS (classified state-employee union) on recruitment, training, and retention; additional day-one EOs on tribal sovereignty and requiring agencies to consult local elected leaders before acting. (https://philforcolorado.com/serving-people-a-government-that-works-for-coloradans/)\n[digital-government] Blueprint 'Technology for Good' plank: use technology to improve agency response times, find operational efficiencies, cut costs, protect consumer data; complete statewide broadband buildout. On AI: called the Colorado AI Act (SB24-205) 'really problematic' and in April 2026 agreed to pause enforcement/rulemaking amid the xAI-DOJ lawsuit pending legislative replacement, while co-leading 40 bipartisan AGs against a federal 10-year preemption of state AI regulation. (https://statescoop.com/colorado-ag-delaying-ai-law-xai-lawsuit/)"
+   },
+   {
+    "name": "Michael Bennet",
+    "party": "D",
+    "role": "U.S. Senator from Colorado (since 2009)",
+    "status": "defeated",
+    "website": "https://www.michaelbennet.com/",
+    "notes": "former Denver Public Schools superintendent; lost Democratic primary to Weiser by ~10 points\n[regulatory-reform] Emphasized 'reducing the regulatory burden so that we can make childcare less expensive' and incentive/disincentive systems on housing density; ran less on regulatory reform than Weiser, framing his case around a state 'budget in crisis' and his managerial record (DPS superintendent, Denver budget). (https://coloradosun.com/2026/06/02/michael-bennet-phil-weiser-colorado-governor-democratic-primary-issue-guide/)"
+   },
+   {
+    "name": "Victor Marx",
+    "party": "R",
+    "role": "Founder of All Things Possible Ministries (Colorado Springs nonprofit)",
+    "status": "primary-winner",
+    "website": "https://www.victor2026.com/",
+    "notes": "Marine Corps veteran; first-time candidate; apparent GOP nominee (uncertified, leads Kirkmeyer by ~2,116 votes as of July 6)\n[regulatory-reform] Favors a regulatory freeze and streamlined permitting via a 'one-stop shop' with a 90-day consideration limit and automatic approval if deadlines expire; wants regulations eliminated to enable 150,000 new homes through expedited permits; data centers should be regulated 'but not strangled.' (https://www.washingtonexaminer.com/news/campaigns/state/4624093/who-is-victor-marx-colorado-republican-governor/)\n[performance-management] Says his first executive order would authorize 'a full audit of state agencies to stop spending'; promises expansive agency audits and an immediate 10% spending cut at every state agency; pledges to strengthen TABOR. (https://www.washingtonexaminer.com/news/campaigns/state/4624093/who-is-victor-marx-colorado-republican-governor/)"
+   },
+   {
+    "name": "Barbara Kirkmeyer",
+    "party": "R",
+    "role": "Colorado State Senator (Weld County)",
+    "status": "major-contender",
+    "website": null,
+    "notes": "former Weld County commissioner; trails Marx by ~2,116 votes in the uncertified GOP primary count, race not formally called"
+   }
+  ]
+ },
+ {
+  "state": "CT",
+  "primary_date": "2026-08-11",
+  "primary_held": false,
+  "race_rating": "Safe D",
+  "race_type": "incumbent-running",
+  "candidates": [
+   {
+    "name": "Ned Lamont",
+    "party": "D",
+    "role": "Governor of Connecticut (2019-present)",
+    "status": "incumbent",
+    "website": null,
+    "notes": "confirmed running, filed for a third term Nov 7, 2025\n[digital government / IT modernization] Built an 'all-digital government' with digital front doors (business.ct.gov, health.ct.gov, jobs.ct.gov); CT earned a second consecutive A- from the Center for Digital Government and ranked first nationally in DMV/transportation digital services (https://portal.ct.gov/governor/news/press-releases/2024/09-2024/governor-lamont-announces-connecticut-receives-national-recognition-in-digital-government-excellence)\n[regulatory / permitting reform] January 2026 executive order overhauling state licensing, certification, and permitting: agencies must review processes, improve response times, and move more license/permit applications online (https://portal.ct.gov/governor/news/press-releases/2026/01-2026/governor-lamont-signs-executive-order-to-improve-state-licensing)\n[AI in government / AI regulation] Blocked broad AI regulation with a 2025 veto threat over innovation concerns, then struck a deal with Sen. James Maroney on a narrowed SB 5 (passed May 2026, Public Act 26-15) he agreed to sign (https://ctmirror.org/2026/05/01/artificial-intelligence-house-regulation-passage-ct/)\n[civil service & state workforce] Delivered April 2026 SEBAC wage agreements covering ~45,000 unionized state employees; labor leaders said raises would help recruit to understaffed agencies (https://ctmirror.org/2026/04/13/lamont-delivers-pledged-raises-to-ct-state-employees/)\n[civil service & state workforce] Centralized HR into a unified DAS-led model ahead of a retirement wave; launched a graduate training program whose cohorts helped DAS reach record staffing levels (https://portal.ct.gov/das/knowledge-base/articles/das-success-stories/five-years-forward---how-connecticut-transformed-hr)"
+   },
+   {
+    "name": "Josh Elliott",
+    "party": "D",
+    "role": "Connecticut State Representative, 88th District (Hamden)",
+    "status": "major-contender",
+    "website": "https://www.joshforct.com/",
+    "notes": "progressive primary challenger to Lamont\n[civil service & state workforce] Proposes a state income tax credit covering 100% of union dues and a Labor Liaison in the Governor's office; endorsed by state employee unions (https://www.joshforct.com/platform)"
+   },
+   {
+    "name": "Ryan Fazio",
+    "party": "R",
+    "role": "Connecticut State Senator (Greenwich)",
+    "status": "presumptive-nominee",
+    "website": "https://www.ryanfazio.com/",
+    "notes": "won GOP convention endorsement May 16, 2026 with ~92% of delegates after Erin Stewart and Betsy McCaughey exited\n[regulatory reform (energy)] Signature plan to cut electricity bills ~20% by eliminating the public benefits charge (~20% of Eversource bills), moving policy costs off ratepayers, and strengthening utility regulatory oversight (https://ctmirror.org/2026/02/02/ryan-fazio-campaign-policy-pitch-promises-cheaper-electricity/)\n[permitting / housing] Wants to preserve local zoning control while making it easier for property owners to add housing units, paired with property tax reform and a property tax cap (https://www.ctpublic.org/news/2026-07-01/ct-gubernatorial-candidates-share-housing-affordability-priorities)"
+   }
+  ]
+ },
+ {
+  "state": "FL",
+  "primary_date": "2026-08-18",
+  "primary_held": false,
+  "race_rating": "Safe R",
+  "race_type": "open",
+  "candidates": [
+   {
+    "name": "Byron Donalds",
+    "party": "R",
+    "role": "U.S. Representative, FL-19; Trump-endorsed GOP frontrunner (~$90M raised)",
+    "status": "major-contender",
+    "website": "https://byrondonalds.com/",
+    "notes": "[performance] 'Most Transparent Government in America' plan: continue and expand Florida DOGE-style forensic audits at state and local level, built on Audits, Accountability, and Access; pledges to keep 'DOGE-ing' every form of government in Florida. (https://byrondonalds.com/byron-donalds-unveils-plan-to-make-florida-the-most-transparent-government-in-america/)\n[digital] Transparency plan includes one centralized, searchable online database where taxpayers can view government contracts, employee salaries, budgets, audits, and spending records from every county, city, and special district. (https://byrondonalds.com/byron-donalds-unveils-plan-to-make-florida-the-most-transparent-government-in-america/)\n[regulatory] 'Florida Means Business' permitting-reform platform aimed at cutting red tape that slows private investment and infrastructure ('two to three years to put a shovel in the ground... adds to overall costs'); Florida Chamber of Commerce endorsement. (https://flvoicenews.com/florida-chamber-of-commerce-backs-byron-donalds-for-governor-citing-pro-business-record/)\n[digital] Pro-AI infrastructure: argued Florida should 'embrace' AI data centers ('If Florida does not lead, California will'), paired in June-July 2026 ads with a 'ratepayer protection plan' so taxpayers don't foot data-center utility costs. (https://floridapolitics.com/archives/781341-ai-donalds-byron/)"
+   },
+   {
+    "name": "James Fishback",
+    "party": "R",
+    "role": "Founder/CEO of investment firm Azoria",
+    "status": "major-contender",
+    "website": "https://fishback2026.com/",
+    "notes": "populist insurgent, second in June 2026 AIF GOP poll at 8%\n[performance] 'DOGE Florida' plan: full audit of local and state government spending to eliminate waste, redundancy, and bloat; previously proposed the federal 'DOGE Dividend' (returning 20% of DOGE savings to taxpayers). (https://fishback2026.com/)\n[digital] Hard opponent of AI data centers: pledges to block any data center that raises electricity bills ('I will not allow *any data centers* to be built that drive up your electricity bill'). (https://www.wflx.com/2025/11/24/james-fishback-launches-run-florida-governor-calls-byron-donalds-slave-donors/)"
+   },
+   {
+    "name": "Jay Collins",
+    "party": "R",
+    "role": "Lieutenant Governor of Florida (DeSantis-appointed, Aug 2025)",
+    "status": "major-contender",
+    "website": "https://www.jayforflorida.com/",
+    "notes": "former state senator and Green Beret\n[regulatory] Platform centers on deregulation and cutting red tape: 'low taxes, less red tape, more opportunity \u2014 and manufacturing brought back home to Florida'; says cutting red tape 'means deregulation, where possible.' (https://jayforflorida.com/issues)\n[workforce] Wants to align the state education system more closely with workforce needs and expand access to the trades as governor. (https://www.wusf.org/politics-issues/2026-03-13/florida-matters-lt-gov-jay-collins-talks-2026-governors-race)"
+   },
+   {
+    "name": "Paul Renner",
+    "party": "R",
+    "role": "Former Speaker of the Florida House (2022-2024); polling ~2%",
+    "status": "major-contender",
+    "website": "https://voterenner.com/",
+    "notes": "[digital] Runs counter to Donalds on AI infrastructure: key issues include blocking construction of AI data centers, alongside eliminating property taxes and fighting corruption. (https://ballotpedia.org/Paul_M._Renner)\n[regulatory] Campaign rooted in affordability and conservative reforms \u2014 property tax relief, insurance litigation reform \u2014 extending the 'Free State of Florida' agenda he passed as Speaker. (https://www.wflx.com/2025/09/03/paul-renner-launches-2026-florida-governor-bid-pledges-defend-free-state/)"
+   },
+   {
+    "name": "David Jolly",
+    "party": "D",
+    "role": "Former Republican U.S. Representative, FL-13 (2014-2017), now Democrat",
+    "status": "presumptive-nominee",
+    "website": "https://davidjolly.com/",
+    "notes": "running mate Gwen Graham\n[performance] Sweeping state ethics and campaign finance reform package committed to transparency and 'protecting Florida taxpayers from legalized graft in Tallahassee'; calls Florida's ethics rules among the weakest in the nation. (https://davidjolly.com/issues/)\n[workforce] Endorsed by the Florida Education Association (educators and school workers' union), signaling pro-public-workforce/labor alignment in contrast to the GOP field. (https://feaweb.org/release/educators-workers-endorse-david-jolly-for-florida-governor/)\n[regulatory] Centerpiece structural reform is a state catastrophic insurance fund removing natural-disaster perils from the private market to cut property and auto insurance rates \u2014 state intervention rather than deregulation. (https://davidjolly.com/issues/)"
+   }
+  ]
+ },
+ {
+  "state": "GA",
+  "primary_date": "2026-05-19",
+  "primary_held": true,
+  "race_rating": "Toss-up",
+  "race_type": "open",
+  "candidates": [
+   {
+    "name": "Rick Jackson",
+    "party": "R",
+    "role": "Businessman; founder/chairman of Jackson Healthcare",
+    "status": "primary-winner",
+    "website": "https://rickjackson.com/",
+    "notes": "[digital-government] Action Plan pledges to 'use technology and AI to eliminate wasteful spending and improve services' in state government. (https://rickjackson.com/action-plan/)\n[performance-management] Action Plan: audit every government program for results and effectiveness, eliminate programs that don't work, 'make clear what success looks like \u2014 and enforce it'; runs as a results-focused business outsider. (https://rickjackson.com/action-plan/)"
+   },
+   {
+    "name": "Keisha Lance Bottoms",
+    "party": "D",
+    "role": "Former Mayor of Atlanta (2018-2022); former Biden White House senior advisor",
+    "status": "primary-winner",
+    "website": "https://www.keishaforgovernor.com/",
+    "notes": "[regulatory-reform] Housing plank proposes a 'Georgia Housing Fast Track' initiative to streamline permitting and improve coordination. (https://www.keishaforgovernor.com/issues)"
+   }
+  ]
+ },
+ {
+  "state": "HI",
+  "primary_date": "2026-08-08",
+  "primary_held": false,
+  "race_rating": "Safe D",
+  "race_type": "incumbent-running",
+  "candidates": [
+   {
+    "name": "Josh Green",
+    "party": "D",
+    "role": "Incumbent Governor of Hawaii (2022-present)",
+    "status": "incumbent",
+    "website": "https://joshgreenforhawaii.com",
+    "notes": "confirmed running, filed for re-election to a 2nd term; faces only minor Democratic primary opponents\n[regulatory/permitting reform] Rolling series of affordable-housing emergency proclamations (18th issued March 16, 2026) suspending state and county land use, historic preservation, and environmental review laws to speed housing construction; created a lead housing officer and 'Build Beyond Barriers' working group (https://governor.hawaii.gov/emergency-proclamation-relating-to-housing/)\n[regulatory/permitting reform] Emergency proclamation power under legal challenge; Hawaii Supreme Court weighing whether to curb the governor's authority to suspend laws after 90+ proclamations in under three years (https://www.civilbeat.org/2025/05/will-hawai%CA%BBis-supreme-court-curb-governors-power-to-suspend-laws/)\n[regulatory/permitting reform (Maui rebuild)] Feb 2025 emergency proclamation waived Special Management Area permits for Lahaina rebuilds, cutting roughly a year off permitting for 600+ burned structures (https://www.hawaiipublicradio.org/local-news/2025-02-12/lahaina-structures-can-be-rebuilt-faster-with-new-permitting-policy)\n[regulatory/permitting reform (Maui rebuild)] Legislature passed HB1823 (2026) exempting government infrastructure projects in Maui County from Special Management Area review when environmental effects are minimal, extending rebuild streamlining into statute (https://www.grassrootinstitute.org/2026/05/legislature-oks-bill-to-help-speed-up-infrastructure-repairs-in-lahaina/)\n[civil service & state workforce] Launched Operation Hire Hawaii (Feb 2025) to fast-track workers displaced by federal DOGE cuts into state jobs, targeting ~4,020 civil service and ~1,005 executive branch vacancies; 3,000+ applications received (https://governor.hawaii.gov/main/state-launches-operation-hire-hawaii-to-fill-vacant-positions/)\n[digital government / IT modernization] Signed the Hawaii State IT Strategic Plan 2025, including modernizing IT job classifications and pay scales, upskilling, and long-term IT workforce planning (https://ets.hawaii.gov/wp-content/uploads/2024/12/Hawaii-IT-Strategic-Plan-2025-part-1-signed.pdf)\n[digital government / performance] Hawaii named an overall winner in the Center for Digital Government's 2025 Government Experience Awards, cited for cautious, people-first adoption of AI in service delivery (https://governor.hawaii.gov/main/state-of-hawai%CA%BBi-named-an-overall-winner-in-the-2025-government-experience-awards/)\n[AI in government] Backed the 4th annual Hawaii AI & Cloud Innovation Summit (Sept 10, 2025, with Google Public Sector) on AI transforming government operations; Green: 'AI has the potential to significantly improve the way we work, serve and grow' (https://dbedt.hawaii.gov/blog/25-29/)"
+   },
+   {
+    "name": "Gary Cordery",
+    "party": "R",
+    "role": "General contractor and Christian Coalition activist",
+    "status": "major-contender",
+    "website": "https://www.garycorderyforgovernor.com/",
+    "notes": "2022 gubernatorial candidate; leading declared Republican in the Aug 8 primary (Duke Aiona and BJ Penn are not running in 2026)\n[performance & accountability] Proposes a 'Government Transparency Office' making state spending, contracts, and decisions publicly visible; pledges to eliminate 'entitlement, nepotism, and back room deal making' (https://www.garycorderyforgovernor.com/vision)\n[housing / cost of living] Platform centers 'housing locals can afford' and cost-of-living relief; as a builder emphasizes reducing housing barriers, but publishes no detailed permitting, licensing, or civil-service reform plan (https://www.garycorderyforgovernor.com/vision)"
+   },
+   {
+    "name": "Ken Fujiyama",
+    "party": "R",
+    "role": "Republican primary candidate; minimal public profile (Facebook presence only)",
+    "status": "major-contender",
+    "website": null,
+    "notes": null
+   }
+  ]
+ },
+ {
+  "state": "IA",
+  "primary_date": "2026-06-02",
+  "primary_held": true,
+  "race_rating": "Toss-up",
+  "race_type": "open",
+  "candidates": [
+   {
+    "name": "Zach Lahn",
+    "party": "R",
+    "role": "Businessman and farmer",
+    "status": "primary-winner",
+    "website": "https://www.zachlahn.com/",
+    "notes": "founder of Homeplace Ventures; former Koch-network political operative\n[regulatory-reform] Policy page proposes education 'Innovation Zones' freeing superintendents, principals, and teachers from bureaucratic constraints; no broader permitting/licensing platform found. (https://www.zachlahn.com/policy)\n[performance-management] Ties property-tax burden to government spending and calls for stronger local budget limits; self-funded outsider pitch. (https://siouxcountyradio.com/local-news/road-to-iowa-governor-2026-zach-lahn-outlines-priorities/)"
+   },
+   {
+    "name": "Rob Sand",
+    "party": "D",
+    "role": "Iowa State Auditor (since 2019)",
+    "status": "primary-winner",
+    "website": "https://robsand.com/",
+    "notes": "[performance-management] Created the PIE (Public Innovations and Efficiencies) program rewarding fiscal efficiency in local governments (all 99 counties participate; copied by Mississippi's GOP auditor); 'Accountability for All' plank would make PIE mandatory for all state agencies, restore the Auditor's full document-access powers, and impose mandatory prison plus contract bans for theft of $10,000+ in taxpayer funds. (https://robsand.com/issues/accountability-for-all/)\n[civil-service] Proposes expanding whistleblower protections beyond state employees to all Iowans to encourage reporting of government waste and fraud. (https://robsand.com/issues/accountability-for-all/)\n[performance-management] 'Truer Better Agenda' includes ethics rules with criminal rather than administrative penalties (stock-trading ban, blind trusts, quarterly disclosures); ran a 100-town-hall government-reform tour across all 99 counties. (https://robsand.com/news/the-truer-better-agenda-rob-sand-launches-accountability-for-all-plan-to-help-fix-broken-political-system-and-prioritize-public-service/)"
+   }
+  ]
+ },
+ {
+  "state": "ID",
+  "primary_date": "2026-05-19",
+  "primary_held": true,
+  "race_rating": "Safe R",
+  "race_type": "incumbent-running",
+  "candidates": [
+   {
+    "name": "Brad Little",
+    "party": "R",
+    "role": "Governor of Idaho (incumbent, first elected 2018; won 2026 primary for a third term)",
+    "status": "incumbent",
+    "website": "https://bradlittleforidaho.com",
+    "notes": "[regulatory/permitting reform] 2019 'Red Tape Reduction Act' executive order required agencies to repeal or simplify two rules for every new rule, paired with a 'Licensing Freedom Act' on occupational licensing; his office claims Idaho became the least-regulated state in the nation, cutting or simplifying over 95% of regulations and shrinking the administrative code from 8,553 to 5,318 pages. (https://gov.idaho.gov/cutting-red-tape/)\n[regulatory/permitting reform (zero-based regulation)] Executive Order 2020-01 'Zero-Based Regulation' requires agencies to justify each rule line-by-line on a rolling review cycle (~20% of rule chapters per year); the Legislature made zero-based regulation permanent in statute in 2023 with mandatory eight-year reviews. (https://gov.idaho.gov/wp-content/uploads/2020/01/eo-2020-01.pdf)\n[civil service & state workforce] Recommended 5% ($1.55/hr) raises for state employees in the 2025 session, but his FY2027 budget included no pay adjustment for ~25,000 state employees amid a projected $600M-$1B shortfall, while employee out-of-pocket health insurance costs rise ~7.3%. (https://idahocapitalsun.com/2026/01/14/idaho-state-employees-likely-not-to-see-raise-amid-increasing-health-care-costs/)\n[digital government / AI] Signed Senate Bill 1227 (March 2026) making Idaho one of the first ~5 states to put AI guidelines for K-12 education into law, directing a statewide generative-AI framework (standards, teacher training, safety, data security, human oversight) with a public-private partnership involving Micron, Microsoft, Stukent, and Idaho National Laboratory. (https://www.krem.com/article/news/local/idaho/idaho-governor-law-ai-literacy-standards-k-12-schools/293-14dbdea5-11fd-48ad-abdc-01e7967e7019)"
+   },
+   {
+    "name": "Terri Pickens",
+    "party": "D",
+    "role": "Attorney (founding partner, Pickens Law, Boise)",
+    "status": "primary-winner",
+    "website": "https://www.terriforidaho.com/",
+    "notes": "2022 Democratic nominee for lieutenant governor\n[performance/outcomes management (budget reform)] Campaigning on 'budget reform': says she will 'walk into the office with a proposal for a balanced budget' restoring revenue 'given away in tax cuts to the very wealthy and the corporations'; no specific KPI, workforce, or regulatory-process proposals found. (https://www.byui.edu/radio/local-news/democratic-candidate-terri-pickens-outlines-plan-for-budget-reform-ahead-of-primary)"
+   }
+  ]
+ },
+ {
+  "state": "IL",
+  "primary_date": "2026-03-17",
+  "primary_held": true,
+  "race_rating": "Safe D",
+  "race_type": "incumbent-running",
+  "candidates": [
+   {
+    "name": "JB Pritzker",
+    "party": "D",
+    "role": "Incumbent Governor of Illinois (2019-present)",
+    "status": "incumbent",
+    "website": "https://jbpritzker.com/",
+    "notes": "won the March 17, 2026 Democratic primary unopposed (1,197,587 votes), seeking a third term with running mate Christian Mitchell, despite 2028 presidential speculation\n[digital government / AI in government] Illinois Generative AI and Natural Language Processing Task Force (Public Act 103-0451) issued its December 2024 report on leveraging AI to improve public services, workforce preparation for AI, and state cybersecurity (https://doit.illinois.gov/content/dam/soi/en/web/doit/meetings/ai-taskforce/reports/20241220-gen-ai-task-force-report.pdf)\n[AI regulation] Signed AI laws regulating AI in mental health care (HB 1806), employment decisions (HB 3773), and community college instruction; his office called Trump's December 2025 executive order preempting state AI laws 'unlawful' and 'a blatant federal overreach' (https://capitolnewsillinois.com/news/illinois-leaders-wont-back-down-following-trumps-order-limiting-ai-regulation/)\n[occupational licensing / IT modernization] IDFPR rolled out first phase of professional-licensing modernization, replacing outdated software to streamline license applications and renewals; administration also revived the dormant sunset review process for occupational licensing laws (https://www.nprillinois.org/illinois/2024-12-02/illinois-rolls-out-first-phase-of-plan-to-modernize-professional-licensing)\n[occupational licensing reform] Approved four laws reducing licensing restrictions (family therapy, speech language pathology, landscape architecture, real estate); CLIMB Task Force study recommended further reforms to reduce barriers for low-to-moderate-income occupations (https://www.illinoispolicy.org/4-new-occupational-licensing-laws-remove-barriers-in-illinois/)\n[regulatory / permitting reform] Signed legislation amending the Business Assistance and Regulatory Reform Act to increase transparency of the state permitting process by consolidating agency status updates for covered projects (https://www.illinois.gov/news/press-release.26878.html)\n[civil service & state workforce] Signed Executive Order 2026-03 (March 13, 2026) establishing a State Attainment Working Group on workforce/training needs with a credential-attainment goal due December 1, 2026; earlier launched initiatives to strengthen state agency hiring, recruitment, and retention (https://www.illinois.gov/government/executive-orders/executive-order.executive-order-2026-03.2026.html)"
+   },
+   {
+    "name": "Darren Bailey",
+    "party": "R",
+    "role": "Former Illinois State Senator (55th district, 2021-2023)",
+    "status": "primary-winner",
+    "website": "https://baileyforillinois.com/",
+    "notes": "2022 GOP nominee; won the March 17, 2026 Republican primary with 54%, setting up the first Illinois gubernatorial rematch since 1986; running mate Aaron Del Mar\n[performance & outcomes / spending accountability] Platform pledges to 'cut wasteful government spending,' 'rein in government waste, demand accountability'; frames Illinois as having 'a spending problem, not a revenue problem'; pledges to remove 'bureaucratic barriers' in education (https://baileyforillinois.com/issues/)\n[digital government / AI] Campaign has embraced AI tools in its 2026 operations per Capitol News Illinois (campaign use, not a stated state-government AI policy) (https://capitolnewsillinois.com/news/bailey-campaign-embraces-artificial-intelligence-in-new-era-of-politics/)"
+   },
+   {
+    "name": "Ted Dabrowski",
+    "party": "R",
+    "role": "Former president of Wirepoints",
+    "status": "defeated",
+    "website": "https://tedforillinois.com/",
+    "notes": "former VP of Illinois Policy Institute; lost the March 17, 2026 Republican primary to Bailey\n[regulatory reform / red tape] Pledged to 'slash the state's red tape,' citing Illinois' 280,000 regulations (4th-most nationally) as burdensome on small businesses; called for comprehensive repeal of unfunded state mandates on local governments (https://tedforillinois.com/teds-platform/)\n[civil service & state workforce (pensions)] Proposed ending defined-benefit pensions for new government hires in favor of a defined-contribution 401k-style plan modeled on the Illinois public university option; also proposed workers' compensation reform (https://tedforillinois.com/teds-platform/)"
+   },
+   {
+    "name": "Collin Corbett",
+    "party": "I",
+    "role": "Former Republican campaign strategist",
+    "status": "major-contender",
+    "website": null,
+    "notes": "filed May 2026 to run for governor as an independent; running mate Carolyn Schofield"
+   }
+  ]
+ },
+ {
+  "state": "KS",
+  "primary_date": "2026-08-04",
+  "primary_held": false,
+  "race_rating": "Lean R",
+  "race_type": "open",
+  "candidates": [
+   {
+    "name": "Ty Masterson",
+    "party": "R",
+    "role": "President of the Kansas Senate",
+    "status": "major-contender",
+    "website": "https://www.mastersonforgovernor.com/",
+    "notes": "[regulatory-reform] 'Bring Back Kansas Jobs' plank pledges to 'cut red tape, and make Kansas open for business again'; endorsed by President Trump and Sen. Roger Marshall. (https://www.mastersonforgovernor.com/)"
+   },
+   {
+    "name": "Scott Schwab",
+    "party": "R",
+    "role": "Kansas Secretary of State",
+    "status": "major-contender",
+    "website": "https://scottschwab.com/",
+    "notes": "[digital-government] Says 'all of state government is filled with clunky systems'; proposes IT modernization so tax cuts are funded 'by making government more efficient through technology'; touts modernizing SOS business filing systems. (https://themercury.com/news/schwab-i-want-to-do-governor-modernize-state-agencies/article_a5ff1ce0-4c15-462a-ac2e-06a2d00583c8.html)\n[regulatory-reform] Proposes a centralized statewide system for business licensing and permits; pledges to 'cut regulations that burden our businesses'. (https://scottschwab.com/)\n[performance-management] J.E.A.N.S. agenda frames efficiency gains from agency modernization as the margin that pays for spending and tax cuts. (https://themercury.com/news/schwab-i-want-to-do-governor-modernize-state-agencies/article_a5ff1ce0-4c15-462a-ac2e-06a2d00583c8.html)"
+   },
+   {
+    "name": "Vicki Schmidt",
+    "party": "R",
+    "role": "Kansas Insurance Commissioner",
+    "status": "major-contender",
+    "website": "https://vickiforgovernor.com/",
+    "notes": "[performance-management] Campaign centers a 'customer-oriented approach to government' showing 'how efficiencies can become realities': cites finding Kansas Medical Assistance Program errors and an efficiency plan credited with $391M recouped; as Insurance Commissioner cites lowering business costs by $96M and returning $206M to Kansans. (https://vickiforgovernor.com/)"
+   },
+   {
+    "name": "Cindy Holscher",
+    "party": "D",
+    "role": "Kansas State Senator (8th district)",
+    "status": "major-contender",
+    "website": "https://cindyforkansas.com/",
+    "notes": "[civil-service] Supports repealing Kansas's right-to-work law and paid sick time protections; 'Making Government Work for The People' plank focuses on structural reforms (independent redistricting, campaign finance limits). (https://cindyforkansas.com/priorities/)"
+   },
+   {
+    "name": "Ethan Corson",
+    "party": "D",
+    "role": "Kansas State Senator (7th district); former Kansas Democratic Party executive director",
+    "status": "major-contender",
+    "website": "https://ethanforkansas.com/",
+    "notes": "[digital-government] Wants to explore using technology in state agencies to cut costs and make government and health systems more efficient; endorsed by Gov. Laura Kelly and Lt. Gov. David Toland. (https://www.krps.org/kansas-news/2026-04-09/corson-running-for-kansas-governor-on-reputation-as-a-moderate-bipartisan-state-senator)\n[performance-management] Pledges to cut millions from the budget via line-item vetoes, criticizing last-minute spending passed without hearings or vetting. (https://www.krps.org/kansas-news/2026-04-09/corson-running-for-kansas-governor-on-reputation-as-a-moderate-bipartisan-state-senator)"
+   },
+   {
+    "name": "Curt Skoog",
+    "party": "D",
+    "role": "Mayor of Overland Park (since 2021)",
+    "status": "major-contender",
+    "website": "https://curtskoog.com/",
+    "notes": null
+   }
+  ]
+ },
+ {
+  "state": "MA",
+  "primary_date": "2026-09-01",
+  "primary_held": false,
+  "race_rating": "Safe D",
+  "race_type": "incumbent-running",
+  "candidates": [
+   {
+    "name": "Maura Healey",
+    "party": "D",
+    "role": "Governor of Massachusetts (since 2023); former MA Attorney General",
+    "status": "incumbent",
+    "website": null,
+    "notes": "[workforce] Signed executive order instituting skills-based hiring across state agencies, removing degree requirements from ~90% of state job postings and requiring hiring-manager training on skills-first postings and interviews. (https://www.mass.gov/news/governor-healey-signs-executive-order-directing-state-agencies-to-institute-skills-based-hiring)\n[workforce] Administration touts progress on a broader state workforce agenda (skills-first hiring, MassSkills Coalition employer toolkit to assess, hire, train, upskill and retain talent). (https://www.mass.gov/news/healey-driscoll-administration-highlights-significant-progress-on-state-workforce-agenda)\n[regulatory] Unveiled 'nation-leading' plan cutting environmental regulations to fast-track housing: draft rules shrink MEPA environmental review for housing projects from 1+ year to 30 days. (https://www.mass.gov/news/governor-healey-unveils-nation-leading-plan-to-cut-environmental-regulations-to-fast-track-housing-development)\n[regulatory] Filed the Mass Ready Act (June 2025) streamlining permitting for priority housing and restoration projects \u2014 cuts redundant reviews and guarantees Chapter 91 licenses within 60 days. (https://www.mass.gov/info-details/mass-ready-act)\n[regulatory] Signed 2024 Climate Act with comprehensive reform of clean-energy siting and permitting processes, following her Commission on Energy Infrastructure Siting and Permitting. (https://www.mass.gov/info-details/development-of-the-siting-and-permitting-reforms-for-energy-infrastructure)\n[digital] Signed EO 629 creating a 25-member AI Strategic Task Force to guide AI adoption in government and the state economy. (https://www.mass.gov/news/governor-healey-signs-executive-order-establishing-artificial-intelligence-ai-strategic-task-force)\n[digital] Launched the Massachusetts AI Hub (Dec 2024), sought $100M for applied AI plus $31M for high-performance computing, hired the Hub's first executive director, and struck a statewide Google partnership for free AI training for residents. (https://www.mass.gov/news/governor-healey-advances-states-ai-leadership-with-major-investments-in-massachusetts-ai-hub)\n[digital] Maintains an 'Artificial Intelligence at the Commonwealth' governance program for AI use inside state government; announced an OpenAI partnership at an AI coalition launch (Feb 2026). (https://www.mass.gov/artificial-intelligence-at-the-commonwealth)"
+   },
+   {
+    "name": "Michael Minogue",
+    "party": "R",
+    "role": "Former Chairman, President and CEO of Abiomed",
+    "status": "major-contender",
+    "website": "https://minogueforma.com/",
+    "notes": "Army veteran; won 70.4% of delegates at the April 2026 MassGOP convention\n[performance] Brands himself 'the common-sense, auditing, doing-math candidate'; backed the 2024 ballot measure (72% approval, now law) empowering the state auditor to audit the Legislature; pledges to run the state with the results-focused approach he used at Abiomed. (https://www.wbur.org/news/2025/11/25/massachusetts-governor-candidate-mike-minogue)\n[performance] Campaign principles include 'respect taxpayers through transparency and audits' and avoiding overspending; critiques one-party government and offers a 'Blueprint for Massachusetts'. (https://minogueforma.com/)\n[regulatory] Business-outsider pitch: says he will manage Massachusetts like he ran Abiomed and protect state industries (life sciences, manufacturing) \u2014 efficiency/competitiveness framing rather than specific licensing proposals. (https://www.wbur.org/news/2026/04/13/mass-republican-governor-candidate-mike-minogue-biotech-campaign)"
+   },
+   {
+    "name": "Brian Shortsleeve",
+    "party": "R",
+    "role": "Venture capitalist",
+    "status": "major-contender",
+    "website": "https://brianshortsleeve.com/",
+    "notes": "former MBTA General Manager / Chief Administrator under Gov. Baker; former Marine Corps officer; survived the April 2026 convention with 15.5% to stay in the primary\n[performance] Platform centers on auditing 'every' state agency, cutting spending, taxes and fees, and 'restoring accountability to state government'; cites cutting the MBTA operating deficit nearly in half in nine months as his governing model. (https://www.nbcboston.com/news/politics/at-issue/brian-shortsleeve-governor-massachusetts/3868637/)\n[regulatory] Promises 'cutting taxes, slashing waste and overregulation'; targets business outmigration and high costs. (https://brianshortsleeve.com/)\n[regulatory] Would repeal the MBTA Communities Act (state multifamily zoning mandate) \u2014 anti-mandate stance contrasting with Healey's pro-housing-production permitting reforms. (https://bankerandtradesman.com/new-gop-guv-candidate-wants-to-repeal-mbta-communities/)\n[workforce] Technocratic lean-operations record at the MBTA ('like Bain came to the T'), including squeezing overtime/labor costs; pledges to extend the same leaner-state-workforce model, Medicaid included, across state government. (https://www.bostonglobe.com/2026/04/22/metro/brian-shortsleeve-mbta-massachusetts-governor-republican/)"
+   },
+   {
+    "name": "Mike Kennealy",
+    "party": "R",
+    "role": "Former Secretary of Housing and Economic Development under Gov. Baker",
+    "status": "withdrawn",
+    "website": null,
+    "notes": "suspended his campaign in April 2026 after missing the 15% convention threshold \u2014 no longer running"
+   },
+   {
+    "name": "Andrea James",
+    "party": "I",
+    "role": "Criminal justice reform advocate",
+    "status": "major-contender",
+    "website": null,
+    "notes": "filed as a Democratic challenger to Healey in March 2025 but left the party to run as an independent"
+   }
+  ]
+ },
+ {
+  "state": "MD",
+  "primary_date": "2026-06-23",
+  "primary_held": true,
+  "race_rating": "Safe D",
+  "race_type": "incumbent-running",
+  "candidates": [
+   {
+    "name": "Wes Moore",
+    "party": "D",
+    "role": "Governor of Maryland (since 2023); running with Lt. Gov. Aruna Miller",
+    "status": "incumbent",
+    "website": "https://wesmoore.com/",
+    "notes": "[workforce] Launched streamlined one-application hiring for four hard-to-fill state job categories (HR, procurement, accountants, fiscal techs) and a five-step plan to recruit laid-off federal workers into state government; earlier pledged to cut the ~10,000-position state vacancy backlog. (https://governor.maryland.gov/news/press-releases/governor-moore-announces-additional-employment-support-impacted-federal-workers)\n[workforce] First-term promise to fill 5,000 vacant state positions was publicly scrutinized, keeping state-workforce rebuilding a live second-term issue; reelection campaign touts public-sector union endorsements (MSEA, SEIU Local 500). (https://marylandmatters.org/2023/11/13/effort-to-reduce-vacant-positions-falling-short-of-moores-promise/)\n[regulatory] Dec 2024 economic-competitiveness executive order created the Maryland Coordinated Permitting Review Council (modeled on federal FAST-41), a 'front door' business-licensing review, and a concierge Governor's Office of Business Advancement. (https://governor.maryland.gov/news/press-releases/governor-moore-signs-executive-order-bolster-marylands-economic-competitiveness)\n[regulatory] Launched six permitting-streamlining pilot programs (Aug 2025) under the Coordinated Permitting Review Council to modernize state permitting and licensing processes. (https://statescoop.com/maryland-launches-six-new-pilot-programs-streamline-permitting/)\n[digital] Signed EO 01.01.2024.02 'Catalyzing the Responsible and Productive Use of Artificial Intelligence in Maryland State Government' (Jan 2024), creating an AI subcabinet and action plan, paired with an executive-branch digital-services transformation emphasizing user-centered design. (https://governor.maryland.gov/news/press/pages/governor-moore-announces-action-to-transform-maryland-executive-branch-digital-services.aspx)\n[performance] Unveiled Maryland's first State Plan in nearly a decade with data-driven KPIs, cross-agency Performance Cabinets for each priority, and public KPI progress reporting via the Governor's Office of Performance Improvement starting 2025. (https://governor.maryland.gov/news/press-releases/governor-moore-unveils-state-plan-first-nearly-ten-years-create-measurable-progress-and-make)\n[performance] In Feb 2026 directed his cabinet to overhaul audit-resolution procedures across state agencies, with systematic review of open audit findings and centralized progress tracking. (https://marylandmatters.org/2026/02/05/moore-audit-response/)"
+   },
+   {
+    "name": "Dan Cox",
+    "party": "R",
+    "role": "Attorney; former Maryland State Delegate (2019-2023); 2022 GOP nominee for governor",
+    "status": "primary-winner",
+    "website": "https://dancoxforgovernor.com/",
+    "notes": "[regulatory] Pledges to slash 'ridiculous building costs and permitting burdens that send our builders out of state' and give counties 'an immediate reprieve from increased state mandates and costs.' (https://dancoxforgovernor.com/)\n[performance] 'Fiscal Accountability' plank promising lean, responsible spending and 'full transparency'; criticizes spending on 'pet projects' and pledges to expedite urgent infrastructure rather than delay it with studies. (https://dancoxforgovernor.com/)"
+   },
+   {
+    "name": "Ed Hale",
+    "party": "R",
+    "role": "Retired Baltimore banker (First Mariner Bank founder)",
+    "status": "defeated",
+    "website": null,
+    "notes": "ran as the moderate GOP alternative, finished second in the June 23 GOP primary with 36.1%"
+   }
+  ]
+ },
+ {
+  "state": "ME",
+  "primary_date": "2026-06-09",
+  "primary_held": true,
+  "race_rating": "Lean D",
+  "race_type": "open",
+  "candidates": [
+   {
+    "name": "Hannah Pingree",
+    "party": "D",
+    "role": "Former Speaker of the Maine House",
+    "status": "primary-winner",
+    "website": "https://hannahforgovernor.com/",
+    "notes": "former Director, Governor's Office of Policy Innovation and the Future (2019-2025)\n[regulatory-reform] Housing plan commits to streamlining state permitting across DEP, Fire Marshal and other agencies with a 90-day permit processing time limit for most new projects, simplified applications, time limits on local housing approvals/appeals, fast-track state legal processes, model ordinances, and pre-approved building designs for ADUs/small multifamily. (https://hannahforgovernor.com/housing-plan/)\n[performance-management] Ran GOPIF as the Mills administration's cross-agency delivery hub (housing, climate, childcare, workforce); campaign brands her as someone who 'knows how to get things done,' with technical assistance/capacity-building so municipalities and developers can deliver housing efficiently, plus Regional Housing Hubs supporting local planners and code enforcement. (https://www.maine.gov/governor/mills/news/governor-mills-announces-departure-hannah-pingree-director-governors-office-policy-innovation)\n[civil-service] No state-employee-specific plank found; won the RCV primary over Troy Jackson, who carried MSEA-SEIU Local 1989's first-choice recommendation. (https://hannahforgovernor.com/housing-plan/)"
+   },
+   {
+    "name": "Bobby Charles",
+    "party": "R",
+    "role": "Attorney and consultant (President, The Charles Group LLC)",
+    "status": "primary-winner",
+    "website": "https://www.bobbyformaine.com/",
+    "notes": "former Assistant Secretary of State for International Narcotics and Law Enforcement (2003-2005)\n[performance-management] 20-point plan centered on 'top-to-bottom audits, structural overhauls, and criminal referrals' targeting corruption in Augusta; pledges to 'hold government accountable' and 'follow the money' regardless of party. (https://www.bobbyformaine.com/)\n[regulatory-reform] Pledges to 'slash unnecessary regulation, and cut the red tape that stifles economic growth' as part of his tax-cutting platform; frames deregulation around business growth rather than permitting process redesign. (https://www.bobbyformaine.com/)\n[civil-service] Wants dramatic state spending cuts and a four-year phase-out of the state income tax, implying a significantly smaller state government footprint; no specific state-workforce vacancy/pay proposals found. (https://www.newscentermaine.com/article/news/politics/elections/candidates/republican-gubernatorial-candidate-bobby-charles-maine-governor-election/97-13f86456-bab8-4277-b0c5-5dad2bdb9480)"
+   },
+   {
+    "name": "Rick Bennett",
+    "party": "I",
+    "role": "Maine state senator (left the Republican Party to run as independent)",
+    "status": "major-contender",
+    "website": "https://bennettforgovernor.com/",
+    "notes": "former President of the Maine Senate\n[performance-management] Campaign centers on fiscal responsibility and 'fixing broken systems' \u2014 'people want actual, real results' from state government; issue plans on health care affordability, birth-to-five child care system unification, school academic performance, and energy costs; long record on governance reform (ranked-choice voting, open primaries, PAC donor disclosure). (https://mainemorningstar.com/2025/06/24/republican-sen-rick-bennett-announces-independent-bid-for-maine-governor/)"
+   }
+  ]
+ },
+ {
+  "state": "MI",
+  "primary_date": "2026-08-04",
+  "primary_held": false,
+  "race_rating": "Lean D",
+  "race_type": "open",
+  "candidates": [
+   {
+    "name": "Jocelyn Benson",
+    "party": "D",
+    "role": "Michigan Secretary of State (2019-present)",
+    "status": "major-contender",
+    "website": "https://www.jocelynbenson.com/",
+    "notes": "[digital-government] Runs on her SOS/DMV modernization record: tech upgrades and expanded online services took no-visit transactions from 28% (2018) to 60% and cut branch waits to ~20 minutes; theme is 'make government work' ('I transformed branch offices, cut inefficiencies'). (https://bridgemi.com/michigan-government/in-their-words-how-michigan-governor-candidates-would-build-the-state-economy/)\n[regulatory-reform] Housing affordability plan calls for cutting red tape and speeding up permitting: 'streamlining regulations that slow down construction' and 'eliminating the obstacle course that developers endure'. (https://bridgemi.com/michigan-government/in-their-words-how-michigan-governor-candidates-would-build-the-state-economy/)\n[performance-management] Stresses results-testing for economic development tools, asking of subsidies: 'is this actually delivering results?' (https://bridgemi.com/michigan-government/in-their-words-how-michigan-governor-candidates-would-build-the-state-economy/)\n[civil-service] Endorsed by the Michigan AFL-CIO; pledges wage increases and expanded 'earn-while-you-learn' apprenticeship funding. (https://miaflcio.org/michigans-labor-movement-endorses-jocelyn-benson-for-governor/)"
+   },
+   {
+    "name": "Chris Swanson",
+    "party": "D",
+    "role": "Genesee County Sheriff (2020-present)",
+    "status": "major-contender",
+    "website": "https://swansonformichigan.com/",
+    "notes": "[performance-management] Calls for a 'restructure of government agencies' and an 'audit and restructure' of the Michigan Economic Development Corporation; emphasizes transparency, noting Lansing politicians are 'exempt from FOIA rules'. (https://bridgemi.com/michigan-government/in-their-words-how-michigan-governor-candidates-would-build-the-state-economy/)"
+   },
+   {
+    "name": "John James",
+    "party": "R",
+    "role": "U.S. Representative, MI-10 (2023-present)",
+    "status": "major-contender",
+    "website": "https://johnjamesmi.com/",
+    "notes": "[regulatory-reform] Criticizes regulations that add housing costs; advocates 'fast permits' and reform of 'a legal environment that forces businesses to lawyer up'. (https://bridgemi.com/michigan-government/in-their-words-how-michigan-governor-candidates-would-build-the-state-economy/)\n[performance-management] Would overhaul the MEDC via audits and order 'a comprehensive audit of all expenditures'; wants to restore education accountability measures (third-grade reading requirement). GOP primary frontrunner (28.5% in early-July polling), Trump-endorsed June 22, 2026. (https://spectrumlocalnews.com/mi/michigan/news/2026/06/09/gov-candidate-johnjames-keyissues)"
+   },
+   {
+    "name": "Perry Johnson",
+    "party": "R",
+    "role": "Businessman, 'quality guru'; 2022 gubernatorial candidate",
+    "status": "major-contender",
+    "website": "https://www.perryjohnson.com/",
+    "notes": "[performance-management] Centerpiece is a 'MEGA Audit of Michigan government' to find waste, inefficiency, and corruption; pledges to reform state government by 'modernizing processes, consolidating duplicative programs, and applying performance-based management across departments'. Polling second in the GOP primary (~24.7%), largely self-funding. (https://www.perryjohnson.com/)"
+   },
+   {
+    "name": "Mike Cox",
+    "party": "R",
+    "role": "Former Michigan Attorney General (2003-2011)",
+    "status": "major-contender",
+    "website": "https://mikecox2026.com/",
+    "notes": "[regulatory-reform] Calls overregulation a 'hidden tax' citing 'slow permitting, excessive mandates, and bureaucratic delay'; advocates 'implementing permitting time clocks'; favors 'economic gardening' over corporate subsidies. (https://bridgemi.com/michigan-government/in-their-words-how-michigan-governor-candidates-would-build-the-state-economy/)\n[civil-service] Points to his AG record of reducing staffing more than 20% while handling increased caseloads through better technology and training, as a model for leaner state workforce management. (https://bridgemi.com/michigan-government/in-their-words-how-michigan-governor-candidates-would-build-the-state-economy/)"
+   },
+   {
+    "name": "Aric Nesbitt",
+    "party": "R",
+    "role": "Michigan Senate Minority Leader",
+    "status": "withdrawn",
+    "website": null,
+    "notes": "[regulatory-reform] Before suspending his campaign June 22, 2026 (endorsing James), proposed taking 'a blowtorch to the bureaucratic red tape at agencies like EGLE', expanding by-right development, and creating 'MI-FAFO' (Michigan Fiscal Accountability & Financial Oversight). (https://bridgemi.com/michigan-government/in-their-words-how-michigan-governor-candidates-would-build-the-state-economy/)"
+   },
+   {
+    "name": "Mike Duggan",
+    "party": "I",
+    "role": "Former Detroit Mayor (2014-2026)",
+    "status": "withdrawn",
+    "website": "https://mikeduggan.com/",
+    "notes": "[performance-management] Ran an independent bid on his Detroit turnaround-management record and nonpartisan governing pitch, but withdrew May 21, 2026, citing polling and fundraising deficits (trailed Benson by 11 points in a Detroit Regional Chamber three-way poll). (https://www.nbcnews.com/politics/2026-election/former-detroit-mayor-mike-duggan-ends-independent-michigan-governor-rcna346318)"
+   }
+  ]
+ },
+ {
+  "state": "MN",
+  "primary_date": "2026-08-11",
+  "primary_held": false,
+  "race_rating": "Safe D",
+  "race_type": "open",
+  "candidates": [
+   {
+    "name": "Amy Klobuchar",
+    "party": "D",
+    "role": "U.S. Senator from Minnesota (2007-present)",
+    "status": "presumptive-nominee",
+    "website": "https://www.amyklobuchar.com/",
+    "notes": "[performance-management] Anti-fraud plan is her signature rollout: 'Do Not Pay' database blocking convicted fraudsters from state funds, independent Office of Inspector General, stronger criminal penalties, unannounced site visits, regular agency audits, whistleblower protections, continuous monitoring \u2014 a direct response to Feeding Our Future and related program fraud. (https://www.amyklobuchar.com/priorities/get-results-and-make-government-accountable/)\n[regulatory-reform] 'Predictable deadlines, or your money back' \u2014 fee refunds if agencies miss permit timeframes; consolidate permits into a single Minnesota Business One-Stop portal; package-style tracking of application status; streamlined building codes and state permitting templates for cities. (https://www.amyklobuchar.com/priorities/get-results-and-make-government-accountable/)\n[digital-government] Replace decades-old state IT (87 different systems) with modern technology paid through bonding; mobile-first state services with real-time application tracking. (https://www.amyklobuchar.com/priorities/get-results-and-make-government-accountable/)\n[civil-service] Ban the revolving door in which state employees steer contracts to organizations and then go work for them. (https://www.amyklobuchar.com/priorities/get-results-and-make-government-accountable/)"
+   },
+   {
+    "name": "Kendall Qualls",
+    "party": "R",
+    "role": "Army veteran and former health care executive; MN GOP-endorsed candidate (May 30, 2026)",
+    "status": "major-contender",
+    "website": "https://kqformn.com/",
+    "notes": "[performance-management] Fraud is a campaign centerpiece: says politicians 'allowed a reported $9 billion in taxpayer dollars to be stolen'; campaign site hosts a dedicated fraud-reporting form; pitches private-sector outsider management of St. Paul. (https://kqformn.com/)\n[regulatory-reform] Highlights that Lt. Gov. running mate Brian Nicholson 'knows first-hand the problems with permitting and regulations that impede economic growth in the state.' (https://kqformn.com/)"
+   },
+   {
+    "name": "Lisa Demuth",
+    "party": "R",
+    "role": "Speaker of the Minnesota House of Representatives",
+    "status": "major-contender",
+    "website": "https://lisaformn.com/",
+    "notes": "[performance-management] Campaign built around ending 'the culture of fraud and corruption in state government' after billions stolen under Walz; proposes a nonpartisan Office of Inspector General empowered to root out fraud across all of state government. (https://lisaformn.com/priorities/)\n[regulatory-reform] Pledges a day-one executive order cutting state permitting timelines by at least 25% and further legislative permitting reform. (https://lisaformn.com/priorities/)\n[civil-service] Says she will 'demand accountability from state workers responsible for managing abused programs.' (https://www.startribune.com/lisa-demuth-surges-in-gop-race-for-governor-with-fraud-as-priority-caution-on-immigration/601576104)"
+   },
+   {
+    "name": "Mike Lindell",
+    "party": "R",
+    "role": "MyPillow founder/CEO",
+    "status": "major-contender",
+    "website": "https://mikelindellgov.com/",
+    "notes": "[performance-management] Lists 'stopping fraud' as a top campaign priority, targeting Walz over the widening state fraud scandal, alongside schools and property taxes. (https://www.cbsnews.com/minnesota/news/mike-lindell-minnesota-governor-republican-campaign-mypillow/)"
+   }
+  ]
+ },
+ {
+  "state": "NE",
+  "primary_date": "2026-05-12",
+  "primary_held": true,
+  "race_rating": "Safe R",
+  "race_type": "incumbent-running",
+  "candidates": [
+   {
+    "name": "Jim Pillen",
+    "party": "R",
+    "role": "Governor of Nebraska (2023-present)",
+    "status": "incumbent",
+    "website": "https://jimpillen.com",
+    "notes": "confirmed running, won R primary May 12, 2026 with 75.4% over five minor challengers; Trump-endorsed, running with Lt. Gov. Joe Kelly\n[performance & outcomes management] Hired Utah-based Epiphany Associates (Kristen Cox) on a $10M, 4-year contract for 'breakthrough' efficiency savings; first report (July 2024) identified $531M in potential trims across child welfare, Medicaid, Lincoln Regional Center, Corrections; contract requires hard savings of 3% then 6% of general fund appropriations (https://nebraskaexaminer.com/2024/07/06/consultant-sees-531m-in-trims-to-nebraska-state-budget/)\n[efficiency / agency consolidation & workforce] Applied Epiphany recommendations: directed agencies to seek more federal funds, eliminated hundreds of unfilled state positions, backed merging Dept. of Natural Resources with Dept. of Environment and Energy; second efficiency report pending (https://central.newschannelnebraska.com/story/52664687/nebraska-awaiting-second-efficiency-report)\n[efficiency / DOGE alignment] Joined 25 other Republican governors urging Congress to codify Trump DOGE-identified efficiencies into law; touted state government-efficiency bills (https://governor.nebraska.gov/gov-pillen-joins-republican-governors-advocating-passage-doge-efficiencies)\n[civil service & state workforce] Executive order mandating state employees return to in-person work by Jan 2, 2024; NAPE union challenge lost at the Commission of Industrial Relations (July 2024), appealed to Nebraska Supreme Court (https://nebraskaexaminer.com/2024/07/11/ne-labor-court-sides-with-gov-pillens-order-calling-state-employees-back-to-the-office/)\n[civil service & state workforce (hiring/retention)] 2025-2027 NAPE contract covering 8,000+ employees with raises of 6.5% up to 19% plus six weeks paid maternity leave, framed as luring a 'new generation' of public servants amid high vacancy rates (https://nebraskaexaminer.com/briefs/states-largest-union-accepts-labor-contract-aimed-at-luring-new-generation-of-public-servants/)\n[AI in government / AI policy] Signed LB 525, the Conversational AI Safety Act (April 14, 2026), making Nebraska the fourth state with a chatbot law; earlier signed LB 383 outlawing AI-generated CSAM (https://www.troutmanprivacy.com/2026/04/proposed-state-ai-law-update-april-20-2026/)\n[AI / regulatory federalism] One of 17 Republican governors opposing the proposed congressional moratorium on state AI regulation (July 2025) (https://nebraskaexaminer.com/2025/07/02/nebraskas-pillen-among-17-republican-governors-to-oppose-congressional-ai-moratorium/)"
+   },
+   {
+    "name": "Lynne Walz",
+    "party": "D",
+    "role": "Former Nebraska state senator, District 15 (2017-2025)",
+    "status": "primary-winner",
+    "website": "https://lynnewalz.com",
+    "notes": "won D primary May 12, 2026 with 91.5%; endorsed by former Gov./Sen. Ben Nelson\n[performance & accountability] Campaign launch framed around 'service, accountability and people over politics'; pledged to fight corruption, expose fraud, hold leaders accountable regardless of party; stated 'Government should run effectively and efficiently' (https://www.1011now.com/2026/01/21/lynne-walz-launches-campaign-nebraska-governor/)\n[economic/regulatory focus] Priorities: economic development, business development, balancing the state budget, lowering housing/daycare costs, property tax relief via 'practical solutions'; keep divisive national issues out of state politics (https://nebraskaexaminer.com/2026/01/21/former-state-sen-lynne-walz-confirms-2026-democratic-bid-for-governor/)"
+   }
+  ]
+ },
+ {
+  "state": "NH",
+  "primary_date": "2026-09-08",
+  "primary_held": false,
+  "race_rating": "Likely R",
+  "race_type": "incumbent-running",
+  "candidates": [
+   {
+    "name": "Kelly Ayotte",
+    "party": "R",
+    "role": "Incumbent Governor of New Hampshire (took office January 2025)",
+    "status": "incumbent",
+    "website": "https://kellyfornh.com/",
+    "notes": "confirmed running for a second two-year term; former U.S. Senator\n[performance & outcomes management] Created the Commission on Government Efficiency (COGE) in her first executive order \u2014 a 15-member advisory body co-chaired by former Gov. Craig Benson and Andy Crews, charged with streamlining government and cutting spending (https://www.governor.nh.gov/news/ayotte-creates-commission-government-efficiency-first-executive-order)\n[civil service & state workforce] COGE final report (December 2025, 77 pages) recommends ending remote-work policies for state employees among dozens of efficiency proposals (https://www.nhpr.org/nh-news/2025-12-11/ayottes-coge-nh-efficiency-report)\n[regulatory reform / red-tape cutting] COGE report proposes a 'one in, two out' regulatory philosophy \u2014 scrapping two rules for every new rule \u2014 plus an online state 'customer relations' system (https://www.concordmonitor.com/2025/12/11/new-hampshire-government-efficiency-proposals/)\n[permitting reform (housing)] Signed July 2025 slate of ~10 housing bills limiting local zoning restrictions: HB 577 (ADUs by right), HB 631 (multifamily in commercial zones), SB 188 (third-party building inspectors), SB 282 (single-stairwell buildings up to four stories) (https://newhampshirebulletin.com/2025/07/23/ayotte-signs-slate-of-bills-to-encourage-housing-construction-but-not-all-ideas-advance/)\n[permitting reform (state process)] FY26-27 budget trailer bill (HB 2) requires DOT and Dept. of Environmental Services to complete housing-related permit reviews within 60 days (https://www.governor.nh.gov/news/governor-highlights-new-laws-tackle-housing-crisis)\n[digital government / IT security] Signed Executive Order 2025-04 banning state agencies from buying or using certain technologies from China, Russia, North Korea, and Iran (https://www.governor.nh.gov/news/governor-ayotte-signs-executive-orders-protect-new-hampshire-foreign-adversaries)"
+   },
+   {
+    "name": "Cinde Warmington",
+    "party": "D",
+    "role": "Former NH Executive Councilor (2021-2025)",
+    "status": "presumptive-nominee",
+    "website": "https://www.cindewarmington.com/",
+    "notes": "2024 gubernatorial candidate; only major declared Democrat (launched Feb 18, 2026)\n[housing / permitting & zoning] Centers campaign on affordability and housing supply; emphasizes incentivizing communities to change local zoning obstacles (e.g., restoring Housing Champions program funding) vs. Ayotte's state-preemption approach (https://www.thedartmouth.com/article/2026/05/cinde-warmington-centers-affordability-in-bid-for-n-h-governor)\n[civil service & state workforce (agency staffing capacity)] Attacks Ayotte's budget for cutting Office of the Child Advocate staff and leaving 14 DHHS youth-counselor positions unfillable, arguing cuts degraded state oversight and care capacity (https://newhampshirebulletin.com/2026/04/30/warmington-slams-ayotte-over-child-advocate-cuts-amid-new-sununu-center-revelations/)\n[state workforce / unions] Committed to supporting workers' rights to organize and negotiate for fair wages, benefits, and safer conditions (https://www.citizenscount.org/candidate/cinde-warmington)\n[government accountability / budget priorities] Pledges to repeal Education Freedom Accounts voucher program and reverse Medicaid premium increases; positions herself as an accountability check citing her Executive Council record (https://www.cindewarmington.com/)"
+   }
+  ]
+ },
+ {
+  "state": "NM",
+  "primary_date": "2026-06-02",
+  "primary_held": true,
+  "race_rating": "Likely D",
+  "race_type": "open",
+  "candidates": [
+   {
+    "name": "Deb Haaland",
+    "party": "D",
+    "role": "Former U.S. Secretary of the Interior (2021-2025); former U.S. Representative (NM-01)",
+    "status": "primary-winner",
+    "website": "https://debhaaland.com/",
+    "notes": "[civil-service] 19-page plan to overhaul CYFD: experienced cabinet secretary on day one, raise pay, boost recruitment to fill chronic caseworker vacancies, rebuild staff morale, move the agency to an independent commission model. Won the Democratic primary 72.3%-27.7% over Bregman. (https://sourcenm.com/2026/03/05/nm-governor-candidate-haaland-proposes-overhauling-troubled-child-welfare-agency/)\n[regulatory-reform] Affordability agenda pledges to 'aggressively build more housing, focusing on reducing unnecessary barriers and expediting permitting processes.' (https://debhaaland.com/debsplan/)\n[regulatory-reform] On energy permitting, proposes cumulative impact assessments for oil and gas permits; ran a restrictive federal leasing/permitting agenda at Interior but as a candidate pitches 'balance' in energy policy. (https://www.eenews.net/articles/new-mexico-governors-race-may-hinge-on-oil-and-gas-2/)\n[digital-government] Supports new state guardrails on AI data centers (e.g., Project Jupiter), requiring compliance with Energy Transition Act clean-energy goals; proposes banning AI-driven rent-fixing by landlords. (https://sourcenm.com/2026/05/04/nm-democratic-governor-candidates-haaland-bregman-participate-in-only-primary-election-debate/)\n[performance-management] CYFD plan mandates data sharing between the Office of the Child Advocate, State Police, Health Care Authority, and Early Childhood Education and Care Department, with commission oversight for consistency and accountability; says she would 'start from scratch' to build a system that works. (https://sourcenm.com/2026/03/05/nm-governor-candidate-haaland-proposes-overhauling-troubled-child-welfare-agency/)"
+   },
+   {
+    "name": "Gregg Hull",
+    "party": "R",
+    "role": "Former Mayor of Rio Rancho (2014-2026), longest-serving in city history",
+    "status": "primary-winner",
+    "website": "https://gregghull.com/",
+    "notes": "[regulatory-reform] Runs on his Rio Rancho red-tape record: simplified business licensing after complaints the process was too complicated; pitches 'predictable regulations' and government-as-partner-to-employers as his statewide model. Won the three-way GOP primary with 47% over Doug Turner (36.9%) and Duke Rodriguez (16.1%). (https://sourcenm.com/2026/05/12/nm-gop-governor-candidate-gregg-hull-touts-experience-leading-growing-rio-rancho/)\n[civil-service] On CYFD's caseworker turnover: 'structural changes must follow a clear diagnosis, not a reorganization for its own sake'; would split the agency only if evidence shows it best protects children; no detailed statewide vacancy-reduction plan published. (https://www.organmountainnews.com/new-mexico-lawmakers-splitting-cyfd-child-welfare-juvenile-justice/)\n[performance-management] Touts fiscal-management record as proxy for statewide capability: 'cleanest audits' in Rio Rancho history, 12 GFOA budget awards, unchanged sales tax rate over 12 years; emphasizes state government that 'supports local solutions.' (https://www.abqjournal.com/opinion/opinion-new-mexico-deserves-a-governor-who-has-done-this-before/3072662)\n[digital-government] Open to working with the AI data center industry (Project Jupiter) if developers use alternative water sources and provide public benefits such as desalination plants; no published state IT-modernization or AI-in-government plan found. (https://sourcenm.com/2026/05/08/nm-republican-governor-candidates-swipe-at-democrat-haaland-during-primary-election-debate/)"
+   },
+   {
+    "name": "Sam Bregman",
+    "party": "D",
+    "role": "Bernalillo County District Attorney (appointed 2023)",
+    "status": "defeated",
+    "website": "https://www.bregmanfornm.com/",
+    "notes": "lost Democratic primary to Haaland 27.7%-72.3%\n[performance-management] Said his first order of business as governor would be 'a really top-to-bottom evaluation of state government to determine what things are working and what things aren't,' framed as 'holding people accountable, just like at the DA's office.' (https://sourcenm.com/2026/04/16/new-mexico-primary-2026-democratic-governor-candidate-sam-bregman/)\n[civil-service] Called staffing up CYFD the agency's 'biggest glaring problem,' citing a ~30% vacancy rate and caseworker burnout; skeptical of commission/restructuring models that would dilute the governor's direct executive control. (https://www.krqe.com/news/politics-government/elections/democratic-primary-sam-bregman-lays-out-his-vision-for-new-mexico/)"
+   }
+  ]
+ },
+ {
+  "state": "NV",
+  "primary_date": "2026-06-09",
+  "primary_held": true,
+  "race_rating": "Toss-up",
+  "race_type": "incumbent-running",
+  "candidates": [
+   {
+    "name": "Joe Lombardo",
+    "party": "R",
+    "role": "Governor of Nevada (incumbent, elected 2022); former Clark County Sheriff",
+    "status": "incumbent",
+    "website": "https://www.joelombardofornv.com/",
+    "notes": "[regulatory-reform] First-week 2023 executive orders froze new state regulations, required agencies to justify existing rules, directed licensing boards to stop new entry-limiting regulations, and ordered phase-out of license requirements for occupations not licensed in 25+ states plus licensing reciprocity expansion. (https://thenevadaindependent.com/article/lombardo-signs-order-freezing-new-state-regulations-seeking-elimination-of-many-more)\n[regulatory-reform] Backed a major 2025 bill to consolidate and reform Nevada's occupational licensing boards; the bill died in the Legislature. (https://thenevadaindependent.com/article/why-lombardo-backed-big-bill-with-big-intentions-to-reform-state-licensing-boards-died)\n[regulatory-reform] Signed AB 540 (Nevada Housing Access and Attainability Act, 2025): $133M attainable-housing fund plus mandated expedited review/permitting for attainable-housing projects, simpler contractor licensing, and directives to eliminate bottlenecks in licensing and building processes. (https://thenevadaindependent.com/article/heres-how-lombardo-proposes-fixing-nevadas-housing-affordability-crisis)\n[civil-service] EO 2023-002 ended remote work for state employees and ordered a top-to-bottom review of state hiring (degree/experience requirements, salary ranges, onboarding, promotion, retention); later suspended minimum qualifications for some state jobs to cut a ~24% vacancy rate. (https://mynews4.com/news/local/governor-joe-lombardo-nevada-executive-order-suspends-minimum-qualifications-for-nevada-state-workers-lower-vacancy-rate)\n[performance-management] Pay raises and hiring-process changes cut the state-worker vacancy rate roughly in half; campaign touts this as evidence of a 'smart, lean and productive' state government. (https://thenevadaindependent.com/article/pay-raises-hiring-shifts-helped-nevada-cut-state-worker-vacancy-rate-in-half)\n[digital-government] Issued a statewide AI policy for executive-branch agencies (late 2024); administration is deploying AI to help process unemployment-insurance appeals (announced March 2026), drawing some legislative skepticism. (https://www.usnews.com/news/best-states/nevada/articles/2026-03-09/nevada-will-use-ai-for-unemployment-appeals-some-lawmakers-are-skeptical)"
+   },
+   {
+    "name": "Aaron Ford",
+    "party": "D",
+    "role": "Nevada Attorney General (since 2019); former State Senate Majority Leader",
+    "status": "primary-winner",
+    "website": "https://www.fordfornevada.com/",
+    "notes": "[civil-service] Would push to repeal Nevada's right-to-work law; as Senate majority leader fought to extend collective bargaining rights to state employees, and his 'Workers First Agenda' is open to making more state-worker collective bargaining agreements binding. (https://www.reviewjournal.com/news/politics-and-government/ford-says-he-would-push-as-governor-to-repeal-nevadas-right-to-work-law-3795605/)\n[civil-service] Union-backed 'Workers First Agenda' pledges support for public-sector unions, including signing graduate-student worker collective bargaining legislation. (https://thenevadannews.com/news/unions-in-the-silver-state-say-theyre-excited-about-aaron-fords-agenda/)\n[digital-government] Frames AI/automation as central to Nevada's economic future (AI literacy in schools, attracting tech industries); no specific state-IT-modernization plan found. (https://thenevadaindependent.com/article/on-the-record-what-are-democratic-governor-candidate-aaron-fords-plans-for-nevada)"
+   }
+  ]
+ },
+ {
+  "state": "NY",
+  "primary_date": "2026-06-23",
+  "primary_held": false,
+  "race_rating": "Likely D",
+  "race_type": "incumbent-running",
+  "candidates": [
+   {
+    "name": "Kathy Hochul",
+    "party": "D",
+    "role": "Governor of New York (seeking second full term)",
+    "status": "incumbent",
+    "website": "https://kathyhochul.com/",
+    "notes": "running mate: former NYC Council Speaker Adrienne Adams\n[workforce] Extended the NY HELPS hiring program (temporarily waiving civil service exams for many state and local titles) through June 30, 2028 \u2014 ~38,000+ state appointments made, ~11,000 local; updated ~800 civil service titles (Oct 2025) to accept work experience in lieu of degrees; opened 10 'Centers for Careers in Government'. (https://www.governor.ny.gov/news/governor-hochul-announces-continuation-public-workforce-hiring-program-fill-critical-roles)\n[workforce] Allowed work experience as an alternative to college-degree requirements for state jobs, part of a broader merit-system modernization push at the Department of Civil Service. (https://www.governor.ny.gov/news/governor-hochul-creates-more-opportunities-access-state-jobs-allowing-work-experience)\n[regulatory] 'Let Them Build' agenda (2026 State of the State): SEQRA environmental-review reform with a 2-year maximum deadline to final agency decision, streamlined environmental impact statements, permitting modernization via technology upgrades, expedited state infrastructure projects, and a 'permitting academy' for local governments. (https://www.governor.ny.gov/news/let-them-build-governor-hochul-unveils-landmark-reforms-cut-red-tape-and-build-more-housing)\n[regulatory] Pro-Housing Communities program: $5M in grants (up to $250K per community) to certified pro-housing localities for zoning analyses, master plans, and permit streamlining; certification tied to state discretionary funding eligibility. (https://www.governor.ny.gov/news/governor-hochul-announces-5-million-grants-awarded-help-pro-housing-communities-boost-housing)\n[digital] Empire AI: created the consortium in FY25 and signed FY26 budget legislation expanding it \u2014 $90M additional capital (matched by $50M private and $25M SUNY), new members, alongside 'nation-leading AI protections'; earlier launched the $40M Empire AI beta supercomputer. (https://www.governor.ny.gov/news/governor-hochul-signs-legislation-expanding-historic-empire-ai-consortium-and-establishing)\n[digital] Statewide DMV modernization contract with Fast Enterprises to replace systems more than 50 years old; also proposed a state Innovation Office, cyber incident reporting mandate, and AI training for the state workforce in her 2025 tech agenda. (https://statescoop.com/new-york-statewide-dmv-upgrade-hochul/)\n[performance] Launched New York State's first Customer Experience strategy ('The New York Experience') to streamline processes and cut wait times across DOH, DMV and DOL using human-centered design; appointed Tonya Webster as the state's first Chief Customer Experience Officer. (https://www.governor.ny.gov/news/governor-hochul-announces-launch-new-york-states-first-customer-experience-strategy-improve)"
+   },
+   {
+    "name": "Bruce Blakeman",
+    "party": "R",
+    "role": "Nassau County Executive (re-elected 2025)",
+    "status": "presumptive-nominee",
+    "website": "https://www.blakemanfornewyork.com/",
+    "notes": "GOP-designated nominee, also endorsed by the Conservative Party and President Trump; running mate Sheriff Todd Hood\n[regulatory] Vows on Day One to scrap the CLCPA climate law's mandates (a 'utility bill bomb'), return $2B in unspent NYSERDA funds to ratepayers, cut utility taxes and hidden fees, and expand natural gas/nuclear supply \u2014 framing state energy mandates as cost-raising regulatory overreach. (https://southshorepress.com/stories/680291915-blakeman-vows-to-scrap-clcpa-slash-utility-bills)\n[regulatory] Opposes the RAPID Act's state-level override of local permitting for large energy projects; campaigns on restoring local control over energy-project siting and against 'Albany mandates'. (https://spectrumlocalnews.com/nys/central-ny/politics/2026/04/16/rapid-act-clcpa)\n[workforce] Government-workforce record centers on public-safety staffing: hired 600+ police/law enforcement officers as Nassau County Executive; touts flat property and sales taxes and eliminating $150M in scheduled tax hikes. No specific civil-service, merit-system, or state-union platform found. (https://www.blakemanfornewyork.com/)"
+   },
+   {
+    "name": "Antonio Delgado",
+    "party": "D",
+    "role": "Lieutenant Governor of New York",
+    "status": "withdrawn",
+    "website": null,
+    "notes": "former U.S. Representative \u2014 withdrew his primary challenge Feb 10, 2026 after failing to qualify at the Democratic convention"
+   }
+  ]
+ },
+ {
+  "state": "OH",
+  "primary_date": "2026-05-05",
+  "primary_held": true,
+  "race_rating": "Lean R",
+  "race_type": "open",
+  "candidates": [
+   {
+    "name": "Vivek Ramaswamy",
+    "party": "R",
+    "role": "Entrepreneur (Roivant Sciences founder)",
+    "status": "primary-winner",
+    "website": "https://vivekforohio.com/",
+    "notes": "former federal DOGE co-lead designate; 2024 presidential candidate; running mate Ohio Senate President Rob McColley\nWon GOP primary 82.5%-17.5% over Casey Putsch; Trump- and DeWine-endorsed\n[regulatory] Pledge to 'shred every excess regulation' with a 10-for-1 rescission rule ('for every regulation we pass, we will require that at least 10 regulations are rescinded'), plus broad deregulation tied to zeroing out the state income tax. (https://www.courthousenews.com/vivek-ramaswamy-spins-quick-exit-from-trump-administration-into-run-for-ohio-governor/)\n[workforce] Wants Ohio to be the first state with merit-based pay for teachers, principals, and administrators \u2014 explicitly willing to override collective bargaining agreements with public-sector unions; frames it as 'meritocracy in compensation' for the public workforce. (https://signalcleveland.org/vivek-ramaswamy-revives-merit-pay-teacher-debate-in-ohio/)\n[digital] Economic pitch centers on an aggressive statewide AI data-center buildout ('Ohio River Valley as the next Silicon Valley'), streamlining energy permits and using JobsOhio, the Power Siting Board and PUCO to accelerate it; no specific state IT/AI-in-government plan found. (https://tiffinohio.net/posts/ramaswamy-data-center-expansion-ohio-governor/)\n[performance] Emphasizes consolidating government spending and transparency as the path to zero income tax; announced a 'Crush Medicaid Waste, Fraud and Abuse' plan (May 2026) \u2014 DOGE-style efficiency framing carried from his federal role. (https://local12.com/news/local/republican-gubernatorial-candidate-vivek-ramaswamy-2026-ohio-governor-race-politics-election-economy-education-government-spending-transparency)"
+   },
+   {
+    "name": "Amy Acton",
+    "party": "D",
+    "role": "Physician",
+    "status": "primary-winner",
+    "website": "https://actonforgovernor.com/",
+    "notes": "former Director of the Ohio Department of Health (led Ohio's COVID-19 response); running mate David Pepper, former Ohio Democratic Party chair\nWon Democratic primary unopposed\n[performance] 'Cleaning Up Corruption' plank: mandate transparency and disclosure, open state bidding/contracting/appointments to public scrutiny, and shift state government culture to reward 'good work and merit' rather than 'deep pockets and big checkbooks.' (https://actonforgovernor.com/issue/cleaning-up-corruption/)\n[workforce] 'Standing Up for Workers' plank: defend unions and collective bargaining against SB5-style attacks (implicitly covering public employees), oppose right-to-work, combat wage theft, and expand worker training and apprenticeships. (https://actonforgovernor.com/issue/standing-up-for-workers/)"
+   }
+  ]
+ },
+ {
+  "state": "OK",
+  "primary_date": "2026-06-16",
+  "primary_held": true,
+  "race_rating": "Safe R",
+  "race_type": "open",
+  "candidates": [
+   {
+    "name": "Gentner Drummond",
+    "party": "R",
+    "role": "Oklahoma Attorney General (current)",
+    "status": "runoff-pending",
+    "website": "https://drummondok.com/",
+    "notes": "[regulatory] Campaign issues page pledges to 'cut red tape that slows down critical infrastructure and job-creating projects' and to cut healthcare red tape; no explicit position found on DOGE-OK's future or occupational licensing. (https://drummondok.com/issues/)\n[performance] Pledges to 'end insider deals and wasteful spending' and 'strengthen transparency across state government'; no detailed KPI or performance-budgeting framework published. (https://drummondok.com/issues/)\n[performance] As AG (April 2026), requested an independent state audit of the Oklahoma Health Care Authority over Medicaid spending concerns \u2014 agency-accountability track record rather than campaign plank. (https://oklahoma.gov/oag/news/newsroom/2026/april/drummond-requests-state-audit-of-oklahoma-health-care-authority.html)"
+   },
+   {
+    "name": "Mike Mazzei",
+    "party": "R",
+    "role": "Former Oklahoma state senator (2004-2016)",
+    "status": "runoff-pending",
+    "website": "https://mikeforok.com/",
+    "notes": "former Secretary of Budget under Gov. Stitt (2019-2020); Trump-endorsed\n[regulatory] 'The Plan' pledges to streamline state licensing and permitting, sunset outdated regulations, and stand up a dedicated government-efficiency (DOGE-style) unit reviewing 'every agency, program, and line item \u2014 identifying duplication, mission creep, and outdated spending.' (https://mikeforok.com/the-plan/)\n[performance] Results-based budgeting: 'No more blank checks. Every agency must prove it delivers value before receiving increases. Budgets will be performance-based, and results made public'; performance audits required by statute and mandatory sunset provisions on all new programs. (https://mikeforok.com/the-plan/)\n[workforce] Proposes tying higher teacher compensation to performance and offering counties 401(k)-style retirement plans (explicitly not touching existing state retirement systems); message emphasizes 'cutting waste, demanding accountability from agencies, and measuring success.' (https://mikeforok.com/the-plan/)"
+   },
+   {
+    "name": "Cyndi Munson",
+    "party": "D",
+    "role": "Oklahoma House Minority Leader (state representative, HD-85, since 2015)",
+    "status": "primary-winner",
+    "website": "https://www.cyndimunson.com/",
+    "notes": "[workforce] Priorities page pledges to raise public school funding above the regional average and deliver a pay raise to public school teachers and staff (public-sector workforce focus). (https://www.cyndimunson.com/Priorities)\n[performance] Served on the Oversight Committee for the Legislative Office of Fiscal Transparency (LOFT), Oklahoma's agency performance/fiscal oversight body \u2014 track-record signal; no explicit KPI plank on campaign site. (https://en.wikipedia.org/wiki/Cyndi_Munson)"
+   }
+  ]
+ },
+ {
+  "state": "OR",
+  "primary_date": "2026-05-19",
+  "primary_held": true,
+  "race_rating": "Lean D",
+  "race_type": "incumbent-running",
+  "candidates": [
+   {
+    "name": "Tina Kotek",
+    "party": "D",
+    "role": "Governor of Oregon (since 2023); former Oregon House Speaker",
+    "status": "incumbent",
+    "website": "https://www.tinafororegon.com/",
+    "notes": "[performance] Signed EO 23-04 on her first full day setting a KPI-style statewide housing production target of 36,000 homes/year (80% above trend) and creating the Housing Production Advisory Council; administration publicly tracks progress. (https://www.oregon.gov/gov/policies/pages/housing-production-advisory-council.aspx)\n[performance] Reports semi-annual progress against her housing production goal (~50K units in the pipeline though most unrealized), an explicit outcomes/targets governance approach she says she will continue in a second term. (https://www.kgw.com/article/news/state/governor-kotek-oregon-state-housing-construction-goal-production/283-6abd5e4e-2f0b-42a0-9b45-e37cf02c0545)\n[regulatory] Signed HB 2258 (July 2025) and a housing-supply package streamlining permitting: lets the Land Conservation and Development Commission and DCBS pre-approve housing plans and set statewide standards developers can use for fast-track approval. (https://oregoncapitalchronicle.com/2025/07/29/gov-kotek-signs-laws-to-boost-housing-supply-but-more-work-to-be-done-to-solve-crisis/)\n[digital] Issued EO 23-26 creating the State Government AI Advisory Council for ethical AI use in state agencies; announced the resulting statewide AI Action Plan (Feb 2025) with five executive actions on AI governance, security, privacy, and workforce readiness. (https://www.oregon.gov/gov/eo/eo-23-26.pdf)\n[digital] Oregon began rolling out AI training for state employees (July 2025) under the AI Action Plan implementation. (https://www.opb.org/article/2025/07/15/oregon-state-employees-ai-artificial-intelligence-training/)\n[workforce] Issued a pro-union executive order requiring project labor agreements on large state construction projects \u2014 a strong organized-labor alignment signal \u2014 which a judge ruled illegal in March 2026; construction and public-sector unions are core re-election endorsers. (https://www.opb.org/article/2026/03/12/oregon-gov-kotek-order-union-work-projects-ruling-illegal/)"
+   },
+   {
+    "name": "Christine Drazan",
+    "party": "R",
+    "role": "State Senator (appointed Oct 2025)",
+    "status": "primary-winner",
+    "website": "https://www.christinefororegon.com/",
+    "notes": "former Oregon House Republican Leader; 2022 GOP gubernatorial nominee\n[regulatory] Platform blames 'red tape in Salem' and outdated forest management policies for the housing shortage and pledges to eliminate bureaucratic obstacles; core message that 'government needs to get out of the way'. (https://www.christinefororegon.com/)\n[regulatory] At her campaign launch, called for state leaders to cut taxes and regulations ('We can get government out of the way'), framing housing, addiction, and cost-of-living problems as failures of over-regulation. (https://www.opb.org/article/2025/10/27/christine-drazan-oregon-governor-politics-tina-kotek-republican-leader/)\n[performance] Government-efficiency/accountability plank: notes the state budget 'doubled in just a decade,' pledges government will 'tighten its belt,' and criticizes leaders for failing to spend taxpayer dollars efficiently on transportation, behavioral health, and housing. (https://www.christinefororegon.com/)"
+   }
+  ]
+ },
+ {
+  "state": "PA",
+  "primary_date": "2026-05-19",
+  "primary_held": true,
+  "race_rating": "Safe D",
+  "race_type": "incumbent-running",
+  "candidates": [
+   {
+    "name": "Josh Shapiro",
+    "party": "D",
+    "role": "Governor of Pennsylvania (first term since January 2023)",
+    "status": "incumbent",
+    "website": "https://joshshapiro.org/",
+    "notes": "[workforce] First executive order (EO 2023-03) removed four-year degree requirements for 92% of commonwealth jobs (~65,000 positions), emphasizing skills-based hiring; administration reports hiring times reduced 32% and nearly 600 previously vacant permitting/licensing/certification jobs filled. (https://www.pa.gov/agencies/oa/newsroom/governor-shapiro-signs-first-executive-order-announcing-92-percent-of-commonwealth-jobs-do-not-require-a-four-year-degree)\n[workforce] Follow-on EO 2025-01 targets critical state vacancies by recruiting experienced former federal employees into civil engineering, nursing, corrections, and accounting. (https://www.pa.gov/governor/newsroom/2025-press-releases/gov-shapiro-signs-executive-order-to-fill-critical-public-servic)\n[regulatory] First-in-the-nation PAyback online money-back guarantee (permit/license/certification fees refunded if agencies miss deadlines); 40M+ applications processed since 2023 with only five refunds issued; eliminated a 15-year DEP permit backlog; permitting reform continued in his 2026-27 budget. (https://www.pa.gov/governor/newsroom/press-releases/governor-shapiro-launches-first-in-the-nation-online-money-back-)\n[regulatory] DEP's SPEED program (launched 2025) lets applicants use DEP-verified third-party professionals for initial environmental permit reviews to cut time-to-issuance. (https://www.mankogold.com/publications-Shapiro-SPEED-PAyback-RGGI-PRESS.html)\n[digital] First-in-the-nation generative AI pilot with OpenAI (ChatGPT Enterprise): 175 employees across 14 agencies averaged ~95 minutes/day saved; Phase 2 expanded generative AI tools to 3,000+ employees across 35 agencies. (https://statescoop.com/pennsylvania-expands-generative-ai-tools-3000-employees/)\n[digital] CODE PA (Commonwealth Office of Digital Experience) reports $10M saved in three years via in-house digital delivery; 2026-27 budget adds $3.7M for CODE PA to modernize permitting/licensing platforms; new executive director Sara Hall appointed Feb 2026. (https://www.pa.gov/agencies/oa/newsroom/governor-shapiro-s-2025-26-budget-invests-in-code-pa-to-continue)\n[performance] Reelection campaign built around his 'GSD' (Get Stuff Done) results record \u2014 executive delivery, permitting speed, a growing state economy \u2014 signaling a second-term agenda focused on government execution plus lowering housing and energy costs. (https://www.pbs.org/newshour/nation/josh-shapiro-running-for-2nd-term-as-pennsylvania-governor-trailed-by-talk-of-2028-white-house-bid)\n[performance] Office of Transformation and Opportunity publicly reports faster permitting outcomes; 'Getting IT Done' reporting claims technology investments yielded millions in savings \u2014 outcome-tracking used as a governing and campaign asset. (https://riverreporter.com/stories/shapiro-admin-boasts-faster-permitting-through-pa-office-of-transformation-and-opportunity,240250)"
+   },
+   {
+    "name": "Stacy Garrity",
+    "party": "R",
+    "role": "Pennsylvania State Treasurer (since January 2021); U.S. Army Reserve veteran",
+    "status": "primary-winner",
+    "website": "https://garrityforpa.com/",
+    "notes": "[digital] Proposes creating a state Office of Innovation tasked with finding where technology and AI can make state agencies more efficient (Pennsylvania Press Club speech). (https://www.spotlightpa.org/news/2026/04/pennsylvania-primary-election-stacy-garrity-governor-guide-elections/)\n[performance] Runs on her Treasury record of saving taxpayers nearly $200 million by eliminating fraud and inefficiency; campaign message centers on government efficiency and holding the line on taxes. (https://www.spotlightpa.org/news/2026/04/pennsylvania-primary-election-stacy-garrity-governor-guide-elections/)"
+   }
+  ]
+ },
+ {
+  "state": "RI",
+  "primary_date": "2026-09-08",
+  "primary_held": false,
+  "race_rating": "Safe D",
+  "race_type": "incumbent-running",
+  "candidates": [
+   {
+    "name": "Daniel J. McKee",
+    "party": "D",
+    "role": "Governor of Rhode Island (since 2021); running for re-election",
+    "status": "incumbent",
+    "website": "https://www.governordanmckee.com/",
+    "notes": "[performance] Learn365RI is his flagship outcomes push tied to the RI 2030 goal of matching/beating Massachusetts education outcomes by 2030; cites a 34% reduction in the RICAS ELA gap with MA, 18% in math, and 244,000 fewer student absences; pressing for continued Learn365RI funding in his FY27 budget. (https://governor.ri.gov/press-releases/governor-mckee-reinforces-need-fy-27-budget-investment-learn365ri-out-school)\n[performance] RI 2030 statewide goals framework sets numeric 2030 targets (e.g., 49% of students meeting expectations in ELA, 47% in math) tracked at state and district level. (https://rhodeisland2030.ri.gov/ri-2030-priorities/strengthening-k-12-education/road-ri-2030-k-12-education-goals)\n[digital] Signed EO 24-06 establishing a state AI Task Force (chaired by former Rep. Jim Langevin), an AI Center of Excellence under the Department of Administration, a Data Center of Excellence, and a chief data officer role; the Jan 2026 task force report calls for AI-automated citizen interactions, records modernization, and predictive analytics in state operations. (https://governor.ri.gov/press-releases/governor-mckee-signs-executive-order-establishing-artificial-intelligence-task-force)\n[regulatory] Signed housing legislative packages that 'streamline production and cut through red tape,' including electronic building permitting for municipalities and codifying the State Building Code Office for uniform statewide code interpretation; RI's Office of Regulatory Reform continues review of executive-branch regulations. (https://governor.ri.gov/press-releases/governor-mckee-signs-housing-legislative-package-law)"
+   },
+   {
+    "name": "Helena Buonanno Foulkes",
+    "party": "D",
+    "role": "Former President of CVS Pharmacy",
+    "status": "major-contender",
+    "website": "https://helenafoulkes.com/",
+    "notes": "2022 gubernatorial primary runner-up; leading McKee in 2026 primary polls (UNH July 2026: ~42-22), endorsed by AG Peter Neronha and 13 local Democratic committees\n[performance] Core campaign frame is managerial competence ('Competence. Courage. Caring.'): Rhode Island 'spends more per person than surrounding states, and gets worse results' \u2014 an explicit spending-vs-outcomes efficiency argument drawn from her CVS management background. (https://helenafoulkes.com/)\n[performance] RIDOT reform plan ('Never Again') responding to the Washington Bridge failure: create an Office of Safety and Accountability and rebuild in-house engineering expertise, prioritizing taxpayer interests over contractor profits. (https://helenafoulkes.com/reformdot)\n[regulatory] Rhode Home housing plan pledges 'less red tape' and a $1B revolving loan fund to carry developers through permitting uncertainty and speed approvals, targeting 20,000 new homes over eight years. (https://www.oceanstatemedia.org/housing/housing-is-a-top-issue-in-the-governors-race-mckee-and-foulkes-have-different-plans)\n[performance] Ethics/insider-reform plan 'You Shouldn't Have to Know a Guy' aimed at making the State House 'work for all Rhode Islanders, not just the insiders'. (https://helenafoulkes.com/knowaguy)"
+   },
+   {
+    "name": "Aaron Guckian",
+    "party": "R",
+    "role": "Executive director, Rhode Island Dental Association",
+    "status": "presumptive-nominee",
+    "website": "https://www.aaronforri.com/",
+    "notes": "former aide to Gov. Don Carcieri; 2022 GOP nominee for lieutenant governor; won the RI GOP convention endorsement June 25, 2026\n[workforce] 'Rhode Island Works Smarter' plan centers on partnering directly with frontline and union state workers: a 24/7 anonymous idea portal for employee suggestions and financial incentives for workers whose ideas produce savings \u2014 efficiency gains shared with employees rather than top-down cuts. (https://www.oceanstatemedia.org/politics/gop-candidate-for-governor-aaron-guckian-on-state-spending-education-and-the-path-to-becoming-governor)\n[performance] Targets nearly $600 million in state consultant spending within the $15.2B budget, proposing to 'work directly with Rhode Island talent and start to get leaner,' with savings routed to lower taxes and fees; describes the approach as continuous 'process improvement'. (https://www.oceanstatemedia.org/politics/gop-candidate-for-governor-aaron-guckian-on-state-spending-education-and-the-path-to-becoming-governor)\n[digital] Says the Works Smarter savings model should be 'powered by modern technology,' including using technology to eliminate administrative paperwork burdens on teachers and modernize testing. (https://www.oceanstatemedia.org/politics/gop-candidate-for-governor-aaron-guckian-on-state-spending-education-and-the-path-to-becoming-governor)"
+   },
+   {
+    "name": "Robert Raimondo",
+    "party": "R",
+    "role": "Businessman",
+    "status": "major-contender",
+    "website": null,
+    "notes": "announced January 2026 on a pledge to eliminate the state income tax; running in the Sept 8 GOP primary against party-endorsed Guckian"
+   },
+   {
+    "name": "Ken Block",
+    "party": "I",
+    "role": "Software company founder",
+    "status": "major-contender",
+    "website": null,
+    "notes": "Moderate Party founder; two-time gubernatorial candidate; declared independent candidate for the November 2026 general election"
+   }
+  ]
+ },
+ {
+  "state": "SC",
+  "primary_date": "2026-06-09",
+  "primary_held": true,
+  "race_rating": "Safe R",
+  "race_type": "open",
+  "candidates": [
+   {
+    "name": "Alan Wilson",
+    "party": "R",
+    "role": "South Carolina Attorney General (four-term incumbent)",
+    "status": "primary-winner",
+    "website": "https://wilsonforsc.com/",
+    "notes": "Won the June 23 Republican runoff with 68.6% over Pamela Evette\n[regulatory] Pledges to 'DOGE South Carolina government from top to bottom,' cut taxes and slash red tape; has proposed reforming the State Inspector General's office into South Carolina's version of DOGE. (https://www.foxnews.com/politics/south-carolina-ag-mounts-gubernatorial-bid-advocates-abolishing-state-income-tax-doge-ing-government)\n[regulatory] Authored 'Let's Bring DOGE To South Carolina' op-ed calling for a state-level government efficiency initiative to root out waste, fraud, and abuse. (https://www.fitsnews.com/2025/02/14/alan-wilson-lets-bring-doge-to-south-carolina/)\n[performance] 'Families First Audit Initiative': comprehensive audits of state and local government with savings returned to taxpayers; pledges to modernize the DOT, streamline project timelines, and ensure 'every dollar in the state budget delivers value.' (https://wilsonforsc.com/priorities/)\n[digital] As AG, active on AI governance rather than gov-IT modernization: opposed a federal 10-year preemption of state AI laws as 'federal overreach' and led 44 AGs warning Big Tech over AI risks to children; no campaign plank found on state IT modernization or AI in government operations. (https://www.scag.gov/about-the-office/news/attorney-general-alan-wilson-fights-back-federal-proposal-to-strip-states-of-authority-over-ai/)"
+   },
+   {
+    "name": "Jermaine Johnson",
+    "party": "D",
+    "role": "South Carolina State Representative (District 80)",
+    "status": "primary-winner",
+    "website": "https://johnsonforsc.com/",
+    "notes": "Won the June 9 Democratic primary outright with 58.2% over Billy Webster and Mullins McLeod\n[workforce] Pro-labor workforce agenda: create a labor advisory council to recommend a state minimum wage, remove barriers to employment, combat wage theft; raise salaries for and hire additional state and local law enforcement; endorsed by the SC AFL-CIO. (https://www.wsoctv.com/news/local/political-beat-candidate-guide-south-carolina-governor-d/HH2M7VTXGVH3VI5YLBS4PN36CE/)\n[performance] Proposes a full audit of South Carolina's public education system to increase access and quality; campaign framed around 'Accountability, Integrity, and Commitment,' though the audit plank is education-specific rather than government-wide. (https://johnsonforsc.com/policies)\n[regulatory] Limited signal: labor advisory council would be tasked with 'removing certain barriers to employment' (adjacent to occupational-licensing reform); no broader red-tape/permitting or DOGE-style plank found. (https://johnsonforsc.com/policies)"
+   }
+  ]
+ },
+ {
+  "state": "SD",
+  "primary_date": "2026-06-02",
+  "primary_held": true,
+  "race_rating": "Safe R",
+  "race_type": "incumbent-running",
+  "candidates": [
+   {
+    "name": "Larry Rhoden",
+    "party": "R",
+    "role": "Incumbent Governor of South Dakota (elevated from Lt. Governor Jan 2025 when Kristi Noem resigned",
+    "status": "runoff-pending",
+    "website": "https://governorlarryrhoden.com/",
+    "notes": "seeking first full term)\n[regulatory/permitting reform & procedure] Signed SB 133, a REINS Act-style law imposing legislative checks on the administrative state: any proposed regulation with compliance/implementation costs over $3 million across two years requires additional scrutiny and approval from the legislature. (https://www.goldwaterinstitute.org/south-dakota-reins-in-regulations/)\n[regulatory reform / red tape] Frames cutting red tape as a core governing philosophy \u2014 'not about more government or more red tape' \u2014 emphasizing reduced regulatory burden so businesses can operate without government interference. (https://www.nssf.org/articles/nssf-profile-qa-governor-larry-rhoden-r-s-d/)"
+   },
+   {
+    "name": "Toby Doeden",
+    "party": "R",
+    "role": "Aberdeen businessman (retail and real estate executive; political newcomer)",
+    "status": "runoff-pending",
+    "website": "https://tobydoeden.com/",
+    "notes": "[regulatory reform & government efficiency] Pledged to create a 'South Dakota Department of Government Efficiency,' audit every state agency, publicly release 'every line item' of state spending, and eliminate 'waste, inefficiencies and redundancies' to fund phasing out property taxes. (https://southdakotasearchlight.com/2025/05/28/doeden-joins-race-for-governor-with-pledge-to-eliminate-property-taxes/)\n[performance/outcomes management (spending transparency)] Says he will 'lower the overhead' and 'get rid of the fat and the pork' via agency-by-agency audits with publicly released line-item spending; critics note he has not named specific replacement revenue streams. (https://www.mitchellrepublic.com/news/local/governors-race-doeden-aims-to-slash-taxes-increase-revenue-as-governor)"
+   },
+   {
+    "name": "Dan Ahlers",
+    "party": "D",
+    "role": "Executive Director of the South Dakota Democratic Party",
+    "status": "primary-winner",
+    "website": "https://www.danahlers.com/",
+    "notes": "former state legislator and small business owner; 2020 U.S. Senate nominee\n[digital government / connectivity] Platform centers on infrastructure investment including expansion of rural broadband access, citing digital connectivity as a significant barrier across the state; also campaigns on government transparency. (https://politics-government.news-articles.net/content/2026/02/17/ahlers-exceeds-expectations-leads-in-south-dakota-governorship-race.html)"
+   }
+  ]
+ },
+ {
+  "state": "TN",
+  "primary_date": "2026-08-06",
+  "primary_held": false,
+  "race_rating": "Safe R",
+  "race_type": "open",
+  "candidates": [
+   {
+    "name": "Marsha Blackburn",
+    "party": "R",
+    "role": "U.S. Senator from Tennessee (2019-present)",
+    "status": "presumptive-nominee",
+    "website": "https://marshablackburn.com/",
+    "notes": "[performance/outcomes management & government efficiency] Campaign issues page pledges to evaluate 'even the most conservative state governments, including Tennessee, for opportunities to modernize, save taxpayer money, reduce fraud, and cut waste.' (https://marshablackburn.com/issues/cutting-wasteful-government-spending/)\n[civil service & workforce] In the Senate introduced the 'DOGE Acts': federal hiring/salary freeze, 5% workforce cut over three years, a pilot for merit-based (not seniority-based) pay (Federal Employee Performance and Accountability Act), the SHOW UP Act ending expanded telework, and agency relocation out of D.C. \u2014 indicative of her workforce-management approach. (https://www.blackburn.senate.gov/2025/2/issues/jobs-and-economy/blackburn-introduces-doge-acts-to-make-federal-government-more-efficient-and-slash-wasteful-spending)\n[AI / digital government] Unveiled a national AI policy framework (the 'TRUMP AMERICA AI Act') for a single federal rulebook; earlier led the successful effort to strip the federal AI moratorium from the One Big Beautiful Bill Act, preserving states' (incl. Tennessee's) authority to regulate AI harms. (https://www.blackburn.senate.gov/2025/12/technology/blackburn-unveils-national-policy-framework-for-artificial-intelligence)"
+   },
+   {
+    "name": "John Rose",
+    "party": "R",
+    "role": "U.S. Representative, TN-6 (2019-present); farmer and businessman",
+    "status": "major-contender",
+    "website": "https://johnrose.com/",
+    "notes": "[regulatory/permitting reform & red tape] Campaign pledges to 'make Tennessee the most business-friendly state in the country by cutting job-killing red tape for entrepreneurs, farmers, and small business owners.' (https://johnrose.com/issues/)\n[regulatory reform (federal record)] In Congress has focused on 'reducing burdensome federal regulations on individuals, families, businesses, and community banks' via House Financial Services Committee work; runs on his CEO/business background as a management credential. (https://johnrose.house.gov/about)"
+   },
+   {
+    "name": "Monty Fritts",
+    "party": "R",
+    "role": "Tennessee State Representative, District 32 (2023-present)",
+    "status": "major-contender",
+    "website": "https://fritts4tn.com/",
+    "notes": "[government efficiency / size of government] Campaign slogan 'Liberty & Less Government'; argues Tennessee's state budget grew 59% in six years under Gov. Lee and pledges to shrink state government. (https://tennesseelookout.com/2025/09/08/east-tennessee-republican-runs-for-governor-to-topple-nashville-establishment/)"
+   },
+   {
+    "name": "Jerri Green",
+    "party": "D",
+    "role": "Memphis City Council member, District 2 (2024-present)",
+    "status": "major-contender",
+    "website": "https://greenforgovernor.com/",
+    "notes": "[performance/outcomes management & transparency] Plans an online public 'Report Card' letting Tennesseans track state contracts and grants in plain language \u2014 where the money goes, what it is supposed to deliver, and whether it actually does. (https://greenforgovernor.com/policy/)\n[state workforce / appointments] Pledges to appoint 'qualified, ethical leaders \u2014 not political cronies' to run state agencies; Day One Plan also includes ending private prison contracts. (https://greenforgovernor.com/policy/)"
+   },
+   {
+    "name": "Kevin Lee McCants",
+    "party": "D",
+    "role": "Pastor; former production supervisor; 2024 U.S. Senate candidate",
+    "status": "major-contender",
+    "website": "https://www.kevinleemccants.com/",
+    "notes": null
+   }
+  ]
+ },
+ {
+  "state": "TX",
+  "primary_date": "2026-03-03",
+  "primary_held": true,
+  "race_rating": "Safe R",
+  "race_type": "incumbent-running",
+  "candidates": [
+   {
+    "name": "Greg Abbott",
+    "party": "R",
+    "role": "Governor of Texas (incumbent since 2015), seeking a fourth term",
+    "status": "incumbent",
+    "website": "https://www.gregabbott.com/",
+    "notes": "[regulatory/permitting reform & government efficiency] Signed SB 14 (April 2025) creating the Texas Regulatory Efficiency Office ('Texas DOGE') to help agencies identify unnecessary rules and streamline the regulatory process; in its first reviews TREO recommended 435+ regulations for amendment or repeal across 11 agencies (~$123M estimated savings), with its public website launched May 2026. (https://gov.texas.gov/news/post/governor-abbott-signs-texas-doge-into-law-at-texas-capitol)\n[regulatory efficiency implementation] Texas Regulatory Efficiency Office staffed with a first director and up to 18 FTEs at $22.8M over five years; tasked with stricter cost standards for new regulations and checking growth of the administrative state. (https://www.govtech.com/workforce/texas-regulatory-efficiency-office-gets-its-first-director)\n[AI in government / AI governance] Signed HB 149, the Texas Responsible Artificial Intelligence Governance Act (TRAIGA), June 2025 (effective Jan 1, 2026), making Texas the third state with a comprehensive AI law; intent-based liability framework with safe harbors for entities substantially complying with the NIST AI Risk Management Framework. (https://iapp.org/news/a/governor-signs-texas-responsible-artificial-intelligence-governance-act)\n[performance-based pay / public workforce incentives] Expanded merit-based Teacher Incentive Allotment under HB 2 (~$4B for teacher pay raises); announced $750M in TIA awards to 65,000+ teachers across 800+ school systems in 2025-26, with a path to six-figure salaries for top-rated teachers. (https://gov.texas.gov/news/post/governor-abbott-announces-750-million-in-teacher-incentive-allotment-awards)"
+   },
+   {
+    "name": "Gina Hinojosa",
+    "party": "D",
+    "role": "Texas State Representative, District 49 (Austin), serving since 2017",
+    "status": "primary-winner",
+    "website": "https://ginafortexas.com/",
+    "notes": "[state workforce / public-sector pay and unions] Campaign priorities pledge to fight 'alongside union teachers,' invest in teacher pay, and protect the Teacher Retirement System from voucher-driven funding drains; frames public-workforce investment as part of an anti-privatization education agenda. (https://ginafortexas.com/priorities/)\n[accountability / anti-corruption in government] Emphasizes holding officials accountable for how tax dollars are spent; no specific published plans found on regulatory/permitting reform, digital government/IT modernization, or KPI-based performance management. (https://ginafortexas.com/about/)"
+   },
+   {
+    "name": "Pat Dixon",
+    "party": "L",
+    "role": "Former Lago Vista city council member (two terms)",
+    "status": "primary-winner",
+    "website": "https://patdixon.org/",
+    "notes": "former chair of the Libertarian Party of Texas"
+   }
+  ]
+ },
+ {
+  "state": "VT",
+  "primary_date": "2026-08-11",
+  "primary_held": false,
+  "race_rating": "Safe R",
+  "race_type": "incumbent-running",
+  "candidates": [
+   {
+    "name": "Phil Scott",
+    "party": "R",
+    "role": "Incumbent Governor of Vermont (since 2017)",
+    "status": "incumbent",
+    "website": null,
+    "notes": "announced May 28, 2026 he is seeking a sixth two-year term (confirmed running)\n[regulatory/permitting reform] January 2026 budget address called for regulatory reforms to increase housing development: modernizing Act 250, extending interim housing exemptions to 2030, adjusting exemption requirements, repealing the 'Road Rule' (https://www.wamc.org/news/2026-02-05/vermont-governor-calls-for-regulatory-reforms-to-help-increase-housing-development)\n[regulatory/permitting reform] Signed 'historic' housing legislation (S.100 HOME Act) and Act 181's shift to location-based Act 250 jurisdiction with a professionalized Land Use Review Board; pushing 2026 Legislature to go further on housing (https://governor.vermont.gov/press-release/governor-phil-scott-signs-historic-housing-legislation-law)\n[performance & outcomes management] 2026 State of the State centered on implementing Act 73 education transformation \u2014 foundation funding formula 'proven to produce better outcomes,' governance consolidation, spending curbs through 2029 \u2014 his signature next-term delivery agenda (https://www.vermontpublic.org/local-news/2026-01-07/gov-phil-scott-insists-on-lawmakers-keeping-our-word-on-education-reform-in-state-of-state-speech)\n[digital government / AI] Agency of Digital Services deployed ChatVT, a homemade AI chatbot for all state employees (early 2025), building on Vermont being first in the nation with a state AI director and AI council (Act 132 of 2022) (https://vtdigger.org/2025/05/22/final-reading-meet-chatvt-the-state-of-vermonts-homemade-ai-chatbot/)\n[digital government / IT modernization] New advisory body created May 2026 to recommend how Vermont government and businesses could adopt AI; lawmakers scrutinizing the administration's $70M state IT modernization program after a postponed rollout in April 2026 (https://vtdigger.org/2026/05/19/a-new-body-will-recommend-how-state-government-and-vermont-businesses-could-adopt-ai/)\n[civil service & state workforce] His August 2025 'Hybrid Work Standard' (3 in-office days/week) was overturned by the Vermont Labor Relations Board in April 2026 for refusing to bargain in good faith with VSEA; union cited 77% vacancy rate at Waterbury State Office Complex (https://vtdigger.org/2026/04/01/vermont-labor-board-says-state-must-end-return-to-office-requirement-for-employees/)"
+   },
+   {
+    "name": "Amanda Janoo",
+    "party": "D",
+    "role": "Economist",
+    "status": "major-contender",
+    "website": "https://www.janooforvt.com/",
+    "notes": "co-founder of Wellbeing Economy Alliance of Vermont, former UN economic policy advisor; first Democrat to enter (March 10, 2026)\n[performance & outcomes management] 'Wellbeing economy' platform proposes a Vermont Future Generations Commissioner with tenure beyond political cycles to hold government to account; major policies and investments must show how they advance collectively-set goals, measured by wellbeing indicators rather than GDP (https://www.janooforvt.com/)\n[performance & outcomes management] Career at Wellbeing Economy Alliance helped governments in Canada, New Zealand, and Wales evaluate economies by social and ecological wellbeing; proposes statewide strategic goals via participatory town-meeting-style process with investments evaluated against them (https://www.colchestersun.com/news/government/amanda-janoo-seeks-governorship-to-create-wellbeing-economy/article_a3e867d9-cc55-526f-965f-3145e8a99b11.html)"
+   },
+   {
+    "name": "Aly Richards",
+    "party": "D",
+    "role": "Former CEO of Let's Grow Kids (2015-2025), the advocacy group behind Vermont's 2023 child care law (Act 76)",
+    "status": "major-contender",
+    "website": "https://alyforvt.com/",
+    "notes": "entered race April 6, 2026\n[regulatory/permitting reform] Housing is her top priority: commits to 'set clear annual housing production targets by region' and 'make it easier and faster to build,' signaling permitting/production streamlining (no detailed Act 250 position) (https://alyforvt.com/platform/)\n[performance & outcomes management] Platform emphasizes data-driven, outcomes-focused governance; pledges to ensure Act 76 child care benefits are 'working as intended with a continued commitment to accountability and tracking return on investment' (https://alyforvt.com/platform/)"
+   }
+  ]
+ },
+ {
+  "state": "WI",
+  "primary_date": "2026-08-11",
+  "primary_held": false,
+  "race_rating": "Toss-up",
+  "race_type": "open",
+  "candidates": [
+   {
+    "name": "Tom Tiffany",
+    "party": "R",
+    "role": "U.S. Representative, WI-07",
+    "status": "presumptive-nominee",
+    "website": "https://tomtiffany.com/",
+    "notes": "[regulatory-reform] Platform pledges to 'cut burdensome regulations to make housing, childcare, and healthcare more affordable'; as a state senator authored 2017 SB 288 on review/sunset reports for occupational licenses; June 2026 statewide ad buy highlights cutting red tape. (https://tomtiffany.com/solutions/)\n[civil-service] Defends Act 10 (served in the Assembly when it passed): 'What Act 10 did is put elected officials in charge of their budget... an effort to strike a balance' \u2014 contrast with all Democratic candidates, who vow repeal. (https://www.wjfw.com/news/local/wisconsin-governor-candidates-speak-out-on-act-10-with-democrats-vowing-to-repeal-it/article_8fba2faf-4543-4187-8e97-10b5509c94b2.html)\n[performance-management] Education plank stresses outcomes and accountability: 'higher academic standards and transparent reporting,' funding directed 'to students, teachers, and communities rather than bureaucracy,' rewarding successful schools. (https://tomtiffany.com/solutions/)"
+   },
+   {
+    "name": "Sara Rodriguez",
+    "party": "D",
+    "role": "Lieutenant Governor of Wisconsin",
+    "status": "major-contender",
+    "website": "https://www.saraforwi.com/",
+    "notes": "[digital-government] Dedicated issue plank 'Make AI Work for Wisconsin Workers': as governor she 'will ensure artificial intelligence creates opportunity for Wisconsin workers \u2013 not just profits for tech companies.' (https://www.saraforwi.com/issues)\n[civil-service] Supports repealing Act 10 and restoring public-sector collective bargaining; endorsed by AFSCME. (https://www.wjfw.com/news/local/wisconsin-governor-candidates-speak-out-on-act-10-with-democrats-vowing-to-repeal-it/article_8fba2faf-4543-4187-8e97-10b5509c94b2.html)"
+   },
+   {
+    "name": "David Crowley",
+    "party": "D",
+    "role": "Milwaukee County Executive",
+    "status": "major-contender",
+    "website": "https://www.crowleyforwi.com/",
+    "notes": "[civil-service] Platform includes 'Repealing Act 10 and restoring the collective bargaining rights for workers'; endorsed by the Professional Fire Fighters of Wisconsin; led Democratic field in fundraising ($800,949 in first filing period). (https://www.wjfw.com/news/local/wisconsin-governor-candidates-speak-out-on-act-10-with-democrats-vowing-to-repeal-it/article_8fba2faf-4543-4187-8e97-10b5509c94b2.html)"
+   },
+   {
+    "name": "Mandela Barnes",
+    "party": "D",
+    "role": "Former Lieutenant Governor of Wisconsin (2019-2023); 2022 U.S. Senate nominee",
+    "status": "major-contender",
+    "website": "https://www.mandelabarnes.com/",
+    "notes": "[civil-service] Supports repealing Act 10, framing the state as a model employer: 'the state has to lead by example by creating those workplaces where people are fairly compensated... repealing Act 10 is the first step to giving people that voice back.' (https://www.wjfw.com/news/local/wisconsin-governor-candidates-speak-out-on-act-10-with-democrats-vowing-to-repeal-it/article_8fba2faf-4543-4187-8e97-10b5509c94b2.html)"
+   },
+   {
+    "name": "Francesca Hong",
+    "party": "D",
+    "role": "State Representative, 76th Assembly District (Madison)",
+    "status": "major-contender",
+    "website": "https://francescahong.com/",
+    "notes": "[civil-service] Most detailed labor/workforce plank in the field: 'nail the coffin of Act 10 shut,' enshrine a constitutional right for all workers to organize, repeal right-to-work, restore prevailing wage, and have state workers 'participate in executive decision-making.' (https://francescahong.com/policy/)\n[performance-management] 'Cut contractor waste' plank: commission a study of government outsourcing to identify waste; pledges to properly staff agencies (e.g., DNR) to implement existing law. (https://francescahong.com/policy/)\n[regulatory-reform] Narrow red-tape plank on health care access: 'Fran will cut the red tape by expanding reimbursement pathways' for opioid-use-disorder treatment. (https://francescahong.com/policy/)"
+   }
+  ]
+ },
+ {
+  "state": "WY",
+  "primary_date": "2026-08-18",
+  "primary_held": false,
+  "race_rating": "Safe R",
+  "race_type": "open",
+  "candidates": [
+   {
+    "name": "Megan Degenfelder",
+    "party": "R",
+    "role": "Wyoming Superintendent of Public Instruction (2023-present)",
+    "status": "major-contender",
+    "website": "https://megandegenfelder.com/",
+    "notes": "former oil/gas and coal industry government affairs executive\n[performance/outcomes management] At the June 2026 gubernatorial debate called for continuous performance auditing of state government: 'We should be auditing every single state agency, every single budget line all the time. Government is a beast, and you need someone in there who can tame it.' (https://oilcity.news/government/state/2026/06/01/megan-degenfelder-brent-bien-face-off-in-gubernatorial-campaign-debate/)\n[regulatory/permitting reform] Pledges to 'reduce red tape' as governor; cites her record fighting federal regulatory burdens on Wyoming energy and wants federal grant money to flow to states and districts 'without the red tape.' Platform lists 'Limited & Transparent Government' as a core issue. (https://www.wyodaily.com/story/2026/06/25/news/governor-candidates-megan-degenfelder-republican/17964.html)\n[digital government / modernization] Campaign priorities include 'promoting innovation in government and industry' and 'modernizing state government'; issues platform also includes a 'Digital Assets' plank. (https://www.yourwyominglink.com/news/politics/megan-degenfelder-emphasizes-leadership-experience-in-governor-bid/article_b6eba0b4-d35e-4bab-a091-3b7aff17480f.html)"
+   },
+   {
+    "name": "Eric Barlow",
+    "party": "R",
+    "role": "Wyoming State Senator, District 23 (2023-present)",
+    "status": "major-contender",
+    "website": "https://www.barlowforwyo.com/",
+    "notes": "former Speaker of the Wyoming House; rancher and veterinarian\n[civil service & state workforce] Proposes five regional governor's offices staffed by hires from regional communities rather than centralized in Cheyenne, to improve communication and coordination on permitting, workforce, infrastructure, and local government needs. (https://www.codyenterprise.com/news/wyoming_news/article_d6ec45db-d71e-4bdd-91af-1f75b71b822e.html)\n[regulatory/permitting reform] Touts legislative record cutting red tape in healthcare 'so providers can focus on patients, not paperwork'; frames his goal as limited government that 'delivers the services in a respectful and efficient manner and lives well within its means.' (https://www.barlowforwyo.com/positions)"
+   },
+   {
+    "name": "Brent Bien",
+    "party": "R",
+    "role": "Retired U.S. Marine Corps colonel; 2022 gubernatorial candidate (Cody)",
+    "status": "major-contender",
+    "website": "https://brentbien.com/",
+    "notes": "[performance/outcomes management] Pledges a full budgetary audit of Wyoming state government, noting 'this state has not done a full-blown budgetary audit since 1989. Whoever's belly-aching loudest is going to get audited first.' (https://oilcity.news/government/state/2026/06/01/megan-degenfelder-brent-bien-face-off-in-gubernatorial-campaign-debate/)\n[regulatory/permitting reform] Strongly deregulatory: 'The only business that government has in business is simply to get out of the way. It's to cut taxes. It's to deregulate'; message centers on shrinking government. (https://brentbien.com/)"
+   },
+   {
+    "name": "Kenneth R. Casner",
+    "party": "D",
+    "role": "Retired Army/Army National Guard veteran (27 years) from Elk Mountain",
+    "status": "presumptive-nominee",
+    "website": null,
+    "notes": "third gubernatorial bid"
+   }
+  ]
+ }
+]

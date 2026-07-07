@@ -12,6 +12,9 @@ export default function Header({ active }) {
         <Link href="/states" className={`tab ${active === "states" ? "on" : ""}`}>
           State profiles
         </Link>
+        <Link href="/candidates" className={`tab ${active === "candidates" ? "on" : ""}`}>
+          Governors &rsquo;26
+        </Link>
         <Link href="/methodology" className={`tab ${active === "methodology" ? "on" : ""}`}>
           Sources &amp; methodology
         </Link>

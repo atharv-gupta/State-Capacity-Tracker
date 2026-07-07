@@ -41,6 +41,7 @@ export default function StateProfile() {
   const code = String(postal || "").toUpperCase();
   const [states, setStates] = useState(null);
   const [events, setEvents] = useState(null);
+  const [candidates, setCandidates] = useState([]);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -52,12 +53,31 @@ export default function StateProfile() {
       .then((r) => r.json())
       .then((d) => setEvents(d.events || []))
       .catch(() => setEvents([]));
+    fetch("/api/candidates")
+      .then((r) => r.json())
+      .then((d) => setCandidates(d.candidates || []))
+      .catch(() => setCandidates([]));
   }, []);
 
   const spec = useMemo(
     () => (states || []).find((s) => s.postal === code),
     [states, code]
   );
+
+  const raceCands = useMemo(() => {
+    const order = {
+      incumbent: 0, "primary-winner": 1, "runoff-pending": 2,
+      "presumptive-nominee": 3, "major-contender": 4,
+    };
+    return (candidates || [])
+      .filter((c) => c.state === code && c.status !== "withdrawn" && c.status !== "defeated")
+      .sort(
+        (a, b) =>
+          (order[a.status] ?? 9) - (order[b.status] ?? 9) ||
+          a.party.localeCompare(b.party) ||
+          a.name.localeCompare(b.name)
+      );
+  }, [candidates, code]);
 
   const stateEvents = useMemo(
     () =>
@@ -114,6 +134,51 @@ export default function StateProfile() {
               <p className="muted">No recent tracked events for this state.</p>
             )}
           </section>
+
+          {/* 2026 governor's race, joined on postal */}
+          {raceCands.length ? (
+            <section className="feedcard">
+              <div className="feedhead">
+                <h3>2026 governor&rsquo;s race</h3>
+                <Link href="/candidates" className="feedlink">
+                  all races →
+                </Link>
+              </div>
+              <div className="racehead" style={{ border: "none", margin: 0, paddingBottom: 4 }}>
+                {raceCands[0].race_rating ? (
+                  <span className="ratingchip lean">{raceCands[0].race_rating}</span>
+                ) : null}
+                {raceCands[0].race_type === "open" ? (
+                  <span className="openchip">open seat</span>
+                ) : null}
+                {raceCands[0].primary_date ? (
+                  <span className="primaryinfo">
+                    primary {raceCands[0].primary_date}
+                    {raceCands[0].primary_held ? " ✓" : ""}
+                  </span>
+                ) : null}
+              </div>
+              <div className="candlist">
+                {raceCands.map((c) => (
+                  <div className="candrow" key={c.id}>
+                    <div className="candtop">
+                      <span className="partychip" style={{ "--pc": c.party === "R" ? "#b3453c" : c.party === "D" ? "#3c6cb3" : "#8a7a4a" }}>
+                        {c.party}
+                      </span>
+                      <span className="candname">{c.name}</span>
+                      {c.role ? <span className="candrole">{c.role}</span> : null}
+                      <span className={`candstatus s-${c.status}`}>
+                        {c.status.replace(/-/g, " ")}
+                      </span>
+                      {(c.competency_signals || []).map((s) => (
+                        <span key={s} className="minichip">{s}</span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : null}
 
           {/* Four spec sections */}
           <div className="specgrid">

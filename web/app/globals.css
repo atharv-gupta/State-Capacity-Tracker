@@ -994,6 +994,281 @@ h1 {
   color: #64748b;
 }
 
+/* ---------- governors '26 (candidates) ---------- */
+
+.racepanel {
+  --c: #2563eb; /* accent for the filter pills (border/on-state) */
+  margin-bottom: 14px;
+}
+.racelist {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.racecard {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 16px;
+}
+.racehead {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+.racestate {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: #0f172a;
+  text-decoration: none;
+}
+.racestate:hover {
+  color: #2563eb;
+}
+.ratingchip {
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 1px 9px;
+}
+.ratingchip.tossup {
+  background: #fef3c7;
+  color: #92400e;
+}
+.ratingchip.lean {
+  background: #f1f5f9;
+  color: #475569;
+}
+.ratingchip.settled {
+  background: #f8fafc;
+  color: #94a3b8;
+}
+.openchip {
+  font-size: 11px;
+  border: 1px solid #c7d2fe;
+  color: #4338ca;
+  border-radius: 999px;
+  padding: 0 8px;
+}
+.primaryinfo {
+  font-size: 11.5px;
+  color: #94a3b8;
+  margin-left: auto;
+}
+.candlist {
+  display: flex;
+  flex-direction: column;
+}
+.candrow {
+  padding: 6px 0;
+  border-bottom: 1px solid #f8fafc;
+}
+.candrow:last-child {
+  border-bottom: none;
+}
+.candtop {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 13.5px;
+}
+.partychip {
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #fff;
+  background: var(--pc, #777);
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+.candname {
+  font-weight: 650;
+  color: #0f172a;
+}
+.candrole {
+  color: #64748b;
+  font-size: 12.5px;
+}
+.candstatus {
+  font-size: 10.5px;
+  border-radius: 999px;
+  padding: 0 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+}
+.candstatus.s-primary-winner,
+.candstatus.s-incumbent {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #047857;
+}
+.candstatus.s-runoff-pending {
+  background: #fef3c7;
+  border-color: #fde68a;
+  color: #92400e;
+}
+.candlinks {
+  margin-left: auto;
+  display: flex;
+  gap: 10px;
+  font-size: 12px;
+}
+.candlinks a {
+  color: #2563eb;
+  text-decoration: none;
+}
+.candlinks a:hover {
+  text-decoration: underline;
+}
+.candmore {
+  border: none;
+  background: none;
+  color: #64748b;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+}
+.candmore:hover {
+  color: #2563eb;
+}
+.candbody {
+  margin: 6px 0 4px 2px;
+  padding-left: 10px;
+  border-left: 2px solid #e2e8f0;
+}
+.candsummary {
+  margin: 0 0 8px;
+  font-size: 12.5px;
+  color: #475569;
+  line-height: 1.55;
+}
+
+/* ---------- feed window + collapsible races ---------- */
+
+.feedwindow {
+  font-weight: 400;
+  color: #94a3b8;
+}
+.devlist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.devitem {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+.devitem:last-child {
+  border-bottom: none;
+}
+.devmeta {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.devmeta time {
+  color: #94a3b8;
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+.devcand {
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+}
+.devheadline {
+  font-size: 13px;
+  line-height: 1.45;
+  color: #1e293b;
+  text-decoration: none;
+}
+a.devheadline:hover {
+  color: #2563eb;
+  text-decoration: underline;
+}
+.feedempty {
+  font-size: 13px;
+  margin: 2px 0 0;
+}
+.linkbtn {
+  border: none;
+  background: none;
+  color: #2563eb;
+  font-size: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+.linkbtn:hover {
+  text-decoration: underline;
+}
+.racecard.open {
+  border-color: #cbd5e1;
+}
+/* header no longer needs the bottom divider when collapsed */
+.racecard .racehead {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+.racecard.open .racehead {
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+.racetoggle {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  flex: 1;
+}
+.racecaret {
+  color: #94a3b8;
+  font-size: 11px;
+}
+.racetoggle:hover .racestate {
+  color: #2563eb;
+}
+.racecount {
+  font-size: 11.5px;
+  color: #94a3b8;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.recentdot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #16a34a;
+  display: inline-block;
+}
+.raceprofile {
+  font-size: 12px;
+  color: #2563eb;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.raceprofile:hover {
+  text-decoration: underline;
+}
+
 /* ---------- responsive ---------- */
 
 @media (max-width: 760px) {

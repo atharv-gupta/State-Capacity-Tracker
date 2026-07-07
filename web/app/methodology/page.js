@@ -37,6 +37,7 @@ const TOC = [
   { id: "how", label: "How events get here" },
   { id: "feed-sources", label: "News-feed sources" },
   { id: "gaps", label: "Known gaps" },
+  { id: "governors26", label: "Governors '26 — candidate tracker" },
   {
     id: "profiles",
     label: "State profiles — data & sources",
@@ -292,6 +293,39 @@ export default function Methodology() {
               <strong>Coverage follows the press.</strong> An event only enters the tracker if an
               outlet wrote about it; states with thinner statehouse press will look quieter than
               they are.
+            </li>
+          </ul>
+        </section>
+
+        <section className="card msec" id="governors26">
+          <h2>Governors &rsquo;26 — candidate tracker</h2>
+          <p>
+            The main tracker deliberately excludes campaign coverage, so the 2026 gubernatorial
+            races (36 states, likely 20+ new governors) get their own layer with the opposite
+            filter: what candidates <em>say, plan, and have done</em> about how state government
+            builds and runs itself.
+          </p>
+          <ul>
+            <li>
+              <strong>Roster.</strong> One row per primary winner or major contender per race,
+              researched from primary results, campaign sites, and race coverage, with each
+              candidate&apos;s existing platform profiled against the four competencies (the
+              &ldquo;platform signal&rdquo; chips). Race ratings reflect Cook Political Report /
+              Sabato&apos;s Crystal Ball consensus at time of entry. Curated by hand as races
+              develop.
+            </li>
+            <li>
+              <strong>Developments.</strong> A daily pipeline queries Google News per candidate,
+              then a model gate keeps only items with governing-agenda substance — policy plans,
+              press releases, speeches, actions in current office — and drops horse-race coverage
+              (polls, fundraising, attacks, vote counts). Kept items are classified against the
+              same four-competency rubric as the main tracker, with statements and plans counting
+              the same as enacted actions.
+            </li>
+            <li>
+              <strong>Caveats.</strong> Candidate fields shift quickly — statuses (runoffs,
+              withdrawals) are updated manually; platform summaries are point-in-time scrapes of
+              campaign sites, stamped with an as-of date.
             </li>
           </ul>
         </section>
