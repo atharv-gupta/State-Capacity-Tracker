@@ -278,7 +278,7 @@ export default function Candidates() {
           if (ratingF === "open" && c?.race_type !== "open") return false;
           return true;
         })
-        .slice(0, 25),
+        .slice(0, 60),
     [windowedDevs, signalF, partyF, ratingF, candByKey]
   );
 
@@ -360,6 +360,7 @@ export default function Candidates() {
               RAF-relevant developments
               <span className="feedwindow">
                 {windowF === "all" ? " · all time" : ` · last ${windowF} days`}
+                {` · ${rafDevs.length}`}
               </span>
             </h3>
           </div>
@@ -373,6 +374,9 @@ export default function Candidates() {
                   {(d.competency || []).map((x) => (
                     <span key={x} className="minichip">{x}</span>
                   ))}
+                  {d.article_count > 1 ? (
+                    <span className="devsources">· {d.article_count} sources</span>
+                  ) : null}
                 </div>
                 {d.urls[0] ? (
                   <a className="devheadline" href={d.urls[0]} target="_blank" rel="noreferrer">

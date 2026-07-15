@@ -35,9 +35,16 @@ RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
 DIGEST_FROM = os.environ.get("DIGEST_FROM", "onboarding@resend.dev")
 
 EVENTS_TABLE = "Events"
+# The clean, deduped candidates layer (candidates_dedupe.py) + the roster, for
+# the "Gov Candidates Corner" section at the foot of the digest.
+CANDIDATE_EVENTS_TABLE = "Candidate Events"
+CANDIDATES_TABLE = "Gov Candidates"
 
 # Public read-only tracker (overridable via env). Linked at the foot of the digest.
 TRACKER_URL = os.environ.get("TRACKER_URL", "https://state-tracker-e2i7.vercel.app/")
+
+# Fixed subject line for every send (no date/count, per request).
+SUBJECT = "State Activity Digest from Last Week"
 
 # Snippy opener.
 INTRO = ("Here's everything you need to know about what states got up to last week "
@@ -73,13 +80,19 @@ def date_epoch(iso: str) -> int:
         return 0
 
 
-def load_events(days: int) -> list[dict]:
-    """Read the Events table, keep rows whose `date` is within the last `days`."""
+def window_cutoff(days: int, since: str | None) -> str:
+    """The ISO date on/after which rows are kept: an explicit --since date if
+    given, else `days` back from today."""
+    return since or (date.today() - timedelta(days=days)).isoformat()
+
+
+def load_events(days: int, since: str | None = None) -> list[dict]:
+    """Read the Events table, keep rows dated on/after the window cutoff."""
     if not all([AIRTABLE_TOKEN, AIRTABLE_BASE_ID]):
         sys.exit("Missing AIRTABLE_TOKEN / AIRTABLE_BASE_ID; see .env_example.")
     api = Api(AIRTABLE_TOKEN)
     table = api.table(AIRTABLE_BASE_ID, EVENTS_TABLE)
-    cutoff = (date.today() - timedelta(days=days)).isoformat()
+    cutoff = window_cutoff(days, since)
 
     events = []
     for rec in table.all():
@@ -110,6 +123,101 @@ def load_events(days: int) -> list[dict]:
             "source_urls": urls,
         })
     return events
+
+
+# --------------------------------------------------------------------------- #
+# Gov Candidates Corner (§ candidate developments) — separate table + roster
+# --------------------------------------------------------------------------- #
+
+def is_competitive(rating: str) -> bool:
+    """Cook/Sabato consensus rating counts as competitive if it's a Toss-up or
+    a Lean. Mirrors the web tab's ratingClass() != 'settled' test."""
+    r = (rating or "").strip()
+    return r == "Toss-up" or r.startswith("Lean")
+
+
+def load_roster() -> dict[tuple[str, str], dict]:
+    """(state, candidate) -> {race_type, race_rating, party, role}. Lets the
+    corner know which developments belong to open-seat / competitive races."""
+    api = Api(AIRTABLE_TOKEN)
+    table = api.table(AIRTABLE_BASE_ID, CANDIDATES_TABLE)
+    roster = {}
+    for rec in table.all():
+        f = rec["fields"]
+        key = ((f.get("state") or "").strip().upper(), (f.get("candidate") or "").strip())
+        roster[key] = {
+            "race_type": (f.get("race_type") or "").strip(),
+            "race_rating": (f.get("race_rating") or "").strip(),
+            "party": (f.get("party") or "").strip(),
+            "role": (f.get("current_role") or "").strip(),
+        }
+    return roster
+
+
+def load_candidate_devs(days: int, since: str | None = None) -> list[dict]:
+    """Read the clean 'Candidate Events' table, keep RAF-relevant developments
+    (a competency was assigned) dated on/after the window cutoff. Missing table
+    (no dedupe run yet) -> empty, so the digest still sends."""
+    api = Api(AIRTABLE_TOKEN)
+    table = api.table(AIRTABLE_BASE_ID, CANDIDATE_EVENTS_TABLE)
+    cutoff = window_cutoff(days, since)
+
+    devs = []
+    try:
+        records = table.all()
+    except Exception:
+        return devs
+    for rec in records:
+        f = rec["fields"]
+        d = f.get("date", "")
+        if not d or d < cutoff:
+            continue
+        comp = f.get("competency") or []
+        if not comp:                       # RAF-relevant only
+            continue
+        try:
+            rel = int(f.get("relevance") or 0)
+        except (TypeError, ValueError):
+            rel = 0
+        outlets = [o.strip() for o in (f.get("source_outlets") or "").split(",") if o.strip()]
+        urls = [u.strip() for u in (f.get("source_urls") or "").splitlines() if u.strip()]
+        devs.append({
+            "candidate": (f.get("candidate") or "").strip(),
+            "state": (f.get("state") or "").strip().upper(),
+            "date": d,
+            "date_epoch": date_epoch(d),
+            "relevance": rel,
+            "competency": comp,
+            "article_count": int(f.get("article_count") or 1),
+            "headline": (f.get("headline") or "").strip(),
+            "summary": (f.get("summary") or "").strip(),
+            "why_it_matters": (f.get("why_it_matters") or "").strip(),
+            "source_outlets": outlets,
+            "source_urls": urls,
+        })
+    return devs
+
+
+def select_candidate_corner(devs: list[dict], roster: dict) -> tuple[list[dict], list[dict]]:
+    """Two tiers, NOT grouped by competency (per request):
+      tier 1 — developments in an open-seat OR competitive race, relevance >= 2;
+      tier 2 — anything else, only if relevance == 3 (noteworthy elsewhere).
+    Each tier ordered by relevance, then coverage, then recency. The race
+    rating/party is attached to each dev for rendering."""
+    tier1, tier2 = [], []
+    for d in devs:
+        r = roster.get((d["state"], d["candidate"]), {})
+        d["_rating"] = r.get("race_rating", "")
+        d["_party"] = r.get("party", "")
+        priority = r.get("race_type") == "open" or is_competitive(r.get("race_rating", ""))
+        if priority and d["relevance"] >= 2:
+            tier1.append(d)
+        elif d["relevance"] >= 3:
+            tier2.append(d)
+    order = lambda d: (-d["relevance"], -d["article_count"], -d["date_epoch"])
+    tier1.sort(key=order)
+    tier2.sort(key=order)
+    return tier1[:10], tier2[:6]
 
 
 # --------------------------------------------------------------------------- #
@@ -174,10 +282,78 @@ def meta_line(e: dict) -> str:
     return " · ".join(bits)
 
 
-def render_text(sections: dict[str, list[dict]], total: int, monday: date) -> str:
-    lines = [f"State Activity Digest — week of {monday.strftime('%b %-d, %Y')}",
-             f"{total} events", "",
-             INTRO, ""]
+def dev_summary(d: dict) -> str:
+    if d["why_it_matters"]:
+        return d["why_it_matters"]
+    if d["summary"]:
+        return first_sentences(d["summary"], 2)
+    return ""
+
+
+def _domain(url: str) -> str:
+    m = re.search(r"https?://(?:www\.)?([^/]+)", url or "")
+    return m.group(1) if m else "link"
+
+
+def outlet_summary(outlets: list[str], cap: int = 4) -> str:
+    """'12News, Arizona Mirror, Focus Gaming News +3 more' — readable, capped."""
+    if not outlets:
+        return ""
+    shown = outlets[:cap]
+    extra = len(outlets) - len(shown)
+    return ", ".join(shown) + (f" +{extra} more" if extra > 0 else "")
+
+
+def dev_sources(d: dict) -> tuple[list[tuple[str, str]], list[str]]:
+    """Resolve a development's source links (candidate devs come from Google News,
+    which yields long news.google.com redirect URLs). Returns
+    (links, outlet_names): if any real (non-Google-News) URL exists, use those and
+    DROP the Google News ones; otherwise collapse all Google News URLs to a single
+    ('Google News', first_url) link. outlet_names is the readable publication list
+    for display alongside a collapsed link."""
+    urls = d["source_urls"]
+    outlets = d["source_outlets"]
+    paired = [(urls[i], outlets[i] if i < len(outlets) else "") for i in range(len(urls))]
+    non_gn = [(u, o) for (u, o) in paired if "news.google." not in u]
+    if non_gn:
+        return [(o or _domain(u), u) for (u, o) in non_gn], []
+    if urls:
+        return [("Google News", urls[0])], outlets
+    return [], []
+
+
+def dev_meta_line(d: dict) -> str:
+    cand = d["candidate"] + (f" ({d['_party']})" if d.get("_party") else "")
+    bits = [b for b in (d["state"], cand, d.get("_rating") or "") if b]
+    src = f"{d['article_count']} sources" if d["article_count"] > 1 else ""
+    if src:
+        bits.append(src)
+    return " · ".join(bits)
+
+
+def render_dev_text(d: dict) -> list[str]:
+    lines = [f"- {d['headline']}  {'●' * d['relevance']}"]
+    s = dev_summary(d)
+    if s:
+        lines.append(f"  {s}")
+    ml = dev_meta_line(d)
+    if ml:
+        lines.append(f"  {ml}")
+    links, names = dev_sources(d)
+    for label, u in links:
+        summary = outlet_summary(names)
+        suffix = f" ({summary})" if summary else ""
+        lines.append(f"  {label}{suffix}: {u}")
+    lines.append("")
+    return lines
+
+
+def render_text(sections: dict[str, list[dict]], corner: tuple[list[dict], list[dict]],
+                generated_on: date, window_days: int) -> str:
+    lines = ["State Activity Digest from Last Week",
+             f"Generated on {generated_on.strftime('%b %-d, %Y')} · "
+             f"pulling from the last {window_days} days",
+             "", INTRO, ""]
     for comp in COMPETENCIES:
         lines.append(f"== {COMPETENCY_LABELS[comp]} ==")
         evs = sections[comp]
@@ -199,19 +375,67 @@ def render_text(sections: dict[str, list[dict]], total: int, monday: date) -> st
                 label = e["source_outlets"][i] if i < len(e["source_outlets"]) else u
                 lines.append(f"  {label}: {u}")
             lines.append("")
+
+    tier1, tier2 = corner
+    lines.append("== Gov Candidates Corner ==")
+    lines.append("The 2026 governors' races — what candidates are saying and doing "
+                 "on state capacity.")
+    lines.append("")
+    if not tier1 and not tier2:
+        lines.append("Nothing notable from the 2026 races last week.")
+        lines.append("")
+    else:
+        for d in tier1:
+            lines += render_dev_text(d)
+        if tier2:
+            lines.append("-- Also notable elsewhere --")
+            lines.append("")
+            for d in tier2:
+                lines += render_dev_text(d)
+
     lines.append(f"See the full tracker: {TRACKER_URL}")
     return "\n".join(lines).rstrip() + "\n"
 
 
-def render_html(sections: dict[str, list[dict]], total: int, monday: date) -> str:
+def render_dev_html(d: dict) -> list[str]:
+    first_url = d["source_urls"][0] if d["source_urls"] else ""
+    title = escape(d["headline"])
+    title_html = (f'<a href="{escape(first_url)}" style="color:#0f172a;'
+                  f'text-decoration:none;">{title}</a>' if first_url else title)
+    dots = "●" * d["relevance"]
+    out = ['<div style="margin:0 0 16px;">']
+    out.append(f'<div style="font-weight:700;font-size:14px;">{title_html} '
+               f'<span style="color:#f59e0b;font-size:11px;">{dots}</span></div>')
+    s = dev_summary(d)
+    if s:
+        out.append(f'<div style="font-size:13px;color:#334155;line-height:1.5;'
+                   f'margin:3px 0;">{escape(s)}</div>')
+    ml = dev_meta_line(d)
+    if ml:
+        out.append(f'<div style="font-size:12px;color:#64748b;">{escape(ml)}</div>')
+    links, names = dev_sources(d)
+    anchors = [f'<a href="{escape(u)}" style="color:#2563eb;text-decoration:none;">'
+               f'{escape(label)}</a>' for label, u in links]
+    if anchors:
+        summary = outlet_summary(names)
+        tail = (f' <span style="color:#94a3b8;">· {escape(summary)}</span>'
+                if summary else "")
+        out.append(f'<div style="font-size:12px;margin-top:2px;">'
+                   f'{" · ".join(anchors)}{tail}</div>')
+    out.append('</div>')
+    return out
+
+
+def render_html(sections: dict[str, list[dict]], corner: tuple[list[dict], list[dict]],
+                generated_on: date, window_days: int) -> str:
     wrap = ("font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,"
             "Helvetica,Arial,sans-serif;color:#0f172a;max-width:640px;"
             "margin:0 auto;padding:8px 4px;")
     out = [f'<div style="{wrap}">']
     out.append(f'<h1 style="font-size:20px;margin:0 0 2px;">State Activity Digest</h1>')
     out.append(f'<p style="color:#64748b;font-size:13px;margin:0 0 14px;">'
-               f'Week of {monday.strftime("%b %-d, %Y")} · {total} '
-               f'event{"" if total == 1 else "s"}</p>')
+               f'Generated on {generated_on.strftime("%b %-d, %Y")} · '
+               f'pulling from the last {window_days} days</p>')
     out.append(f'<p style="font-size:14px;color:#334155;line-height:1.5;margin:0 0 18px;">'
                f'{escape(INTRO)}</p>')
 
@@ -249,6 +473,27 @@ def render_html(sections: dict[str, list[dict]], total: int, monday: date) -> st
                 out.append(f'<div style="font-size:12px;margin-top:2px;">'
                            f'{" · ".join(links)}</div>')
             out.append('</div>')
+
+    # --- Gov Candidates Corner (foot of the digest) ---
+    tier1, tier2 = corner
+    out.append('<h2 style="font-size:15px;border-bottom:2px solid #e2e8f0;'
+               'padding-bottom:4px;margin:28px 0 4px;">Gov Candidates Corner</h2>')
+    out.append('<p style="color:#64748b;font-size:12px;margin:0 0 12px;">'
+               "The 2026 governors&rsquo; races — what candidates are saying and "
+               'doing on state capacity.</p>')
+    if not tier1 and not tier2:
+        out.append('<p style="color:#94a3b8;font-size:13px;margin:0;">'
+                   'Nothing notable from the 2026 races last week.</p>')
+    else:
+        for d in tier1:
+            out += render_dev_html(d)
+        if tier2:
+            out.append('<div style="font-size:12px;font-weight:700;color:#64748b;'
+                       'text-transform:uppercase;letter-spacing:.03em;margin:6px 0 10px;">'
+                       'Also notable elsewhere</div>')
+            for d in tier2:
+                out += render_dev_html(d)
+
     out.append(f'<p style="border-top:1px solid #e2e8f0;margin-top:24px;'
                f'padding-top:12px;font-size:13px;">'
                f'<a href="{escape(TRACKER_URL)}" style="color:#2563eb;'
@@ -300,22 +545,31 @@ def send_email(subject: str, html: str, text: str, recipients: list[str]) -> Non
 def main() -> None:
     ap = argparse.ArgumentParser(description="Send the weekly state-capacity email digest.")
     ap.add_argument("--days", type=int, default=7, help="Digest window (default 7).")
+    ap.add_argument("--since", default=None, metavar="YYYY-MM-DD",
+                    help="Anchor the window to this date (e.g. last Monday) instead "
+                         "of --days back; also sets the 'week of' header label.")
     ap.add_argument("--dry-run", action="store_true",
                     help="Render + per-category counts to stdout; send nothing.")
     ap.add_argument("--to", default=None, help="Override recipient (post-DNS only).")
     args = ap.parse_args()
 
-    events = load_events(args.days)
+    events = load_events(args.days, args.since)
     sections = select_all(events)
     total = len({e["name"] for evs in sections.values() for e in evs})
-    monday = monday_of_this_week()
-    subject = f"State Activity Digest — week of {monday.strftime('%b %-d, %Y')}: {total} events"
 
-    html = render_html(sections, total, monday)
-    text = render_text(sections, total, monday)
+    generated_on = date.today()
+    cutoff = window_cutoff(args.days, args.since)
+    window_days = (generated_on - date.fromisoformat(cutoff)).days
+    subject = SUBJECT
+
+    devs = load_candidate_devs(args.days, args.since)
+    corner = select_candidate_corner(devs, load_roster())
+
+    html = render_html(sections, corner, generated_on, window_days)
+    text = render_text(sections, corner, generated_on, window_days)
 
     if args.dry_run:
-        print(f"Window: last {args.days} days · {len(events)} events in window")
+        print(f"Window: since {cutoff} ({window_days} days) · {len(events)} events in window")
         print(f"Subject: {subject}\n")
         for comp in COMPETENCIES:
             evs = sections[comp]
@@ -328,7 +582,16 @@ def main() -> None:
             if not evs:
                 print("    (nothing notable last week)")
             print()
-        print("--- dry run: no email sent ---")
+        tier1, tier2 = corner
+        print(f"[Gov Candidates Corner] {len(devs)} RAF-relevant devs in window · "
+              f"{len(tier1)} priority (open/competitive, ≥2) + {len(tier2)} other (=3)")
+        for lbl, group in (("priority", tier1), ("other", tier2)):
+            for d in group:
+                print(f"    {'●' * d['relevance']:<3} {d['state']:<3} "
+                      f"{d['candidate']:<20} {d['_rating'] or '—':<8} {d['headline'][:52]}")
+        if not tier1 and not tier2:
+            print("    (nothing notable from the 2026 races last week)")
+        print("\n--- dry run: no email sent ---")
         return
 
     recipients = get_recipients(args.to)

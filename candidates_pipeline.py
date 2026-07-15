@@ -5,12 +5,16 @@ A standalone sibling to the State Activity Tracker pipeline (the main pipeline
 deliberately excludes campaign coverage; this one exists for it). For every
 active candidate in the 'Gov Candidates' Airtable table it pulls a Google News
 RSS query, keeps items from the last N days, dedups by URL against the
-'Candidate Developments' table, then runs one gate+classify LLM call per
-surviving item: keep only developments about the candidate's GOVERNING AGENDA
-(policy plans, press releases, speeches, records in office) — pure horse-race
-coverage (polls, fundraising, attacks, process) is dropped — and classify
-against RAF's four competencies (rubric.md, adapted: what a candidate SAYS or
-PLANS counts, not just enacted action).
+'Candidate Developments' table (the RAW layer — one row per article), then runs
+one two-gate LLM call per surviving item: keep only items that are (gate 1)
+substantively about the candidate's GOVERNING AGENDA — pure horse-race coverage
+(polls, fundraising, attacks, process) is dropped — AND (gate 2) touch at least
+one of RAF's four competencies (rubric.md, adapted: what a candidate SAYS or
+PLANS counts). Most campaign coverage fails gate 2, which is the point.
+
+candidates_dedupe.py then clusters these raw rows into one row per DEVELOPMENT
+in the clean 'Candidate Events' table and re-scores them with the full rubric,
+exactly as dedupe.py does for the main tracker.
 
 Usage:
     python candidates_pipeline.py                # last 7 days, all candidates
@@ -107,8 +111,10 @@ for RAF's Gubernatorial Candidates Tracker. RAF (Recoding America Fund) works on
 four state-capacity competencies; the tracker watches what candidates say, plan,
 and do about how state government BUILDS AND RUNS ITSELF.
 
-GATE — keep=true only if the item is substantively about the named candidate's
-GOVERNING agenda, record, or plans. That includes:
+Apply BOTH gates. keep=true ONLY if both pass; otherwise keep=false.
+
+GATE 1 — GOVERNING AGENDA: the item is substantively about the named
+candidate's governing agenda, record, or plans. That includes:
   - policy plans, platform planks, or issue positions;
   - candidate press releases or official statements with policy content;
   - speeches, debate answers, interviews, or op-eds with policy substance;
@@ -120,13 +126,17 @@ policy content, attack coverage about the opponent, ads, staffing/process,
 event logistics, punditry about who will win; items that only mention the
 candidate in passing; items about a different person.
 
-If keep=true, ALSO classify against the four competencies. These are about how
-a state government builds and runs itself — its own workforce, processes,
-technology, learning loops — NOT about regulating the wider economy or society.
-For candidates, a stated plan/position counts the same as an enacted action.
-Direction is irrelevant: a plan that would undermine a competency is still a
-strong example of it. Most kept items match NO competency (a healthcare plan,
-a tax plan) — an empty list is the common, correct outcome.
+GATE 2 — COMPETENCY: the item touches at least ONE of the four
+state-capacity competencies below. These are about how a state government
+builds and runs itself — its own workforce, processes, technology, learning
+loops — NOT about regulating the wider economy or society. For candidates, a
+stated plan/position counts the same as an enacted action. Direction is
+irrelevant: a plan that would undermine a competency is still a strong example
+of it. If the item is a real governing-agenda item but touches NONE of the four
+(a healthcare plan, a tax plan, a general crime platform), it FAILS gate 2 —
+keep=false. Most campaign coverage fails here; that is expected and correct.
+A later dedupe+classify pass re-scores kept items with the full rubric, so
+lean toward keep only when a competency is genuinely present.
 
 - civil-service: how the state hires, classifies, pays, evaluates, promotes, or
   separates its own employees, or where that authority sits. (Workforce plans,
@@ -142,23 +152,24 @@ a tax plan) — an empty list is the common, correct outcome.
   performance dashboards, test-and-learn pilots, oversight reform, follow-up on
   existing law.
 
-relevance (only when competencies is non-empty): 3 = the development is
+relevance (a kept item always has >=1 competency): 3 = the development is
 centrally about that competency (a regulatory-reform plan, a pledged
 government-efficiency EO); 2 = clearly an instance but partial or one piece of
 a broader plan; 1 = at the edge.
 
-Output ONLY this JSON object (no fences, no preamble):
+Output ONLY this JSON object (no fences, no preamble). If keep=true, competencies
+MUST be non-empty (an empty list means the item failed gate 2 -> keep=false):
 {
   "keep": true,
   "dev_type": "one of: policy-plan | press-release | speech-quote | interview | news-coverage | official-action | other",
   "headline": "one plain sentence, your own words: what the candidate said/did",
   "summary": "2-3 sentences of substance",
-  "why_it_matters": "one sentence, only if competencies is non-empty, tying it to the competency; else \\"\\"",
-  "competencies": [],
-  "relevance": 0,
+  "why_it_matters": "one sentence tying it to the competency it touches",
+  "competencies": ["procedure"],
+  "relevance": 2,
   "quote": "a short verbatim candidate quote if one carries the story, else \\"\\""
 }
-If it fails the gate: {"keep": false, "reason": "one short line"}
+If it fails EITHER gate: {"keep": false, "reason": "which gate failed, one short line"}
 """
 
 
@@ -425,10 +436,16 @@ def main():
                 errors.append(("?", f"classify: {e}"))
                 print(f"  [{done}/{len(items)}] ERROR — {e}")
                 continue
-            if not verdict.get("keep"):
-                dropped.append((item, verdict.get("reason") or "gate failed"))
+            comps_valid = [c for c in (verdict.get("competencies") or [])
+                           if c in COMPETENCY_CHOICES]
+            # Gate 2 enforced in code: a kept item must touch >=1 competency, or
+            # it is horse-race / off-lens noise regardless of what the model said.
+            if not verdict.get("keep") or not comps_valid:
+                reason = verdict.get("reason") or (
+                    "kept but no competency (gate 2)" if verdict.get("keep") else "gate failed")
+                dropped.append((item, reason))
                 print(f"  [{done}/{len(items)}] DROP {item['state']} {item['candidate'].split()[-1]:<12} — "
-                      f"{(verdict.get('reason') or '')[:55]}")
+                      f"{reason[:55]}")
                 continue
             kept.append((item, verdict))
             comps = ",".join(verdict.get("competencies") or []) or "-"

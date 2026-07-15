@@ -45,6 +45,13 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
           AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+      - name: Dedupe candidate developments into Candidate Events (Mondays, or manual opt-in)
+        if: (github.event_name == 'schedule' && steps.day.outputs.dow == '1') || (github.event_name == 'workflow_dispatch' && inputs.dedupe)
+        run: python candidates_dedupe.py --days 7
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
       - name: Send weekly digest (Mondays, or manual opt-in)
         if: (github.event_name == 'schedule' && steps.day.outputs.dow == '1') || (github.event_name == 'workflow_dispatch' && inputs.digest)
         run: python digest.py --days 7

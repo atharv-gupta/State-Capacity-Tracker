@@ -1,6 +1,9 @@
 const BASE = process.env.AIRTABLE_BASE_ID;
 const TOKEN = process.env.AIRTABLE_TOKEN;
-const TABLE = "Candidate Developments";
+// The clean, deduped layer built weekly by candidates_dedupe.py (one row per
+// development, sources merged). The raw per-article table is "Candidate
+// Developments"; this tab reads the condensed one.
+const TABLE = "Candidate Events";
 
 export const dynamic = "force-dynamic";
 
@@ -44,6 +47,7 @@ export async function GET() {
       why_it_matters: f.why_it_matters || "",
       competency: f.competency || [],
       relevance: f.relevance || 0,
+      article_count: f.article_count || 1,
       quote: f.quote || "",
       urls: (f.source_urls || "").split("\n").map((s) => s.trim()).filter(Boolean),
       outlets: (f.source_outlets || "").split(",").map((s) => s.trim()).filter(Boolean),
