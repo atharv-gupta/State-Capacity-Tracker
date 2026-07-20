@@ -52,7 +52,7 @@ INTRO = ("Here's everything you need to know about what states got up to last we
 
 # §0 pre-DNS constraint: Resend can only deliver to the account's own address
 # until a domain is verified. Do not add other recipients yet — they 403.
-RECIPIENTS = ["atharv@recodingamerica.fund"]
+RECIPIENTS = ["atharv@recodingamerica.org"]
 
 # §3 — fixed section order; values match the Events `competency` field exactly.
 COMPETENCIES = ["civil-service", "procedure", "digital", "incentives"]
