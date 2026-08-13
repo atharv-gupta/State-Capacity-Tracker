@@ -158,6 +158,11 @@ EVENT_FIELDS = [
 HEARING_FIELDS = [
     {"name": "Name", "type": "singleLineText"},
     _text("hearing_key"),
+    # Congress.gov's "title" for a hearing is the full agenda — a markup can
+    # run 1,500+ characters listing every bill. Truncating it still reads
+    # badly, so the classifier writes a real title and `title` keeps the raw
+    # agenda for the expanded view.
+    _text("short_title"),
     _text("title", multi=True),
     _text("agenda_summary", multi=True),
     _text("why_it_matters", multi=True),

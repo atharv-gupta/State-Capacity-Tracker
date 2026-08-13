@@ -1341,8 +1341,11 @@ a.devheadline:hover {
   padding-left: 13px;
   border-left: 2px solid #e2e8f0;
 }
+.agendatoggle {
+  margin-top: 6px;
+}
 .sourcelink {
-  display: inline-block;
+  display: block;
   margin-top: 6px;
   font-size: 12px;
   color: #2563eb;

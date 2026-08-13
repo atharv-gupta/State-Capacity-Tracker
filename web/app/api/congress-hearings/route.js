@@ -17,6 +17,9 @@ export async function GET() {
     return {
       id: r.id,
       hearing_key: f.hearing_key || "",
+      // Written by the classifier. `title` is Congress.gov's raw agenda text,
+      // shown only in the expanded view.
+      short_title: f.short_title || f.title || "",
       title: f.title || "",
       agenda_summary: f.agenda_summary || "",
       why_it_matters: f.why_it_matters || "",

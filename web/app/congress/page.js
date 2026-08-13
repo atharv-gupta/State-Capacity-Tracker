@@ -56,20 +56,6 @@ function fmtTime(isoDateTime) {
   return t.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
 
-/**
- * Congress.gov hearing "titles" are the full agenda — a business meeting can
- * run 1,500+ characters listing every bill and post-office naming. Cut to the
- * first clause for display; the LLM agenda summary carries the substance and
- * the full text sits behind the expand toggle.
- */
-function shortTitle(title, max = 130) {
-  const t = (title || "").replace(/\s+/g, " ").trim();
-  if (t.length <= max) return t;
-  const head = t.slice(0, max);
-  const cut = Math.max(head.lastIndexOf(", "), head.lastIndexOf("; "));
-  return `${(cut > 60 ? head.slice(0, cut) : head).trim()}…`;
-}
-
 function CompChips({ values }) {
   if (!values || !values.length) return null;
   return values.map((v) => {
@@ -93,13 +79,14 @@ function Relevance({ value }) {
 
 function Hearing({ h, upcoming }) {
   const [open, setOpen] = useState(false);
+  const [showAgenda, setShowAgenda] = useState(false);
   const time = fmtTime(h.hearing_date);
-  const display = shortTitle(h.title);
-  const truncated = display !== (h.title || "").replace(/\s+/g, " ").trim();
-  const extras = h.witnesses.length + h.materials.length + (truncated ? 1 : 0);
   // A single markup can carry 60+ bills; the full list belongs in the agenda,
   // not in the meta line.
   const billRefs = (h.bill_refs || "").split(",").map((s) => s.trim()).filter(Boolean);
+  // Only worth offering the raw agenda when it says more than the title does.
+  const rawAgenda = (h.title || "").trim() && h.title.trim() !== (h.short_title || "").trim();
+
   return (
     <li className={`hearingitem ${upcoming ? "upcoming" : ""}`}>
       <div className="hearingwhen">
@@ -116,53 +103,39 @@ function Hearing({ h, upcoming }) {
           <CompChips values={h.competency} />
           <Relevance value={h.relevance} />
         </div>
-        {h.urls[0] ? (
-          <a
-            className="devheadline"
-            href={h.urls[0]}
-            target="_blank"
-            rel="noreferrer"
-            title={h.title}
-          >
-            {display}
-          </a>
-        ) : (
-          <span className="devheadline" title={h.title}>
-            {display}
-          </span>
-        )}
-        {h.agenda_summary ? <p className="itemsummary">{h.agenda_summary}</p> : null}
-        {h.location ? <p className="itemmeta">{h.location}</p> : null}
-        {billRefs.length ? (
-          <p className="itemmeta">
-            Bills: {billRefs.slice(0, 8).join(", ")}
-            {billRefs.length > 8 ? ` +${billRefs.length - 8} more` : ""}
-          </p>
-        ) : null}
-        {extras ? (
-          <button className="linkbtn" onClick={() => setOpen(!open)}>
-            {open ? "less −" : `full agenda, witnesses & materials +(${extras})`}
-          </button>
-        ) : null}
+
+        <TitleToggle open={open} onClick={() => setOpen(!open)}>
+          {h.short_title}
+        </TitleToggle>
+
         {open ? (
-          <div className="hearingdetail">
-            {truncated ? (
-              <>
-                <span className="detaillabel">Full agenda</span>
-                <p className="agendafull">{h.title}</p>
-              </>
+          <div className="itembody">
+            {h.agenda_summary ? <p className="itemsummary">{h.agenda_summary}</p> : null}
+            {h.why_it_matters ? <p className="whymatters">{h.why_it_matters}</p> : null}
+            {h.location ? <p className="itemmeta">{h.location}</p> : null}
+            {billRefs.length ? (
+              <p className="itemmeta">
+                Bills: {billRefs.slice(0, 8).join(", ")}
+                {billRefs.length > 8 ? ` +${billRefs.length - 8} more` : ""}
+              </p>
             ) : null}
+
             {h.witnesses.length ? (
-              <>
-                <span className="detaillabel">Witnesses & statements</span>
-                <ul>{h.witnesses.map((w, i) => <li key={i}>{w}</li>)}</ul>
-              </>
-            ) : null}
-            {h.materials.length ? (
-              <>
-                <span className="detaillabel">Materials</span>
+              <div className="hearingdetail">
+                <span className="detaillabel">Witnesses &amp; statements</span>
                 <ul>
-                  {h.materials.map((u, i) => (
+                  {h.witnesses.map((w, i) => (
+                    <li key={i}>{w}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {h.materials.length ? (
+              <div className="hearingdetail">
+                <span className="detaillabel">Materials ({h.materials.length})</span>
+                <ul>
+                  {h.materials.slice(0, 8).map((u, i) => (
                     <li key={i}>
                       <a href={u} target="_blank" rel="noreferrer">
                         {u.replace(/^https?:\/\//, "").slice(0, 70)}
@@ -170,7 +143,24 @@ function Hearing({ h, upcoming }) {
                     </li>
                   ))}
                 </ul>
-              </>
+              </div>
+            ) : null}
+
+            {/* The raw Congress.gov agenda runs to thousands of characters on a
+                markup, so it stays behind a second, nested toggle. */}
+            {rawAgenda ? (
+              <div className="agendatoggle">
+                <button className="linkbtn" onClick={() => setShowAgenda(!showAgenda)}>
+                  {showAgenda ? "hide full agenda −" : "full agenda +"}
+                </button>
+                {showAgenda ? <p className="agendafull">{h.title}</p> : null}
+              </div>
+            ) : null}
+
+            {h.urls[0] ? (
+              <a className="sourcelink" href={h.urls[0]} target="_blank" rel="noreferrer">
+                View on Congress.gov →
+              </a>
             ) : null}
           </div>
         ) : null}

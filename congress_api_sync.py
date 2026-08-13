@@ -62,6 +62,7 @@ You are given ONE item (a hearing or a bill). Summarize it and classify it.
 
 Output ONLY this JSON, no fences:
 {
+  "short_title": "6-12 word title naming what this actually is, sentence case. For a hearing or markup, write a real title — the agenda text you were given is not one. Name the committee's action and its main subject, e.g. 'HSGAC markup of federal workforce and rulemaking bills' or 'House Oversight hearing on IG independence'. When a markup covers many bills, describe the through-line rather than listing them. For a bill, the bill's own short title is usually already right.",
   "summary": "2-3 plain sentences: what this is and what it would actually do. No jargon, no press-release voice. For a hearing, what the committee is examining and why it was called.",
   "why_it_matters": "one line on the capacity angle for a RAF reader, or \\"\\" if the item is `none`",
   "competencies": ["digital"],
@@ -69,7 +70,7 @@ Output ONLY this JSON, no fences:
   "topic_tags": ["it-modernization"]
 }
 
-For a non-fit: {"summary": "...", "why_it_matters": "", "competencies": [], "relevance": 0, "topic_tags": []}
+For a non-fit: {"short_title": "...", "summary": "...", "why_it_matters": "", "competencies": [], "relevance": 0, "topic_tags": []}
 """
 
 
@@ -90,6 +91,10 @@ def apply_classification(row, verdict, summary_field="summary"):
     if not verdict:
         return row
     row[summary_field] = verdict.get("summary") or row.get(summary_field) or ""
+    # Bills already have a usable short title of their own; only overwrite
+    # when the row declared the field (hearings do).
+    if "short_title" in row and verdict.get("short_title"):
+        row["short_title"] = verdict["short_title"][:160]
     row["why_it_matters"] = verdict.get("why_it_matters") or ""
     comps = cs.valid(verdict.get("competencies"), cs.COMPETENCY_CHOICES)
     row["competency"] = comps
@@ -142,13 +147,17 @@ def _bill_refs(meeting):
 
 
 def _hearing_status(meeting):
+    """Congress.gov leaves meetingStatus at "Scheduled" after a hearing has
+    happened, so a past date showing a "scheduled" chip is misleading. Derive
+    "held" from the date instead."""
     s = (meeting.get("meetingStatus") or "").strip().lower()
-    if s in ("scheduled",):
-        return "scheduled"
     if s in ("canceled", "cancelled"):
         return "canceled"
     if s == "postponed":
         return "postponed"
+    when = (meeting.get("date") or "")[:10]
+    if s == "scheduled" and when and when >= date.today().isoformat():
+        return "scheduled"
     return "held"
 
 
@@ -199,6 +208,9 @@ def build_hearing_rows(kept):
         rows.append({
             "Name": f"{key} — {title[:60]}" if title else f"{key} — meeting {event_id}",
             "hearing_key": f"{chamber}-{event_id}",
+            # Overwritten by the classifier; the truncated agenda is only a
+            # fallback for when that call fails.
+            "short_title": title[:160],
             "title": title,
             "hearing_date": when,
             "date": when[:10],
