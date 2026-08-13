@@ -1,4 +1,4 @@
-# RAF State Capacity — Classification Rubric
+# Recoding America State Capacity — Classification Rubric
 
 You classify a single state-government **event** (already deduped and confirmed to be a
 real government action). Your job is fit, not provenance. For each event, output:

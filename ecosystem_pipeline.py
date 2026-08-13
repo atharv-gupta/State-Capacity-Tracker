@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Ecosystem Writing Tracker — ingest pipeline.
 
-A standalone sibling to the State Activity Tracker pipeline. Pulls every feed in
-ecosystem_sources.all_feeds() (curated RAF think-tank / nonprofit partners),
+A standalone sibling to the State Capacity Tracker pipeline. Pulls every feed in
+ecosystem_sources.all_feeds() (curated Recoding America think-tank / nonprofit partners),
 keeps items from the last N days, dedups by URL against the table, then runs a
 single content-gate + enrich LLM call per surviving entry and writes one row per
 kept piece to the 'Ecosystem Writing' Airtable table.
@@ -81,7 +81,7 @@ REQUIRED_FIELDS = [
                  "timeZone": "utc"}},
 ]
 
-SYSTEM_PROMPT = """You enrich one piece of writing from a curated RAF partner
+SYSTEM_PROMPT = """You enrich one piece of writing from a curated Recoding America partner
 outlet for the Ecosystem Writing tracker. The outlets are pre-trusted, so there
 is NO relevance gate.
 

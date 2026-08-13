@@ -357,7 +357,7 @@ export default function Candidates() {
         <section className="feedcard">
           <div className="feedhead">
             <h3>
-              RAF-relevant developments
+              RA-relevant developments
               <span className="feedwindow">
                 {windowF === "all" ? " · all time" : ` · last ${windowF} days`}
                 {` · ${rafDevs.length}`}
@@ -393,14 +393,14 @@ export default function Candidates() {
         <section className="feedcard">
           <div className="feedhead">
             <h3>
-              RAF-relevant developments
+              RA-relevant developments
               <span className="feedwindow">
                 {windowF === "all" ? " · all time" : ` · last ${windowF} days`}
               </span>
             </h3>
           </div>
           <p className="muted feedempty">
-            No RAF-relevant developments match the current filters
+            No RA-relevant developments match the current filters
             {windowF === "all" ? "" : " and window"}.{" "}
             {windowF !== "all" ? (
               <button className="linkbtn" onClick={() => setWindowF("all")}>

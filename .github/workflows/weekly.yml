@@ -35,6 +35,30 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
           AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+      # The congress steps run DAILY, both of them — unlike the state pipeline,
+      # whose dedupe is Mondays only. Upcoming hearings are perishable: a
+      # Monday-only classify would surface a Wednesday hearing notice after the
+      # hearing had already happened.
+      - name: Ingest congressional press into Congress Raw
+        run: python congress_pipeline.py --days 7
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+      - name: Cluster and classify into Congress Events
+        run: python congress_dedupe.py --days 7
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+      # Skips with a clear message (not a failure) if CONGRESS_API_KEY is unset.
+      - name: Sync hearings and bills from Congress.gov
+        run: python congress_api_sync.py --days 7
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+          CONGRESS_API_KEY: ${{ secrets.CONGRESS_API_KEY }}
       - name: Check day of week
         id: day
         run: echo "dow=$(date -u +%u)" >> "$GITHUB_OUTPUT"

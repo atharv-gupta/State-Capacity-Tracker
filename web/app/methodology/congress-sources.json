@@ -1,0 +1,272 @@
+{
+  "committees": {
+    "hsgac": {
+      "code": "ssga00",
+      "chamber": "senate",
+      "name": "Senate Homeland Security & Governmental Affairs",
+      "chair": "Rand Paul (R-KY)",
+      "ranking": "Gary Peters (D-MI)"
+    },
+    "senate-rules": {
+      "code": "ssra00",
+      "chamber": "senate",
+      "name": "Senate Rules & Administration",
+      "chair": "Mitch McConnell (R-KY)",
+      "ranking": "Alex Padilla (D-CA)"
+    },
+    "senate-approps": {
+      "code": "ssap00",
+      "chamber": "senate",
+      "name": "Senate Appropriations",
+      "chair": "Susan Collins (R-ME)",
+      "ranking": "Patty Murray (D-WA)"
+    },
+    "house-oversight": {
+      "code": "hsgo00",
+      "chamber": "house",
+      "name": "House Oversight & Government Reform",
+      "chair": "James Comer (R-KY)",
+      "ranking": "Robert Garcia (D-CA)"
+    },
+    "house-admin": {
+      "code": "hsha00",
+      "chamber": "house",
+      "name": "House Administration",
+      "chair": "Bryan Steil (R-WI)",
+      "ranking": "Joseph Morelle (D-NY)"
+    },
+    "house-rules": {
+      "code": "hsru00",
+      "chamber": "house",
+      "name": "House Rules",
+      "chair": "Virginia Foxx (R-NC)",
+      "ranking": "James McGovern (D-MA)"
+    },
+    "house-approps": {
+      "code": "hsap00",
+      "chamber": "house",
+      "name": "House Appropriations",
+      "chair": "Tom Cole (R-OK)",
+      "ranking": "Rosa DeLauro (D-CT)"
+    }
+  },
+  "extra": {
+    "leadership": {
+      "chamber": "house",
+      "name": "Chamber leadership (whips)"
+    },
+    "gao": {
+      "chamber": "n/a",
+      "name": "Government Accountability Office"
+    },
+    "cbo": {
+      "chamber": "n/a",
+      "name": "Congressional Budget Office"
+    }
+  },
+  "sources": [
+    {
+      "kind": "wp_api",
+      "name": "HSGAC majority",
+      "committee": "hsgac",
+      "party": "majority",
+      "url": "https://www.hsgac.senate.gov/wp-json/wp/v2/rep_press_releases"
+    },
+    {
+      "kind": "wp_api",
+      "name": "HSGAC minority",
+      "committee": "hsgac",
+      "party": "minority",
+      "url": "https://www.hsgac.senate.gov/wp-json/wp/v2/dem_press_releases"
+    },
+    {
+      "kind": "wp_api",
+      "name": "Alex Padilla (Sen Rules ranking)",
+      "committee": "senate-rules",
+      "party": "member",
+      "url": "https://www.padilla.senate.gov/wp-json/wp/v2/press_releases"
+    },
+    {
+      "kind": "rss",
+      "name": "Senate Approps majority",
+      "committee": "senate-approps",
+      "party": "majority",
+      "url": "https://www.appropriations.senate.gov/rss/feeds/?type=majority"
+    },
+    {
+      "kind": "rss",
+      "name": "Senate Approps minority",
+      "committee": "senate-approps",
+      "party": "minority",
+      "url": "https://www.appropriations.senate.gov/rss/feeds/?type=minority"
+    },
+    {
+      "kind": "rss",
+      "name": "House Approps",
+      "committee": "house-approps",
+      "party": "majority",
+      "url": "https://appropriations.house.gov/rss.xml"
+    },
+    {
+      "kind": "rss",
+      "name": "House Rules minority",
+      "committee": "house-rules",
+      "party": "minority",
+      "url": "https://democrats-rules.house.gov/rss.xml"
+    },
+    {
+      "kind": "rss",
+      "name": "Rand Paul (HSGAC chair)",
+      "committee": "hsgac",
+      "party": "member",
+      "url": "https://www.paul.senate.gov/feed/"
+    },
+    {
+      "kind": "rss",
+      "name": "Patty Murray (Sen Approps ranking)",
+      "committee": "senate-approps",
+      "party": "member",
+      "url": "https://www.murray.senate.gov/feed/"
+    },
+    {
+      "kind": "rss",
+      "name": "Tom Cole (House Approps chair)",
+      "committee": "house-approps",
+      "party": "member",
+      "url": "https://cole.house.gov/rss.xml"
+    },
+    {
+      "kind": "rss",
+      "name": "Rosa DeLauro (House Approps ranking)",
+      "committee": "house-approps",
+      "party": "member",
+      "url": "https://delauro.house.gov/rss.xml"
+    },
+    {
+      "kind": "rss",
+      "name": "Virginia Foxx (House Rules chair)",
+      "committee": "house-rules",
+      "party": "member",
+      "url": "https://foxx.house.gov/news/rss.aspx"
+    },
+    {
+      "kind": "rss",
+      "name": "James McGovern (House Rules ranking)",
+      "committee": "house-rules",
+      "party": "member",
+      "url": "https://mcgovern.house.gov/news/rss.aspx"
+    },
+    {
+      "kind": "rss",
+      "name": "Majority Whip (Emmer)",
+      "committee": "leadership",
+      "party": "majority",
+      "url": "https://www.majoritywhip.gov/news/rss.aspx"
+    },
+    {
+      "kind": "rss",
+      "name": "Minority Whip (Clark)",
+      "committee": "leadership",
+      "party": "minority",
+      "url": "https://democraticwhip.house.gov/rss.xml"
+    },
+    {
+      "kind": "rss",
+      "name": "GAO reports",
+      "committee": "gao",
+      "party": "nonpartisan",
+      "url": "https://www.gao.gov/rss/reports.xml"
+    },
+    {
+      "kind": "rss",
+      "name": "CBO publications",
+      "committee": "cbo",
+      "party": "nonpartisan",
+      "url": "https://www.cbo.gov/publications/all/rss.xml"
+    },
+    {
+      "kind": "html",
+      "name": "House Oversight releases",
+      "committee": "house-oversight",
+      "party": "majority",
+      "url": "https://oversight.house.gov/release/"
+    },
+    {
+      "kind": "html",
+      "name": "House Administration releases",
+      "committee": "house-admin",
+      "party": "majority",
+      "url": "https://cha.house.gov/press-releases"
+    },
+    {
+      "kind": "html",
+      "name": "House Rules announcements",
+      "committee": "house-rules",
+      "party": "majority",
+      "url": "https://rules.house.gov/media/announcements"
+    },
+    {
+      "kind": "html",
+      "name": "House Rules releases",
+      "committee": "house-rules",
+      "party": "majority",
+      "url": "https://rules.house.gov/media/press-releases"
+    },
+    {
+      "kind": "html",
+      "name": "Senate Rules releases",
+      "committee": "senate-rules",
+      "party": "majority",
+      "url": "https://www.rules.senate.gov/news/press-releases"
+    },
+    {
+      "kind": "html",
+      "name": "Susan Collins (Sen Approps chair)",
+      "committee": "senate-approps",
+      "party": "member",
+      "url": "https://www.collins.senate.gov/newsroom/press-releases"
+    },
+    {
+      "kind": "html",
+      "name": "Gary Peters (HSGAC ranking)",
+      "committee": "hsgac",
+      "party": "member",
+      "url": "https://www.peters.senate.gov/newsroom/press-releases"
+    },
+    {
+      "kind": "html",
+      "name": "Robert Garcia (Oversight ranking)",
+      "committee": "house-oversight",
+      "party": "member",
+      "url": "https://robertgarcia.house.gov/media/press-releases"
+    },
+    {
+      "kind": "html",
+      "name": "Bryan Steil (House Admin chair)",
+      "committee": "house-admin",
+      "party": "member",
+      "url": "https://steil.house.gov/media/press-releases"
+    },
+    {
+      "kind": "html",
+      "name": "Joseph Morelle (House Admin ranking)",
+      "committee": "house-admin",
+      "party": "member",
+      "url": "https://morelle.house.gov/media"
+    },
+    {
+      "kind": "html",
+      "name": "James Comer (Oversight chair)",
+      "committee": "house-oversight",
+      "party": "member",
+      "url": "https://comer.house.gov/press-release"
+    },
+    {
+      "kind": "html",
+      "name": "Mitch McConnell (Sen Rules chair)",
+      "committee": "senate-rules",
+      "party": "member",
+      "url": "https://www.mcconnell.senate.gov/public/index.cfm/pressreleases"
+    }
+  ]
+}

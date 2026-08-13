@@ -1,13 +1,13 @@
 # Gubernatorial Candidates Tracker — spec
 
 A new layer of the State Tracker for the 2026 governor's races (36 states; likely
-20+ new governors — the RAF transition-cycle opportunity described in the NGA
+20+ new governors — the Recoding America transition-cycle opportunity described in the NGA
 gubernatorial transition approach memo). Two jobs:
 
 1. **Roster** — one row per primary winner / major contender, with a static,
-   RAF-lens platform profile (what they've already said or done on our four
+   RA-lens platform profile (what they've already said or done on our four
    competencies — e.g. Weiser's regulatory-reform record in CO).
-2. **Developments** — an ongoing feed of RAF-relevant campaign developments
+2. **Developments** — an ongoing feed of RA-relevant campaign developments
    (policy plans, press releases, speeches/quotes, interviews), classified
    against the same four competencies as the main tracker, but with a
    campaign-adapted gate: *governing agenda in, horse-race out*.
@@ -33,10 +33,10 @@ duplicative (one Hobbs announcement lands as five near-identical articles):
   rubric.md** using a stronger model (sonnet). This second pass is where
   relevance is authoritatively assigned — exactly as `dedupe.py` does for the
   main tracker. Relevance is LLM-only (no human review field), and the web tab
-  + (future) digest treat "has a competency + relevance ≥ 2" as RAF-relevant.
+  + (future) digest treat "has a competency + relevance ≥ 2" as RA-relevant.
 
 Observed effect on the seed corpus: 87 raw articles → 41 developments, and the
-sonnet re-classification cut the RAF-relevant share from 82% (raw haiku) to 32%.
+sonnet re-classification cut the RA-relevant share from 82% (raw haiku) to 32%.
 
 ## Airtable tables
 
@@ -57,7 +57,7 @@ sonnet re-classification cut the RAF-relevant share from 82% (raw haiku) to 32%.
 | website | url | campaign site |
 | press_url | url | campaign press/news page if distinct |
 | news_query | text | optional override for the Google News RSS query |
-| platform_summary | long text | static-scrape output: RAF-lens summary of existing platform |
+| platform_summary | long text | static-scrape output: RA-lens summary of existing platform |
 | competency_signals | multi-select | civil-service / procedure / digital / incentives |
 | platform_sources | long text | one URL per line |
 | platform_asof | date | when the platform scrape ran |
@@ -152,7 +152,7 @@ roster and appends a **Gov Candidates Corner** at the foot of the weekly email.
 Selection is NOT grouped by competency (unlike the four state sections):
 - **Priority** — developments in an open-seat OR competitive race (rating is a
   Toss-up or Lean), relevance ≥ 2;
-- **Also notable elsewhere** — any other RAF-relevant development at relevance 3.
+- **Also notable elsewhere** — any other RA-relevant development at relevance 3.
 Runs inside the existing Monday `digest.py --days 7` step, which now executes
 after `candidates_dedupe.py` so the clean table is fresh. `load_candidate_devs`
 tolerates a missing table (returns empty) so the digest still sends before the

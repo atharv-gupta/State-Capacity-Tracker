@@ -1,8 +1,8 @@
 # Ecosystem Writing Tracker — Build Spec
 
-A second, standalone pipeline that scrapes RAF's think-tank and nonprofit
+A second, standalone pipeline that scrapes Recoding America's think-tank and nonprofit
 partners' writing once a day into Airtable, for a new view/tab on the existing
-tracker website. Sibling to the State Activity Tracker, but **its own scripts
+tracker website. Sibling to the State Capacity Tracker, but **its own scripts
 and its own table** — no merging with the state pipeline.
 
 ---
@@ -40,7 +40,7 @@ ingest the article.
 
 ---
 
-## 3. Relationship to the State Activity Tracker
+## 3. Relationship to the State Capacity Tracker
 
 Standalone module (e.g. `ecosystem/`), but **lift these helpers verbatim** from
 `pipeline.py` rather than reinventing them:
@@ -168,7 +168,7 @@ See §9 decision.
 
 ### System prompt (sketch)
 
-> You enrich one piece of writing from a curated RAF partner outlet for the
+> You enrich one piece of writing from a curated Recoding America partner outlet for the
 > Ecosystem Writing tracker. The outlets are pre-trusted, so there is **no
 > relevance gate**. Apply ONE gate — CONTENT: is this a substantive written
 > piece (essay, report, blog post, written news/analysis)? FAIL it if the item

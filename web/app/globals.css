@@ -13,6 +13,20 @@ body {
   color: #0f172a;
 }
 
+/* Form controls don't inherit font-family from body — browsers substitute
+   their own UA default. Without this, every button on the site renders in
+   Arial, and any button without an explicit font-size renders at 16px.
+   Classes still win over these element selectors, so buttons that already set
+   a size keep it. */
+button,
+select,
+input,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
 .wrap {
   max-width: 1060px;
   margin: 0 auto;
@@ -134,7 +148,11 @@ h1 {
   gap: 6px;
 }
 
-.panelrow label {
+/* .panelrowlabel is the <span> variant used on the candidates panel. It had
+   no rule at all, so those four labels rendered at the 16px body default
+   while every other panel label was 11px uppercase. */
+.panelrow label,
+.panelrowlabel {
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -1179,7 +1197,9 @@ h1 {
 }
 .devmeta time {
   color: #94a3b8;
-  font-size: 11.5px;
+  /* 12px, matching every other meta line — was 11.5px, a size used nowhere
+     else. Shared with the candidates feed. */
+  font-size: 12px;
   white-space: nowrap;
 }
 .devcand {
@@ -1274,6 +1294,333 @@ a.devheadline:hover {
   text-decoration: underline;
 }
 
+/* ---------- congress tab ----------
+   Four sizes only, so a dense list stays legible:
+     13px   title / headline
+     12.5px prose (summary, why-it-matters)
+     12px   meta (dates, sponsor, location)
+     10.5px chips
+*/
+
+.tabintro {
+  font-size: 13px;
+  line-height: 1.55;
+  color: #64748b;
+  margin: 0 0 14px;
+  max-width: 76ch;
+}
+.congresspanel {
+  --c: #2563eb;
+}
+
+/* Collapsed row title: short, bold, and the click target for expanding. */
+.itemtitle {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 1px 0;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #0f172a;
+}
+.itemtitle:hover {
+  color: #2563eb;
+}
+/* Inherits the title's 13px — at 10.5px the triangle reads as a bullet. */
+.itemtitle .caret {
+  color: #94a3b8;
+  font-weight: 400;
+  margin-right: 6px;
+}
+.itembody {
+  margin-top: 5px;
+  padding-left: 13px;
+  border-left: 2px solid #e2e8f0;
+}
+.agendatoggle {
+  margin-top: 6px;
+}
+.sourcelink {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #2563eb;
+  text-decoration: none;
+}
+.sourcelink:hover {
+  text-decoration: underline;
+}
+.crsblock {
+  margin-top: 7px;
+}
+.crslabel {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+.sectionnote {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #94a3b8;
+  margin: -2px 0 8px;
+}
+
+/* Collapsible section heading. Sits inside the h3 and inherits its type, so
+   a collapsed section is a single line. */
+.sectiontoggle {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  font-weight: inherit;
+}
+.sectiontoggle:hover {
+  color: #2563eb;
+}
+.sectiontoggle .caret {
+  color: #94a3b8;
+  font-weight: 400;
+  margin-right: 6px;
+}
+
+/* competency chip — same four colors as the map pills, at item scale */
+.compchip {
+  font-size: 10.5px;
+  font-weight: 600;
+  border: 1px solid var(--c);
+  border-radius: 999px;
+  padding: 0 7px;
+  color: var(--c);
+  background: #fff;
+  white-space: nowrap;
+}
+
+.itemsummary {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #475569;
+  margin: 2px 0 0;
+}
+.whymatters {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #1e293b;
+  margin: 4px 0 0;
+  padding-left: 9px;
+  border-left: 2px solid #bfdbfe;
+}
+.itemmeta {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 3px 0 0;
+}
+.tagrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 5px;
+}
+
+/* --- hearings: date rail on the left, body on the right --- */
+.hearinglist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.hearingitem {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+.hearingitem:last-child {
+  border-bottom: none;
+}
+.hearingwhen {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font-size: 12px;
+  color: #64748b;
+  padding-top: 1px;
+}
+.hearingwhen strong {
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+}
+.hearingitem.upcoming .hearingwhen strong {
+  color: #1d4ed8;
+}
+.hearingbody {
+  min-width: 0;
+  /* .linkbtn is `font-size: inherit`; without a size here it resolves against
+     the body's 16px default. */
+  font-size: 12px;
+}
+.hearingdetail {
+  margin-top: 6px;
+  padding-left: 9px;
+  border-left: 2px solid #e2e8f0;
+}
+.hearingdetail ul {
+  margin: 2px 0 8px;
+  padding-left: 16px;
+  font-size: 12px;
+  color: #475569;
+  line-height: 1.5;
+}
+.hearingdetail ul:last-child {
+  margin-bottom: 0;
+}
+.hearingdetail a {
+  color: #2563eb;
+  text-decoration: none;
+  word-break: break-all;
+}
+.hearingdetail a:hover {
+  text-decoration: underline;
+}
+.detaillabel {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+/* Congress.gov agendas run to thousands of characters — give them their own
+   scroll box rather than letting one markup push the page down a screen. */
+.agendafull {
+  margin: 3px 0 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #475569;
+  max-height: 190px;
+  overflow-y: auto;
+}
+
+.sectiondivider {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 12px 0 2px;
+}
+.sectiondivider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e2e8f0;
+}
+.sectiondivider span {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+/* --- bills --- */
+.billnum {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+/* What the committee did with the bill this window. Distinct from the stage
+   chip beside it, which is the bill's overall progress. */
+.cmteaction {
+  font-size: 10.5px;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 1px 7px;
+  white-space: nowrap;
+  border: 1px solid #ddd6fe;
+  background: #f5f3ff;
+  color: #6d28d9;
+}
+.cmteaction.referred {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+  color: #64748b;
+}
+
+/* Stage chips warm as a bill advances: grey in committee, green enacted. */
+.stagechip {
+  font-size: 10.5px;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 1px 7px;
+  white-space: nowrap;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+}
+.stagechip.s2,
+.stagechip.s3 {
+  background: #fef3c7;
+  border-color: #fde68a;
+  color: #92400e;
+}
+.stagechip.s4,
+.stagechip.s5 {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #047857;
+}
+
+/* --- activity --- */
+.partysrc {
+  font-size: 10.5px;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 0 6px;
+  white-space: nowrap;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #64748b;
+}
+.partysrc.majority {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+.partysrc.minority {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  color: #1e40af;
+}
+.partysrc.nonpartisan {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+  color: #475569;
+}
+
+.statuschip {
+  font-size: 10.5px;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 0 6px;
+  white-space: nowrap;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+}
+.statuschip.postponed,
+.statuschip.canceled {
+  background: #fef3c7;
+  border-color: #fde68a;
+  color: #92400e;
+}
+
 /* ---------- responsive ---------- */
 
 @media (max-width: 760px) {
@@ -1285,5 +1632,28 @@ a.devheadline:hover {
   }
   .specgrid {
     grid-template-columns: 1fr;
+  }
+  /* the date rail costs too much width on a phone — stack it */
+  .hearingitem {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+  .hearingwhen {
+    flex-direction: row;
+    gap: 7px;
+  }
+  /* Five tabs no longer fit on a phone. Let the bar scroll rather than clip
+     the last one — `overflow: hidden` on .tabs is what rounds the corners. */
+  .tabs {
+    margin-left: 0;
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .tab {
+    white-space: nowrap;
   }
 }
