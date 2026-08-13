@@ -29,6 +29,10 @@ export async function GET() {
       introduced_date: f.introduced_date || "",
       committee: f.committee || "",
       chamber: f.chamber || "",
+      // What the committee did with the bill in this window, and when — the
+      // reason it appears in the list at all.
+      committee_action: f.committee_action || "",
+      committee_action_date: f.committee_action_date || "",
       sponsor: f.sponsor || "",
       sponsor_party: f.sponsor_party || "",
       cosponsor_count: f.cosponsor_count || 0,

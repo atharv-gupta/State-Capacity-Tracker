@@ -436,7 +436,7 @@ def main():
             print(f"  {state} {ev.get('date','??')} {tag} {surname:<12} {label:>22} "
                   f"{ev.get('headline','')[:60]}")
         n_rel = sum(1 for _, _, ev, _ in all_devs if ev.get("competencies"))
-        print(f"\n{n_rel}/{len(all_devs)} developments matched a competency (RAF-relevant)")
+        print(f"\n{n_rel}/{len(all_devs)} developments matched a competency (RA-relevant)")
         return
 
     # Rebuild the clean table's window: delete clean rows in range, write fresh.

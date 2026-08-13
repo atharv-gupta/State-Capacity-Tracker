@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Gubernatorial Candidates Tracker — developments ingest pipeline.
 
-A standalone sibling to the State Activity Tracker pipeline (the main pipeline
+A standalone sibling to the State Capacity Tracker pipeline (the main pipeline
 deliberately excludes campaign coverage; this one exists for it). For every
 active candidate in the 'Gov Candidates' Airtable table it pulls a Google News
 RSS query, keeps items from the last N days, dedups by URL against the
@@ -9,7 +9,7 @@ RSS query, keeps items from the last N days, dedups by URL against the
 one two-gate LLM call per surviving item: keep only items that are (gate 1)
 substantively about the candidate's GOVERNING AGENDA — pure horse-race coverage
 (polls, fundraising, attacks, process) is dropped — AND (gate 2) touch at least
-one of RAF's four competencies (rubric.md, adapted: what a candidate SAYS or
+one of Recoding America's four competencies (rubric.md, adapted: what a candidate SAYS or
 PLANS counts). Most campaign coverage fails gate 2, which is the point.
 
 candidates_dedupe.py then clusters these raw rows into one row per DEVELOPMENT
@@ -107,7 +107,7 @@ REQUIRED_FIELDS = [
 ]
 
 SYSTEM_PROMPT = """You screen ONE news item about a 2026 gubernatorial candidate
-for RAF's Gubernatorial Candidates Tracker. RAF (Recoding America Fund) works on
+for Recoding America's Gubernatorial Candidates Tracker. Recoding America works on
 four state-capacity competencies; the tracker watches what candidates say, plan,
 and do about how state government BUILDS AND RUNS ITSELF.
 

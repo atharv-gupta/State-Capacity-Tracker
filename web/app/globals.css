@@ -1516,6 +1516,24 @@ a.devheadline:hover {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+/* What the committee did with the bill this window. Distinct from the stage
+   chip beside it, which is the bill's overall progress. */
+.cmteaction {
+  font-size: 10.5px;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 1px 7px;
+  white-space: nowrap;
+  border: 1px solid #ddd6fe;
+  background: #f5f3ff;
+  color: #6d28d9;
+}
+.cmteaction.referred {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+  color: #64748b;
+}
+
 /* Stage chips warm as a bill advances: grey in committee, green enacted. */
 .stagechip {
   font-size: 10.5px;

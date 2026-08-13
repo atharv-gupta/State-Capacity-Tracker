@@ -20,7 +20,7 @@ import feedparser
 import requests
 from bs4 import BeautifulSoup
 
-UA = "RAF State Activity Tracker (+atharv@recodingamerica.fund)"
+UA = "Recoding America State Capacity Tracker (+atharv@recodingamerica.fund)"
 HEADERS = {"User-Agent": UA}
 TIMEOUT = 30
 DELAY = 1.0          # between requests to the same host

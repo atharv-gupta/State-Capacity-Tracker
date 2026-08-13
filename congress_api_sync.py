@@ -64,7 +64,7 @@ Output ONLY this JSON, no fences:
 {
   "short_title": "6-12 word title naming what this actually is, sentence case. For a hearing or markup, write a real title — the agenda text you were given is not one. Name the committee's action and its main subject, e.g. 'HSGAC markup of federal workforce and rulemaking bills' or 'House Oversight hearing on IG independence'. When a markup covers many bills, describe the through-line rather than listing them. For a bill, the bill's own short title is usually already right.",
   "summary": "2-3 plain sentences: what this is and what it would actually do. No jargon, no press-release voice. For a hearing, what the committee is examining and why it was called.",
-  "why_it_matters": "one line on the capacity angle for a RAF reader, or \\"\\" if the item is `none`",
+  "why_it_matters": "one line on the capacity angle for a Recoding America reader, or \\"\\" if the item is `none`",
   "competencies": ["digital"],
   "relevance": 3,
   "topic_tags": ["it-modernization"]
@@ -260,10 +260,22 @@ def _bill_status(bill):
     return "introduced"
 
 
+_RELATIONSHIP = {
+    "markup by": "marked-up",
+    "reported by": "reported",
+    "referred to": "referred",
+}
+
+
 def fetch_bills(since, verbose=True):
-    """For each committee, list referred/reported bills updated in the window,
-    then fetch detail. Deduped across committees — a bill referred to two of
-    our committees appears once."""
+    """For each committee, list bills whose record changed in the window, then
+    fetch detail. The endpoint filters on updateDate, and each entry carries a
+    relationshipType saying what the committee did — that's carried through so
+    the UI can show why the bill is listed. Deduped across committees: a bill
+    before two of our committees appears once.
+
+    Returns [(committee_key, listing_entry, bill_detail)].
+    """
     seen, out = set(), []
     for key, c in congress_sources.COMMITTEES.items():
         try:
@@ -272,25 +284,31 @@ def fetch_bills(since, verbose=True):
             print(f"  bill list failed ({key}): {e}")
             continue
         if verbose:
-            print(f"  {key:16} {len(listing)} bills")
+            rels = {}
+            for b in listing:
+                r = _RELATIONSHIP.get((b.get("relationshipType") or "").lower(), "other")
+                rels[r] = rels.get(r, 0) + 1
+            detail_str = ", ".join(f"{v} {k}" for k, v in sorted(rels.items()))
+            print(f"  {key:16} {len(listing):4} bills  ({detail_str})" if listing
+                  else f"  {key:16}    0 bills")
         todo = []
         for b in listing:
             ident = (b.get("congress"), b.get("type"), b.get("number"))
             if not all(ident) or ident in seen:
                 continue
             seen.add(ident)
-            todo.append((key, ident))
+            todo.append((key, b, ident))
 
         def detail(item):
-            k, (cong, btype, num) = item
+            k, entry, (cong, btype, num) = item
             try:
-                return k, congress_api.get_bill(cong, btype, num)
+                return k, entry, congress_api.get_bill(cong, btype, num)
             except Exception as e:
                 print(f"  bill detail failed {btype}{num}: {e}")
-                return k, None
+                return k, entry, None
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=WORKERS) as ex:
-            out.extend([(k, b) for k, b in ex.map(detail, todo) if b])
+            out.extend([(k, e, b) for k, e, b in ex.map(detail, todo) if b])
     return out
 
 
@@ -298,7 +316,7 @@ def build_bill_rows(fetched):
     """Apply the policyArea pre-filter, then build rows + classifier payloads.
     Returns (rows, payloads, skipped_count)."""
     rows, payloads, skipped = [], [], 0
-    for key, b in fetched:
+    for key, entry, b in fetched:
         area = (b.get("policyArea") or {}).get("name") or ""
         if area and area not in CAPACITY_POLICY_AREAS:
             skipped += 1
@@ -310,16 +328,24 @@ def build_bill_rows(fetched):
         sponsor = sponsors[0]
         action = b.get("latestAction") or {}
         bill_number = f"{btype} {num}"
+        cmte_action = _RELATIONSHIP.get(
+            (entry.get("relationshipType") or "").lower(), "other")
+        cmte_date = (entry.get("actionDate") or "")[:10]
         rows.append({
             "Name": f"{bill_number} — {(b.get('title') or '')[:60]}",
             "bill_id": f"{cong}-{btype}-{num}",
             "bill_number": bill_number,
             "congress": cong,
             "title": b.get("title") or "",
-            "date": (action.get("actionDate") or b.get("introducedDate") or "")[:10],
+            # The committee's own action date, not the bill's latest floor
+            # action — a bill referred last year but freshly acted on should
+            # sit inside the tracker's window.
+            "date": cmte_date or (action.get("actionDate") or b.get("introducedDate") or "")[:10],
             "introduced_date": (b.get("introducedDate") or "")[:10],
             "committee": key,
             "chamber": congress_sources.COMMITTEES[key]["chamber"],
+            "committee_action": cmte_action,
+            "committee_action_date": cmte_date,
             "sponsor": sponsor.get("fullName") or "",
             "sponsor_party": sponsor.get("party") or "",
             "cosponsor_count": (b.get("cosponsors") or {}).get("count") or 0,

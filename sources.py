@@ -1,4 +1,4 @@
-"""Source registry for the State Activity Tracker.
+"""Source registry for the State Capacity Tracker.
 
 Three source types (SPEC.md §4):
 - STATENEWSROOM_FEEDS — the spine. States Newsroom owned outlets, one per

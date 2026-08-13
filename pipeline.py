@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""State Activity Tracker — ingest pipeline (raw layer).
+"""State Capacity Tracker — ingest pipeline (raw layer).
 
 Pulls every feed in sources.py (States Newsroom spine + per-state newspapers
 + national trade press), keeps items from the last N days (default 7),
@@ -171,7 +171,7 @@ REQUIRED_FIELDS = [
      "options": {"choices": [{"name": a} for a in ACTOR_TYPE_CHOICES]}},
 ]
 
-SYSTEM_PROMPT = """You classify news articles for the RAF State Activity Tracker.
+SYSTEM_PROMPT = """You classify news articles for the Recoding America State Capacity Tracker.
 The input includes feed_state: the article's home state if it comes from a
 state outlet, or "" if it comes from national trade press — in that case infer
 the state from the article. If you cannot tell which state government acted,

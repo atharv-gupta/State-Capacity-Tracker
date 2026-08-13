@@ -62,6 +62,12 @@ BILL_STATUS_CHOICES = [
     "passed-both", "enacted", "vetoed", "failed",
 ]
 
+# What the committee did with the bill, from the relationshipType on
+# /committee/*/bills. This is *why* a bill is in the list at all — the
+# endpoint returns bills whose record changed in the window, and this says
+# what changed. HSGAC's last 21 days: 56 marked up, 31 referred, 2 reported.
+COMMITTEE_ACTION_CHOICES = ["marked-up", "reported", "referred", "other"]
+
 # Human review lives in Airtable. `unreviewed` is the default; the upsert path
 # in airtable_util preserves these two fields so a nightly run never clobbers
 # what a reviewer typed.
@@ -200,6 +206,12 @@ BILL_FIELDS = [
     _date("introduced_date"),
     _sel("committee", COMMITTEE_CHOICES),
     _sel("chamber", CHAMBER_CHOICES),
+    # What the committee did, and when — this is what puts the bill in the
+    # window. `date` mirrors committee_action_date so the UI's time filter
+    # means "the committee acted on this recently" rather than "the bill's
+    # latest floor action was recent", which can be a year older.
+    _sel("committee_action", COMMITTEE_ACTION_CHOICES),
+    _date("committee_action_date"),
     _text("sponsor"),
     _text("sponsor_party"),
     _num("cosponsor_count"),

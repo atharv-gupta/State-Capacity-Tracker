@@ -81,7 +81,7 @@ Output ONLY this JSON (no fences, no preamble):
       "name": "concise title of the action, 5-10 words, sentence case",
       "headline": "one line: what happened, best synthesis of the member rows",
       "summary": "2-3 plain sentences: what happened and what it would actually do",
-      "why_it_matters": "one line for a RAF reader, empty string if none",
+      "why_it_matters": "one line for a Recoding America reader, empty string if none",
       "date": "YYYY-MM-DD of the action (earliest credible)",
       "activity_type": "one of: {' | '.join(cs.ACTIVITY_TYPE_CHOICES)}",
       "actor": "which committee, member, or agency acted",
@@ -341,7 +341,7 @@ def main():
         out_rows.append(row)
 
     hit = sum(1 for r in out_rows if r["competency"])
-    print(f"\n{hit}/{len(out_rows)} events matched a competency (RAF-relevant)\n")
+    print(f"\n{hit}/{len(out_rows)} events matched a competency (RA-relevant)\n")
     for r in sorted(out_rows, key=lambda x: (-(x.get("relevance") or 0), x["date"]), reverse=False):
         comp = ",".join(r["competency"]) or "none"
         tags = " ".join(f"#{t}" for t in r["topic_tags"][:3])

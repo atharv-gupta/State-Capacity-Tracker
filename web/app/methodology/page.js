@@ -1,9 +1,10 @@
 import usa from "@svg-maps/usa";
 import Header from "../header";
 import sources from "./sources.json";
+import congress from "./congress-sources.json";
 
 export const metadata = {
-  title: "Sources & methodology — State Activity Tracker",
+  title: "Sources & methodology — State Capacity Tracker",
 };
 
 const STATE_NAMES = Object.fromEntries(usa.locations.map((l) => [l.id.toUpperCase(), l.name]));
@@ -38,6 +39,7 @@ const TOC = [
   { id: "feed-sources", label: "News-feed sources" },
   { id: "gaps", label: "Known gaps" },
   { id: "governors26", label: "Governors '26 — candidate tracker" },
+  { id: "congress", label: "Congress — federal capacity" },
   {
     id: "profiles",
     label: "State profiles — data & sources",
@@ -135,7 +137,7 @@ export default function Methodology() {
           <h2>What this is</h2>
           <p>
             A weekly, queryable feed of what state governments are actually doing, classified by
-            which of RAF&apos;s four state-capacity competencies it advances or undermines — with
+            which of Recoding America&apos;s four state-capacity competencies it advances or undermines — with
             most actions landing outside all four, which is expected:
           </p>
           <ul className="pillarlist">
@@ -182,7 +184,7 @@ export default function Methodology() {
               <strong>De-duplicate &amp; classify.</strong> One government action usually shows up
               across several outlets. A second model pass clusters the articles into distinct events
               (merging every source URL and outlet onto one row — that&apos;s the &ldquo;N articles
-              merged&rdquo; note), then classifies each event against RAF&apos;s rubric: its{" "}
+              merged&rdquo; note), then classifies each event against Recoding America&apos;s rubric: its{" "}
               <em>competencies</em> (zero, one, or — when an action genuinely spans two, like
               oversight of a failing IT system — both), a <em>1–3 relevance</em> score for how
               central an example it is (direction-agnostic — undermining a capacity counts as much
@@ -326,6 +328,154 @@ export default function Methodology() {
               <strong>Caveats.</strong> Candidate fields shift quickly — statuses (runoffs,
               withdrawals) are updated manually; platform summaries are point-in-time scrapes of
               campaign sites, stamped with an as-of date.
+            </li>
+          </ul>
+        </section>
+
+        <section className="card msec" id="congress">
+          <h2>Congress — federal capacity</h2>
+          <p>
+            The same four competencies, re-pointed at the <strong>federal</strong> government:
+            how Washington hires, procures, builds technology, and runs its own learning loops.
+            Coverage is scoped to the {Object.keys(congress.committees).length} committees that
+            govern how the federal government operates, plus both party whips and the two
+            nonpartisan support agencies. State impact is not a criterion — an action that stays
+            entirely inside the federal government is fully in scope.
+          </p>
+
+          <h3>Three streams</h3>
+          <ul>
+            <li>
+              <strong>Hearings and bills</strong> come from the{" "}
+              <a href="https://api.congress.gov" target="_blank" rel="noreferrer">
+                Congress.gov API
+              </a>
+              , not from scraping. Hearings arrive with room, agenda, witness documents, video,
+              and explicit bill linkage. The bills list is everything the seven committees acted
+              on in the window — marked up, reported out, or newly referred — dated by the
+              committee&apos;s action rather than the bill&apos;s latest floor action, so a bill
+              introduced last year appears when its committee takes it up.
+            </li>
+            <li>
+              <strong>Committee and member activity</strong> is scraped from committee and member
+              press feeds ({congress.sources.length} sources, listed below). The gate here is
+              stricter than provenance: these offices publish mostly messaging, so an item must
+              describe a concrete action — a letter sent, a markup held, a report released — not
+              a reaction to one.
+            </li>
+            <li>
+              <strong>GAO and CBO</strong> are shown separately. GAO reports are
+              oversight-of-capacity almost by construction and run at far higher volume than the
+              committees, so mixing them into the committee feed buried it.
+            </li>
+          </ul>
+
+          <h3>Where the rubric differs from the state tracker</h3>
+          <ul>
+            <li>
+              <strong>Election administration counts.</strong> Senate Rules and House
+              Administration are the elections committees. Election systems, voter-roll IT, and
+              EAC oversight read as <em>digital</em>; certification and reporting mandates as{" "}
+              <em>procedure</em>. The state rubric still excludes it.
+            </li>
+            <li>
+              <strong>
+                Appropriations are <em>none</em> by default.
+              </strong>{" "}
+              A funding level is not a capacity event. It counts only when the funding{" "}
+              <em>model</em> changes — multi-year authority, reprogramming flexibility,
+              outcome-contingency.
+            </li>
+            <li>
+              <strong>
+                Oversight is <em>incentives</em>
+              </strong>{" "}
+              when it examines whether a program works, and <em>none</em> when it is purely a
+              scandal or a partisan dispute.
+            </li>
+            <li>
+              <strong>
+                Legislative-branch procedure is <em>procedure</em>
+              </strong>{" "}
+              — chamber rules and floor process are the legislature changing its own machinery.
+            </li>
+          </ul>
+
+          <h3>Committees tracked</h3>
+          <table className="srctable">
+            <thead>
+              <tr>
+                <th>Committee</th>
+                <th>Chair</th>
+                <th>Ranking member</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(congress.committees).map(([key, c]) => (
+                <tr key={key}>
+                  <td>{c.name}</td>
+                  <td>{c.chair}</td>
+                  <td>{c.ranking}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <h3>Press sources ({congress.sources.length})</h3>
+          <p className="muted">
+            Three kinds. HSGAC and Padilla expose WordPress REST APIs, which return full article
+            bodies rather than feed blurbs. Fourteen sources have working RSS. The rest are
+            server-rendered listing pages scraped with selector configs — including House
+            Oversight, whose published RSS feed has not updated since 2020.
+          </p>
+          <table className="srctable">
+            <thead>
+              <tr>
+                <th>Source</th>
+                <th>Committee</th>
+                <th>Type</th>
+              </tr>
+            </thead>
+            <tbody>
+              {congress.sources.map((s) => (
+                <tr key={s.name}>
+                  <td>
+                    <a href={s.url} target="_blank" rel="noreferrer">
+                      {s.name}
+                    </a>
+                  </td>
+                  <td>
+                    {congress.committees[s.committee]?.name ||
+                      congress.extra[s.committee]?.name ||
+                      s.committee}
+                  </td>
+                  <td className="muted">
+                    {{ wp_api: "WordPress API", rss: "RSS", html: "scraped" }[s.kind] || s.kind}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <h3>Known gaps</h3>
+          <ul>
+            <li>
+              <strong>CBO contributes almost nothing.</strong> Its only feed is capped at 30 items
+              and is dominated by cost estimates — in one recent window, 29 of 30 items were
+              post-office naming estimates published the same day, which flushes any substantive
+              report out of the feed before it can be read. There is no reports-only CBO feed, and
+              the filterable listing page blocks scripted requests.
+            </li>
+            <li>
+              <strong>Member offices go quiet for weeks</strong>, especially during recess. A
+              source returning nothing is usually the calendar, not a broken scraper; the ingest
+              prints a per-source funnel so the two can be told apart.
+            </li>
+            <li>
+              <strong>Committee attribution is by feed, not by jurisdiction.</strong> A member
+              sits on several committees, so an item is filed under the committee whose feed
+              carried it. Joint letters are clustered across a whole chamber to avoid duplicate
+              events.
             </li>
           </ul>
         </section>

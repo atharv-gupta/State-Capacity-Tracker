@@ -123,9 +123,9 @@ PILLAR_PATTERNS = {
 }
 
 
-SYSTEM_PROMPT = f"""You screen congressional press items for the RAF Congressional Tracker.
+SYSTEM_PROMPT = f"""You screen congressional press items for the Recoding America Congressional Tracker.
 
-RAF works on four government-capacity competencies, applied here to the
+Recoding America works on four government-capacity competencies, applied here to the
 FEDERAL government — how it builds and runs ITSELF, not what it regulates in
 the wider economy. Apply two gates.
 

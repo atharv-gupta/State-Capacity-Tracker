@@ -4,9 +4,9 @@
 For each candidate in 'Gov Candidates' with a campaign website: fetch the site,
 discover issue/platform pages (one hop; links whose text or path matches
 issues/priorities/plan/policy/agenda/vision), extract the text, and run one
-Claude call with RAF's four-competency lens to produce:
+Claude call with Recoding America's four-competency lens to produce:
 
-  platform_summary    - what the candidate's EXISTING platform says on RAF's
+  platform_summary    - what the candidate's EXISTING platform says on Recoding America's
                         competencies (e.g. Weiser's reg-reform record + EO plan)
   competency_signals  - which of the four competencies the platform touches
   platform_sources    - the URLs actually read
@@ -49,7 +49,7 @@ CANDIDATES_TABLE = "Gov Candidates"
 MODEL = "claude-sonnet-4-6"
 COMPETENCY_CHOICES = ["civil-service", "procedure", "digital", "incentives"]
 
-UA = {"User-Agent": "Mozilla/5.0 (compatible; RAF-StateTracker/1.0)"}
+UA = {"User-Agent": "Mozilla/5.0 (compatible; RecodingAmerica-StateTracker/1.0)"}
 ISSUE_RE = re.compile(
     r"issue|priorit|plan|policy|policies|platform|agenda|vision|record", re.I)
 MAX_PAGES = 8
@@ -57,7 +57,7 @@ MAX_CHARS_PER_PAGE = 12000
 MAX_TOTAL_CHARS = 60000
 
 SYSTEM_PROMPT = """You are profiling a 2026 gubernatorial candidate's EXISTING
-public platform for RAF (Recoding America Fund). RAF works on four state-capacity
+public platform for Recoding America. Recoding America works on four state-capacity
 competencies — how a state government builds and runs ITSELF, not what it
 regulates in the wider economy:
 

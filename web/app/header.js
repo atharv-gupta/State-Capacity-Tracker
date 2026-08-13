@@ -3,8 +3,8 @@ import Link from "next/link";
 export default function Header({ active }) {
   return (
     <header className="head">
-      <h1>State Activity Tracker</h1>
-      <p className="sub">What state governments are actually doing, in RAF&apos;s capacities</p>
+      <h1>State Capacity Tracker</h1>
+      <p className="sub">What state governments are actually doing, in Recoding America&apos;s capacities</p>
       <nav className="tabs">
         <Link href="/" className={`tab ${active === "map" ? "on" : ""}`}>
           Map

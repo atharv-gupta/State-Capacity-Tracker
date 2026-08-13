@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Phase 0 — State Activity Tracker single-feed pipeline.
+"""Phase 0 — State Capacity Tracker single-feed pipeline.
 
 Fetches one Google News query feed, decodes redirect URLs, applies the
 provenance + pillar gates from SPEC.md §3 via the Anthropic API, and writes
@@ -66,7 +66,7 @@ REQUIRED_FIELDS = [
     {"name": "status", "type": "singleLineText"},
 ]
 
-SYSTEM_PROMPT = """You classify news articles for the RAF State Activity Tracker.
+SYSTEM_PROMPT = """You classify news articles for the Recoding America State Capacity Tracker.
 
 For each article, apply two gates:
 

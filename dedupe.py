@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""State Activity Tracker — dedupe/condense stage (clean layer).
+"""State Capacity Tracker — dedupe/condense stage (clean layer).
 
 Reads the last N days of 'Raw Events' (one row per article), clusters rows
 that describe the same underlying government action into a single EVENT

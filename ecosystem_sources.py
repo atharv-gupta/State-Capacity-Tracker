@@ -1,6 +1,6 @@
 """Source registry for the Ecosystem Writing Tracker.
 
-Curated RAF think-tank and nonprofit partner outlets — Substacks, org blogs,
+Curated Recoding America think-tank and nonprofit partner outlets — Substacks, org blogs,
 and standard-CMS publications. All treated as trusted "skim" sources: no
 relevance gate, the pipeline enriches everything that passes the content check.
 

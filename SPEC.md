@@ -1,6 +1,6 @@
-# State Activity Tracker — v1 Brief & Build Plan
+# State Capacity Tracker — v1 Brief & Build Plan
 
-*Working title. A weekly, queryable feed of what state governments are actually doing, categorized into RAF's pillars.*
+*Working title. A weekly, queryable feed of what state governments are actually doing, categorized into Recoding America's pillars.*
 
 This document is two things at once: the product brief (what we're building and why) and the build spec you can hand to Claude Code to start the repo. Build it phase by phase; each phase produces something real.
 
@@ -8,13 +8,13 @@ This document is two things at once: the product brief (what we're building and 
 
 ## 1. What this is
 
-A pipeline that ingests media about state government, keeps only the items that represent **real government activity** in RAF's domains, de-duplicates them into distinct *events*, and surfaces them as a **weekly digest** plus a **queryable view**. The point is not to collect news — that part is commoditized. The point is the weekly, categorized read of *what moved* across 50 states.
+A pipeline that ingests media about state government, keeps only the items that represent **real government activity** in Recoding America's domains, de-duplicates them into distinct *events*, and surfaces them as a **weekly digest** plus a **queryable view**. The point is not to collect news — that part is commoditized. The point is the weekly, categorized read of *what moved* across 50 states.
 
 ## 2. Who it's for, and the job
 
-- **Primary user (v1):** the RAF team. This is an **internal-first** tool whose output travels outward *through people*, not a published dashboard.
+- **Primary user (v1):** the Recoding America team. This is an **internal-first** tool whose output travels outward *through people*, not a published dashboard.
 - **Lead job:** equip colleagues to walk into any partner/funder conversation and speak credibly about what's happening in any state, in our domains.
-- **v2 jobs (later):** RAF as field authority (thought leadership), partner-state intel + peer benchmarking, funder-facing landscape.
+- **v2 jobs (later):** Recoding America as field authority (thought leadership), partner-state intel + peer benchmarking, funder-facing landscape.
 - **Why this matters for the build:** because v1 readers apply their own judgment, v1 does **not** need publish-grade precision. The bar is "good enough that a sharp person can scan it and pull the real signal." That buys speed now; precision graduates the pipeline into the v2 external versions later.
 
 ## 3. What counts as signal (the filter)

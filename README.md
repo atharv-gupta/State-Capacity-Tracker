@@ -1,8 +1,8 @@
-# State Activity Tracker
+# State Capacity Tracker
 
-A weekly, queryable feed of what state governments are actually doing, classified by which of RAF's four state-capacity competencies it advances or undermines: **civil-service** (workforce — hiring, classification, pay, performance, separation), **procedure** (the government's own process/compliance burden), **digital** (how the state builds, buys, and oversees its own technology and data), and **incentives** (the learning/feedback loop — outcome-tied funding, oversight, evaluation). Most real government actions fit none of the four — that's expected and recorded as `none`.
+A weekly, queryable feed of what state governments are actually doing, classified by which of Recoding America's four state-capacity competencies it advances or undermines: **civil-service** (workforce — hiring, classification, pay, performance, separation), **procedure** (the government's own process/compliance burden), **digital** (how the state builds, buys, and oversees its own technology and data), and **incentives** (the learning/feedback loop — outcome-tied funding, oversight, evaluation). Most real government actions fit none of the four — that's expected and recorded as `none`.
 
-The pipeline ingests ~170 state-government news feeds, keeps only items that represent real government activity touching those capacities, de-duplicates them into distinct *events*, classifies each against RAF's rubric, stores everything in Airtable, and surfaces a filterable map view on the web.
+The pipeline ingests ~170 state-government news feeds, keeps only items that represent real government activity touching those capacities, de-duplicates them into distinct *events*, classifies each against Recoding America's rubric, stores everything in Airtable, and surfaces a filterable map view on the web.
 
 ## How it works
 

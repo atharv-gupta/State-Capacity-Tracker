@@ -185,8 +185,13 @@ function Bill({ b }) {
   return (
     <li className="devitem">
       <div className="devmeta">
+        {b.committee_action_date ? <time>{fmtDate(b.committee_action_date)}</time> : null}
         <span className="billnum">{b.bill_number}</span>
         <span className="statechip">{COMMITTEE_LABEL[b.committee] || b.committee}</span>
+        {/* What the committee did — the reason this bill is in the list. */}
+        {b.committee_action ? (
+          <span className={`cmteaction ${b.committee_action}`}>{b.committee_action}</span>
+        ) : null}
         {b.bill_status ? (
           <span className={`stagechip s${stage >= 0 ? stage : 0}`}>{b.bill_status}</span>
         ) : null}
@@ -394,7 +399,7 @@ export default function Congress() {
         Federal government-capacity activity from the seven committees that govern how
         Washington runs itself &mdash; plus GAO and CBO. Hearings and bills come from the
         Congress.gov API; committee and member activity is scraped from committee and member
-        press feeds. Everything is scored against the same four RAF competencies used on the
+        press feeds. Everything is scored against the same four Recoding America competencies used on the
         state tabs, re-pointed at the federal government.
       </p>
 
@@ -531,10 +536,18 @@ export default function Congress() {
       <section className="feedcard">
         <div className="feedhead">
           <h3>
-            Bills before these committees
-            <span className="feedwindow"> · {shownBills.length}</span>
+            Bill activity in these committees
+            <span className="feedwindow">
+              {windowF === "all" ? " · all time" : ` · last ${windowF} days`} ·{" "}
+              {shownBills.length}
+            </span>
           </h3>
         </div>
+        <p className="sectionnote">
+          Bills the seven committees acted on in this window — marked up, reported out, or
+          newly referred. Dated by the committee&apos;s action, not the bill&apos;s latest
+          floor action, so a bill introduced last year appears when its committee takes it up.
+        </p>
         {shownBills.length ? (
           <ul className="devlist">
             {shownBills.map((b) => (

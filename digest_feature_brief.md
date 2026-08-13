@@ -1,6 +1,6 @@
 # Feature brief: weekly email digest (`digest.py`)
 
-A handoff spec for Claude Code. Build a new script that runs **right after `dedupe.py`** each week and emails a digest of the most notable state-capacity events. **Phase 1 (now): send to one hard-coded recipient — `atharv@recodingamerica.fund` — via Resend's pre-verification sender.** Designed so the recipient source can later become a signup table, and the sending domain can flip to the real RAF domain, without touching the selection/formatting logic.
+A handoff spec for Claude Code. Build a new script that runs **right after `dedupe.py`** each week and emails a digest of the most notable state-capacity events. **Phase 1 (now): send to one hard-coded recipient — `atharv@recodingamerica.fund` — via Resend's pre-verification sender.** Designed so the recipient source can later become a signup table, and the sending domain can flip to the real Recoding America domain, without touching the selection/formatting logic.
 
 ---
 

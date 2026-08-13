@@ -1,5 +1,5 @@
 /**
- * The four RAF competencies and their colors.
+ * The four Recoding America competencies and their colors.
  *
  * These were duplicated across page.js, states/specs-meta.js and
  * methodology/page.js. New code imports from here; the congress tab is the
