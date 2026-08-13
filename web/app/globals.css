@@ -1371,6 +1371,25 @@ a.devheadline:hover {
   margin: -2px 0 8px;
 }
 
+/* Collapsible section heading. Sits inside the h3 and inherits its type, so
+   a collapsed section is a single line. */
+.sectiontoggle {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  font-weight: inherit;
+}
+.sectiontoggle:hover {
+  color: #2563eb;
+}
+.sectiontoggle .caret {
+  color: #94a3b8;
+  font-weight: 400;
+  margin-right: 6px;
+}
+
 /* competency chip — same four colors as the map pills, at item scale */
 .compchip {
   font-size: 10.5px;

@@ -313,6 +313,7 @@ export default function Congress() {
   const [committeeF, setCommitteeF] = useState("all");
   const [chamberF, setChamberF] = useState("all");
   const [windowF, setWindowF] = useState("30");
+  const [watchdogOpen, setWatchdogOpen] = useState(false);
 
   useEffect(() => {
     const load = (path, set, key) =>
@@ -601,32 +602,45 @@ export default function Congress() {
         )}
       </section>
 
-      {/* ---------- GAO & CBO ---------- */}
+      {/* ---------- GAO & CBO ----------
+          Collapsed by default: GAO outnumbers the committee feed and, left
+          open, pushes it off the screen. */}
       <section className="feedcard">
         <div className="feedhead">
           <h3>
-            GAO &amp; CBO
+            <button
+              className="sectiontoggle"
+              onClick={() => setWatchdogOpen(!watchdogOpen)}
+              aria-expanded={watchdogOpen}
+            >
+              <span className="caret">{watchdogOpen ? "▾" : "▸"}</span>
+              GAO &amp; CBO
+            </button>
             <span className="feedwindow">
               {windowF === "all" ? " · all time" : ` · last ${windowF} days`} ·{" "}
               {watchdogEvents.length}
             </span>
           </h3>
         </div>
-        <p className="sectionnote">
-          Nonpartisan support agencies. GAO reports are oversight-of-capacity almost by
-          construction, so this runs at higher volume than the committee feed.
-        </p>
-        {watchdogEvents.length ? (
-          <ul className="devlist">
-            {watchdogEvents.map((e) => (
-              <ActivityItem key={e.id} e={e} />
-            ))}
-          </ul>
-        ) : (
-          <p className="feedempty muted">
-            {loading ? "Loading…" : "No GAO or CBO items match these filters."}
-          </p>
-        )}
+        {watchdogOpen ? (
+          <>
+            <p className="sectionnote">
+              Nonpartisan support agencies. GAO reports are oversight-of-capacity almost by
+              construction, so this runs at higher volume than the committee feed.
+            </p>
+            {watchdogEvents.length ? (
+              <ul className="devlist">
+                {watchdogEvents.map((e) => (
+                  <ActivityItem key={e.id} e={e} />
+                ))}
+              </ul>
+            ) : (
+              <p className="feedempty muted">
+                {loading ? "Loading…" : "No GAO or CBO items match these filters."}
+              </p>
+            )}
+          </>
+        ) : null}
       </section>
 
       {!loading && total === 0 ? (
