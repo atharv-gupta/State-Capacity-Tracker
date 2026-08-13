@@ -17,6 +17,10 @@ export async function GET() {
     return {
       id: r.id,
       event_id: f.event_id || "",
+      // Short action title (5-10 words) for the collapsed row; `headline` is
+      // the full sentence shown once expanded. Falls back to the headline for
+      // rows written before short_title existed.
+      short_title: f.short_title || f.headline || "",
       headline: f.headline || "",
       summary: f.summary || "",
       why_it_matters: f.why_it_matters || "",

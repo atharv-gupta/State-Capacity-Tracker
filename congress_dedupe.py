@@ -47,10 +47,16 @@ WORKERS = congress_llm.WORKERS
 
 CLUSTER_SYSTEM = f"""You deduplicate rows in a congressional activity tracker.
 
-You receive rows about ONE committee's orbit from a recent window. Multiple
-rows often describe the SAME underlying action — a majority office, a minority
-office, and a member's office all writing up one markup, or several outlets
-covering one GAO report. Cluster them into distinct EVENTS and synthesize each.
+You receive rows from ONE chamber (or from GAO/CBO) over a recent window.
+Multiple rows often describe the SAME underlying action — a majority office, a
+minority office, and several members' offices all writing up one markup, one
+joint oversight letter, or one GAO report. Cluster them into distinct EVENTS
+and synthesize each.
+
+Rows carry a `committee` field, but that is only the feed the item came from.
+Members sit on several committees and letters are usually joint, so **rows with
+different committee values routinely describe the same action.** Cluster on
+what actually happened, never on the committee label.
 
 Your job is clustering + synthesis ONLY. Do NOT judge which capacity an event
 touches or how relevant it is — a separate classification step handles that.
@@ -109,9 +115,9 @@ def event_id_for(urls):
     return hashlib.sha1(joined.encode()).hexdigest()[:16]
 
 
-def cluster(client, committee, rows):
+def cluster(client, group, rows):
     payload = {
-        "committee": committee,
+        "group": group,
         "rows": [{
             "id": rid,
             "name": f.get("Name", ""),
@@ -181,6 +187,7 @@ def build_row(event, members):
     return {
         "Name": f"{committee} — {name}"[:250],
         "event_id": event_id_for(urls),
+        "short_title": name[:120],
         "headline": event.get("headline") or "",
         "summary": event.get("summary") or "",
         "why_it_matters": event.get("why_it_matters") or "",
@@ -198,6 +205,48 @@ def build_row(event, members):
         "review_status": "unreviewed",
         "deduped_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     }
+
+
+def prune_orphans(clean, clean_map, produced_ids, processed_urls, dry_run=False):
+    """Delete clean rows this run superseded.
+
+    event_id is a hash of the member source URLs, so re-clustering two rows
+    into one mints a new id and leaves the two originals behind. Upsert alone
+    never removes them, and they accumulate as duplicates every time the
+    clustering shifts.
+
+    A row is only in scope if every one of its source URLs was among the raw
+    rows we just processed — that means this run had full ownership of its
+    inputs and is entitled to replace it. Reviewed rows are never deleted
+    silently; they're reported so a human decides.
+
+    Returns (deleted_count, skipped_reviewed).
+    """
+    id_f = clean_map.get("event_id", "event_id")
+    url_f = clean_map.get("source_urls", "source_urls")
+    status_f = clean_map.get("review_status", "review_status")
+    notes_f = clean_map.get("reviewer_notes", "reviewer_notes")
+
+    stale, reviewed = [], []
+    for rec in clean.all():
+        f = rec["fields"]
+        eid = (f.get(id_f) or "").strip()
+        if not eid or eid in produced_ids:
+            continue
+        urls = {u.strip() for u in (f.get(url_f) or "").splitlines() if u.strip()}
+        if not urls or not urls <= processed_urls:
+            continue          # inputs outside this run's window — leave alone
+        if (f.get(status_f) or "unreviewed") != "unreviewed" or f.get(notes_f):
+            reviewed.append((rec["id"], f))
+            continue
+        stale.append(rec["id"])
+
+    if stale and not dry_run:
+        for i in range(0, len(stale), 10):
+            clean.batch_delete(stale[i:i + 10])
+    for _, f in reviewed:
+        print(f"  KEPT superseded but reviewed: {(f.get('headline') or '')[:70]}")
+    return len(stale), len(reviewed)
 
 
 def main():
@@ -227,44 +276,54 @@ def main():
         print("Nothing to do.")
         return 0
 
-    by_committee = {}
+    # Group by CHAMBER, not committee. Joint letters and shared actions reach
+    # us through several member and committee feeds at once — one State
+    # Department oversight letter arrived via both Murray (Approps) and
+    # Padilla (Rules) — and per-committee grouping leaves those as duplicate
+    # events. Members sit on multiple committees, so the chamber is the real
+    # boundary. GAO and CBO group separately; they don't co-sign anything.
+    by_group = {}
     for rid, f in rows:
-        by_committee.setdefault(f.get("committee") or "unknown", []).append((rid, f))
+        committee = f.get("committee") or "unknown"
+        group = committee if committee in ("gao", "cbo") else (f.get("chamber") or "unknown")
+        by_group.setdefault(group, []).append((rid, f))
 
     client = Anthropic(api_key=ANTHROPIC_API_KEY)
     members_by_id = {rid: f for rid, f in rows}
 
-    # Cluster per committee; single-row committees skip the LLM call.
-    multi = [(c, rs) for c, rs in by_committee.items() if len(rs) > 1]
-    single = [(c, rs) for c, rs in by_committee.items() if len(rs) == 1]
-    print(f"{len(multi)} committees need clustering, {len(single)} single-row")
+    # Single-row groups skip the LLM call entirely.
+    multi = [(g, rs) for g, rs in by_group.items() if len(rs) > 1]
+    single = [(g, rs) for g, rs in by_group.items() if len(rs) == 1]
+    print(f"{len(multi)} groups need clustering, {len(single)} single-row")
 
     clustered = congress_llm.map_concurrent(
-        lambda cr: cluster(client, cr[0], cr[1]), multi,
+        lambda gr: cluster(client, gr[0], gr[1]), multi,
         workers=WORKERS, label="cluster")
 
+    def tag(ev, members):
+        """Classification context wants the committee the action belongs to,
+        not the chamber we grouped by."""
+        ev["_committee"] = next((f.get("committee") for _, f in members if f.get("committee")), "")
+        return ev
+
     events = []
-    for (committee, rs), got in zip(multi, clustered):
+    for (group, rs), got in zip(multi, clustered):
         assigned = set()
         for ev in (got or []):
             ids = [i for i in (ev.get("member_ids") or []) if i in members_by_id]
             if not ids:
                 continue
-            ev["_committee"] = committee
-            events.append((ev, [(i, members_by_id[i]) for i in ids]))
+            members = [(i, members_by_id[i]) for i in ids]
+            events.append((tag(ev, members), members))
             assigned.update(ids)
         # Safety net: a row the model dropped becomes its own event rather
         # than vanishing. Same guard as dedupe.py.
         for rid, f in rs:
             if rid not in assigned:
-                ev = single_row_event(rid, f)
-                ev["_committee"] = committee
-                events.append((ev, [(rid, f)]))
-    for committee, rs in single:
+                events.append((tag(single_row_event(rid, f), [(rid, f)]), [(rid, f)]))
+    for group, rs in single:
         rid, f = rs[0]
-        ev = single_row_event(rid, f)
-        ev["_committee"] = committee
-        events.append((ev, [(rid, f)]))
+        events.append((tag(single_row_event(rid, f), [(rid, f)]), [(rid, f)]))
 
     print(f"{len(rows)} rows -> {len(events)} events; classifying...")
     verdicts = congress_llm.map_concurrent(
@@ -296,7 +355,18 @@ def main():
     clean, clean_map = ensure_table(api, AIRTABLE_BASE_ID, args.clean_table, cs.EVENT_FIELDS)
     created, updated = upsert(clean, clean_map, out_rows, "event_id",
                               preserve=cs.REVIEW_FIELDS)
-    print(f"\nWrote {created} new, {updated} updated -> {args.clean_table}")
+
+    processed_urls = set()
+    for _, f in rows:
+        processed_urls.update(
+            u.strip() for u in (f.get("source_urls") or "").splitlines() if u.strip())
+    deleted, kept = prune_orphans(
+        clean, clean_map, {r["event_id"] for r in out_rows}, processed_urls)
+
+    print(f"\nWrote {created} new, {updated} updated, {deleted} superseded "
+          f"removed -> {args.clean_table}")
+    if kept:
+        print(f"{kept} superseded row(s) kept because they carry review notes.")
     return 0
 
 

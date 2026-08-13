@@ -131,6 +131,11 @@ RAW_FIELDS = [
 EVENT_FIELDS = [
     {"name": "Name", "type": "singleLineText"},
     _text("event_id"),
+    # The 5-10 word action title the cluster step already produces. Kept
+    # separate from the `Name` primary field (which is prefixed with the
+    # committee) so the UI can lead with a short bold title and put the
+    # full-sentence `headline` behind an expander.
+    _text("short_title"),
     _text("headline", multi=True),
     _text("summary", multi=True),
     _text("why_it_matters", multi=True),
@@ -179,6 +184,12 @@ BILL_FIELDS = [
     _num("congress"),
     _text("title", multi=True),
     _text("summary", multi=True),
+    # CRS's own summary, when Congress.gov has one. Coverage is inverted from
+    # what's useful: roughly half of all bills have one, but only 3 of 26
+    # high-relevance bills did on the first backfill — CRS lags, and the
+    # bills that are already summarized are mostly post-office namings. So
+    # this supplements our generated summary rather than replacing it.
+    _text("crs_summary", multi=True),
     _text("why_it_matters", multi=True),
     _date("date"),
     _date("introduced_date"),

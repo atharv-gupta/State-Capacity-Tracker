@@ -21,6 +21,9 @@ export async function GET() {
       congress: f.congress || 0,
       title: f.title || "",
       summary: f.summary || "",
+      // CRS's own text, present for only about half of bills — shown as an
+      // extra block under our summary, never in place of it.
+      crs_summary: f.crs_summary || "",
       why_it_matters: f.why_it_matters || "",
       date: f.date || "",
       introduced_date: f.introduced_date || "",

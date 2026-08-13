@@ -179,7 +179,18 @@ function Hearing({ h, upcoming }) {
   );
 }
 
+/** Bold short title that toggles the detail block open. */
+function TitleToggle({ open, onClick, children }) {
+  return (
+    <button className="itemtitle" onClick={onClick} aria-expanded={open}>
+      <span className="caret">{open ? "▾" : "▸"}</span>
+      {children}
+    </button>
+  );
+}
+
 function Bill({ b }) {
+  const [open, setOpen] = useState(false);
   const stage = BILL_STAGES.indexOf(b.bill_status);
   return (
     <li className="devitem">
@@ -192,30 +203,61 @@ function Bill({ b }) {
         <CompChips values={b.competency} />
         <Relevance value={b.relevance} />
       </div>
-      {b.urls[0] ? (
-        <a className="devheadline" href={b.urls[0]} target="_blank" rel="noreferrer">
-          {b.title}
-        </a>
+
+      <TitleToggle open={open} onClick={() => setOpen(!open)}>
+        {b.title}
+      </TitleToggle>
+
+      {open ? (
+        <div className="itembody">
+          {b.summary ? <p className="itemsummary">{b.summary}</p> : null}
+          {b.why_it_matters ? <p className="whymatters">{b.why_it_matters}</p> : null}
+          {/* CRS has a summary for only about half of bills, and rarely for the
+              substantive recent ones — so it supplements ours, never replaces it. */}
+          {b.crs_summary ? (
+            <div className="crsblock">
+              <span className="crslabel">Congress.gov summary</span>
+              <p className="itemsummary">{b.crs_summary}</p>
+            </div>
+          ) : null}
+          <p className="itemmeta">
+            {b.sponsor ? <>{b.sponsor}</> : null}
+            {b.cosponsor_count ? <> · {b.cosponsor_count} cosponsors</> : null}
+            {b.introduced_date ? <> · introduced {fmtDate(b.introduced_date)}</> : null}
+          </p>
+          {b.latest_action ? <p className="itemmeta">Latest action: {b.latest_action}</p> : null}
+          {b.urls[0] ? (
+            <a className="sourcelink" href={b.urls[0]} target="_blank" rel="noreferrer">
+              View on Congress.gov →
+            </a>
+          ) : null}
+        </div>
       ) : (
-        <span className="devheadline">{b.title}</span>
+        <p className="itemmeta">
+          {b.sponsor ? <>{b.sponsor}</> : null}
+          {b.latest_action_date ? <> · latest action {fmtDate(b.latest_action_date)}</> : null}
+        </p>
       )}
-      {b.summary ? <p className="itemsummary">{b.summary}</p> : null}
-      <p className="itemmeta">
-        {b.sponsor ? <>{b.sponsor}</> : null}
-        {b.cosponsor_count ? <> · {b.cosponsor_count} cosponsors</> : null}
-        {b.latest_action_date ? <> · latest action {fmtDate(b.latest_action_date)}</> : null}
-      </p>
     </li>
   );
 }
 
 function ActivityItem({ e }) {
+  const [open, setOpen] = useState(false);
+  // Rows written before short_title existed fall back to the headline, which
+  // is a full sentence — no point offering an expander that repeats it.
+  const hasMore = Boolean(
+    e.summary || e.why_it_matters || (e.headline && e.headline !== e.short_title)
+  );
   return (
     <li className="devitem">
       <div className="devmeta">
         <time>{fmtDate(e.date)}</time>
         <span className="statechip">{COMMITTEE_LABEL[e.committee] || e.committee}</span>
-        {e.party_source && e.party_source !== "member" ? (
+        {/* Only majority/minority carries information. "member" is the default
+            for a member's own feed, and "nonpartisan" would repeat on every
+            row of the GAO/CBO section. */}
+        {e.party_source === "majority" || e.party_source === "minority" ? (
           <span className={`partysrc ${e.party_source}`}>{e.party_source}</span>
         ) : null}
         {e.activity_type ? <span className="minichip">{e.activity_type}</span> : null}
@@ -225,20 +267,40 @@ function ActivityItem({ e }) {
           <span className="devsources">· {e.article_count} sources</span>
         ) : null}
       </div>
-      {e.urls[0] ? (
+
+      {hasMore ? (
+        <TitleToggle open={open} onClick={() => setOpen(!open)}>
+          {e.short_title}
+        </TitleToggle>
+      ) : e.urls[0] ? (
         <a className="devheadline" href={e.urls[0]} target="_blank" rel="noreferrer">
-          {e.headline}
+          {e.short_title}
         </a>
       ) : (
-        <span className="devheadline">{e.headline}</span>
+        <span className="devheadline">{e.short_title}</span>
       )}
-      {e.summary ? <p className="itemsummary">{e.summary}</p> : null}
-      {e.why_it_matters ? <p className="whymatters">{e.why_it_matters}</p> : null}
-      {e.topic_tags.length ? (
-        <div className="tagrow">
-          {e.topic_tags.map((t) => (
-            <span key={t} className="minichip">{t}</span>
-          ))}
+
+      {open ? (
+        <div className="itembody">
+          {e.headline && e.headline !== e.short_title ? (
+            <p className="itemsummary">{e.headline}</p>
+          ) : null}
+          {e.summary ? <p className="itemsummary">{e.summary}</p> : null}
+          {e.why_it_matters ? <p className="whymatters">{e.why_it_matters}</p> : null}
+          {e.topic_tags.length ? (
+            <div className="tagrow">
+              {e.topic_tags.map((t) => (
+                <span key={t} className="minichip">
+                  {t}
+                </span>
+              ))}
+            </div>
+          ) : null}
+          {e.urls[0] ? (
+            <a className="sourcelink" href={e.urls[0]} target="_blank" rel="noreferrer">
+              Read the source →
+            </a>
+          ) : null}
         </div>
       ) : null}
     </li>
@@ -302,7 +364,14 @@ export default function Congress() {
     .reverse();
 
   const shownBills = useMemo(() => (bills || []).filter((b) => matches(b)), [bills, matches]);
+
+  // GAO and CBO get their own section. They're nonpartisan support agencies
+  // rather than committees, and GAO alone accounted for 19 of the first 33
+  // events — mixed in, it crowds out everything the committees did.
   const shownEvents = useMemo(() => (events || []).filter((e) => matches(e)), [events, matches]);
+  const isWatchdog = (e) => e.committee === "gao" || e.committee === "cbo";
+  const committeeEvents = shownEvents.filter((e) => !isWatchdog(e));
+  const watchdogEvents = shownEvents.filter(isWatchdog);
 
   const toggleComp = (key) => {
     const next = new Set(compFilter);
@@ -420,7 +489,7 @@ export default function Congress() {
               ? "Loading…"
               : `${upcoming.length} upcoming · ${shownBills.length} bill${
                   shownBills.length === 1 ? "" : "s"
-                } · ${shownEvents.length} event${shownEvents.length === 1 ? "" : "s"}`}
+                } · ${committeeEvents.length} committee · ${watchdogEvents.length} GAO/CBO`}
           </span>
           {hasFilters ? (
             <button className="clear" onClick={clearAll}>
@@ -504,19 +573,19 @@ export default function Congress() {
             Committee &amp; member activity
             <span className="feedwindow">
               {windowF === "all" ? " · all time" : ` · last ${windowF} days`} ·{" "}
-              {shownEvents.length}
+              {committeeEvents.length}
             </span>
           </h3>
         </div>
-        {shownEvents.length ? (
+        {committeeEvents.length ? (
           <ul className="devlist">
-            {shownEvents.map((e) => (
+            {committeeEvents.map((e) => (
               <ActivityItem key={e.id} e={e} />
             ))}
           </ul>
         ) : (
           <p className="feedempty muted">
-            {loading ? "Loading…" : "No activity matches these filters."}
+            {loading ? "Loading…" : "No committee activity matches these filters."}
             {!loading && windowF !== "all" ? (
               <>
                 {" "}
@@ -525,6 +594,34 @@ export default function Congress() {
                 </button>
               </>
             ) : null}
+          </p>
+        )}
+      </section>
+
+      {/* ---------- GAO & CBO ---------- */}
+      <section className="feedcard">
+        <div className="feedhead">
+          <h3>
+            GAO &amp; CBO
+            <span className="feedwindow">
+              {windowF === "all" ? " · all time" : ` · last ${windowF} days`} ·{" "}
+              {watchdogEvents.length}
+            </span>
+          </h3>
+        </div>
+        <p className="sectionnote">
+          Nonpartisan support agencies. GAO reports are oversight-of-capacity almost by
+          construction, so this runs at higher volume than the committee feed.
+        </p>
+        {watchdogEvents.length ? (
+          <ul className="devlist">
+            {watchdogEvents.map((e) => (
+              <ActivityItem key={e.id} e={e} />
+            ))}
+          </ul>
+        ) : (
+          <p className="feedempty muted">
+            {loading ? "Loading…" : "No GAO or CBO items match these filters."}
           </p>
         )}
       </section>

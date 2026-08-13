@@ -79,12 +79,17 @@ def classify_all(client, payloads, label):
         payloads, workers=WORKERS, label=f"classify {label}")
 
 
-def apply_classification(row, verdict):
-    """Write the model's verdict onto a row, dropping unknown enum values."""
+def apply_classification(row, verdict, summary_field="summary"):
+    """Write the model's verdict onto a row, dropping unknown enum values.
+
+    `summary_field` is explicit because hearings and bills name it differently
+    (agenda_summary vs. summary). Inferring it from the keys already present
+    silently routed every bill summary to a field the bills table doesn't
+    have, where remap() dropped it.
+    """
     if not verdict:
         return row
-    row["summary" if "summary" in row else "agenda_summary"] = (
-        verdict.get("summary") or row.get("summary") or row.get("agenda_summary") or "")
+    row[summary_field] = verdict.get("summary") or row.get(summary_field) or ""
     row["why_it_matters"] = verdict.get("why_it_matters") or ""
     comps = cs.valid(verdict.get("competencies"), cs.COMPETENCY_CHOICES)
     row["competency"] = comps
@@ -329,6 +334,25 @@ def build_bill_rows(fetched):
     return rows, payloads, skipped
 
 
+def attach_crs_summaries(rows):
+    """Fetch each bill's CRS summary and write it onto the row. One extra API
+    call per bill; trivial against a 20,000/hour limit. Returns how many rows
+    got one."""
+    def fetch(row):
+        try:
+            cong, btype, num = row["bill_id"].split("-")
+            return congress_api.get_bill_summary(int(cong), btype, num)
+        except Exception:
+            return ""
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=WORKERS) as ex:
+        summaries = list(ex.map(fetch, rows))
+    for row, s in zip(rows, summaries):
+        # Long CRS text is a wall in the UI; the generated summary leads there.
+        row["crs_summary"] = s[:1200]
+    return sum(1 for s in summaries if s)
+
+
 # ---------------------------------------------------------------------------
 # HSGAC cross-check
 # ---------------------------------------------------------------------------
@@ -431,7 +455,7 @@ def main():
             rows, payloads = rows[:args.limit], payloads[:args.limit]
         verdicts = classify_all(client, payloads, "hearing")
         for row, v in zip(rows, verdicts):
-            apply_classification(row, v)
+            apply_classification(row, v, "agenda_summary")
         hit = sum(1 for r in rows if r.get("competency"))
         print(f"  {hit}/{len(rows)} matched a competency")
         for r in sorted(rows, key=lambda x: -(x.get("relevance") or 0))[:10]:
@@ -458,6 +482,8 @@ def main():
         verdicts = classify_all(client, payloads, "bill")
         for row, v in zip(rows, verdicts):
             apply_classification(row, v)
+        with_crs = attach_crs_summaries(rows)
+        print(f"  {with_crs}/{len(rows)} have a CRS summary on Congress.gov")
         hit = sum(1 for r in rows if r.get("competency"))
         print(f"  {hit}/{len(rows)} matched a competency")
         for r in sorted(rows, key=lambda x: -(x.get("relevance") or 0))[:10]:
