@@ -20,14 +20,58 @@ last N days         + 2 LLM gates            one row per     event, classify    
 2. **`dedupe.py`** — clusters the window's raw rows (one government action shows up across many outlets) with Claude Sonnet, then classifies **every** event against the rubric in **`rubric.md`** (sent as a cached system prompt): zero, one, or more **competencies** (an event can span two — e.g. oversight of a failing IT system is both `digital` and `incentives`; matching none is the common case), a **1–3 relevance** score for how central an example it is (direction-agnostic — undermining a capacity counts as much as advancing it), and a set of descriptive **topic tags**. It then rebuilds that window of the **`Events`** table: one row per event, all source URLs/outlets merged. Rows outside the window are never touched, so the table accumulates history week over week. Use `--all` to reclassify every raw row and `--clean-table NAME` to build into a side table (e.g. for review before swapping it in).
 3. **`web/`** — Next.js app: US map shaded by event count, filters for time window (week / month / all), competency, topic tag, activity type, and government actor type, with an event list beneath; each event shows its competencies, a relevance dot rating, and clickable topic-tag chips. Reads Airtable server-side via `/api/events` (the token never reaches the browser).
 
+## Congressional tracker
+
+A parallel pipeline covering the seven committees that govern how the *federal* government
+runs itself — Senate HSGAC, Senate Rules, Senate Appropriations, House Oversight, House
+Administration, House Rules, House Appropriations — plus both whips, GAO, and CBO. Same four
+competencies, re-pointed at the federal government by
+**`congress_rubric_adaptation.md`**, which is prepended to the shared `rubric.md`. The state
+rubric is untouched.
+
+Two independent paths, because hearings and bills need no clustering — one API record *is*
+one hearing or one bill, with a stable ID:
+
+```
+[Press path]   29 sources (HSGAC WP API + 15 RSS + 11 HTML)
+                 --> keyword pre-screen --> Haiku gate --> 'Congress Raw'
+                 --> congress_dedupe.py (cluster + Sonnet rubric) --> 'Congress Events'
+
+[API path]     Congress.gov  --> committee-meeting  --> 'Congress Hearings'
+                             --> committee/*/bills  --> 'Congress Bills'
+```
+
+- **`congress_sources.py`** — the registry. HSGAC and Padilla expose WordPress REST APIs
+  (typed endpoints, full article bodies, server-side `?after=` filtering); 15 sources have
+  working RSS; 11 need HTML scraping. No JS rendering anywhere, so no headless browser.
+  `python congress_fetch.py --days 21` probes every source and prints what each returned.
+- **`congress_api_sync.py`** — hearings and bills. `--crosscheck` compares HSGAC's own CMS
+  against Congress.gov on hearing date; as of the last run the API covered everything the
+  CMS had, plus one hearing it didn't.
+- Both clean tables **upsert** rather than delete-and-rewrite, and `review_status` /
+  `reviewer_notes` are preserved on update — so a reviewer's annotations survive nightly runs.
+- `Congress Raw` carries an `ingested_at` timestamp and `congress_dedupe.py` windows on it,
+  rather than on the model-supplied action date (see Known gaps).
+
+```bash
+.venv/bin/python congress_pipeline.py --days 21 --dry-run   # per-source funnel, no writes
+.venv/bin/python congress_pipeline.py --days 21
+.venv/bin/python congress_dedupe.py   --days 21
+.venv/bin/python congress_api_sync.py --days 21
+```
+
+The dry-run funnel prints fetched → in-window → pre-screened → passed per source. That table
+is how you tell "this committee was quiet" from "this scraper broke" — several member offices
+legitimately go weeks without posting, especially during recess.
+
 ## Setup
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-cp .env_example .env   # fill in the three values
+cp .env_example .env   # fill in the values
 ```
 
-`.env` needs `ANTHROPIC_API_KEY`, `AIRTABLE_TOKEN` (scopes: data.records read/write, schema.bases read/write), and `AIRTABLE_BASE_ID`. Tables and fields are created automatically if missing.
+`.env` needs `ANTHROPIC_API_KEY`, `AIRTABLE_TOKEN` (scopes: data.records read/write, schema.bases read/write), and `AIRTABLE_BASE_ID`. `CONGRESS_API_KEY` (free, from [api.congress.gov](https://api.congress.gov)) is needed only for the congressional hearings and bills sync; without it that one script skips cleanly. Tables and fields are created automatically if missing.
 
 Run manually:
 
@@ -48,7 +92,9 @@ npm run dev              # http://localhost:3000
 
 ## Automation
 
-`.github/workflows/weekly.yml` runs the ingest every day at 13:00 UTC (~7am MT) — daily because 90+ feeds retain less than a week of items (see Known gaps) — and additionally runs dedupe on Mondays. It can be triggered manually from the Actions tab (with an opt-in checkbox to also dedupe). To activate, add the three repo secrets on GitHub: **Settings → Secrets and variables → Actions → New repository secret** for `ANTHROPIC_API_KEY`, `AIRTABLE_TOKEN`, `AIRTABLE_BASE_ID`.
+`.github/workflows/weekly.yml` runs the ingest every day at 13:00 UTC (~7am MT) — daily because 90+ feeds retain less than a week of items (see Known gaps) — and additionally runs dedupe on Mondays. It can be triggered manually from the Actions tab (with an opt-in checkbox to also dedupe). To activate, add the repo secrets on GitHub: **Settings → Secrets and variables → Actions → New repository secret** for `ANTHROPIC_API_KEY`, `AIRTABLE_TOKEN`, `AIRTABLE_BASE_ID`, and `CONGRESS_API_KEY`.
+
+**All three congressional steps run daily**, including the classify step — unlike the state pipeline, whose dedupe is Mondays only. Upcoming hearings are perishable: a Monday-only classify would surface a Wednesday hearing notice after the hearing had already happened.
 
 ## Deploying the web view (Vercel)
 
@@ -181,6 +227,9 @@ Complementary coverage per state; the only layer covering the 11 states with no 
 - **Indiana** has only one verified complementary outlet (most Indiana papers are Gannett, which removed RSS).
 - **StateScoop** retains only ~10 items (~a week of their publishing volume).
 - `phase0.py` is the original single-feed prototype (Google News query approach) — superseded, kept for reference. The Google News index layer is the planned Phase 1 completeness guarantee.
+- **`dedupe.py` windows on the wrong field.** `Raw Events` has no ingestion timestamp, so the window filters on `date` — which the Haiku gate fills with *the date of the government action*, not the publish date. An article ingested today about an action six weeks ago is written with a six-week-old date, falls outside Monday's 7-day window, and never clusters into `Events`. Fixing it needs an `ingested_at` field on `Raw Events` plus a backfill. The congressional pipeline has that field from the start and windows on it, so it doesn't inherit the bug.
+- **GAO dominates the congressional feed.** GAO published 25 reports in the first 21-day backfill, and nearly all are oversight-of-capacity by construction — 19 of 33 classified events. That's real signal, not a bug, but it's worth deciding during review whether GAO belongs in its own section rather than mixed into committee activity.
+- **Congressional press volume is recess-sensitive.** In the August 2026 backfill, 11 of 29 press sources returned zero items for the window; every one was verified quiet (newest item predated the window), not broken. Always check the `--dry-run` funnel before assuming a scraper failed.
 
 ## Data model
 

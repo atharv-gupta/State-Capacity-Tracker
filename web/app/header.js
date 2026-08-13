@@ -15,6 +15,9 @@ export default function Header({ active }) {
         <Link href="/candidates" className={`tab ${active === "candidates" ? "on" : ""}`}>
           Governors &rsquo;26
         </Link>
+        <Link href="/congress" className={`tab ${active === "congress" ? "on" : ""}`}>
+          Congress
+        </Link>
         <Link href="/methodology" className={`tab ${active === "methodology" ? "on" : ""}`}>
           Sources &amp; methodology
         </Link>
