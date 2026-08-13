@@ -99,6 +99,14 @@ PILLAR_KEYWORDS = {
         "\\bEAC\\b", "election assistance commission",
     ],
     "incentives": [
+        # NOTE: the bare "GAO" token means every item from the GAO feed matches,
+        # so the pre-screen is effectively a no-op for that one source and all
+        # 25 items/3wk go to the Haiku gate. That's deliberate. Dropping the
+        # token screens GAO on its actual content and saves 6 LLM calls per
+        # window, but silently loses 3 of the 18 items the gate would have
+        # kept — including "Army Depot Maintenance: Workload, Workforce, and
+        # Challenges", which says "workforce" but not "federal workforce".
+        # GAO volume is low; paying for the LLM call is the better trade.
         "oversight", "investigation", "subpoena", "document request",
         "inspector general", "\\bIG\\b report", "\\bGAO\\b",
         "government accountability office", "high-risk list",
@@ -136,6 +144,10 @@ Does this item describe a concrete congressional or federal action?
   issued, a report released (incl. GAO/CBO products), a nomination advanced or
   blocked, an appropriations decision, a committee rule adopted, an
   investigation opened.
+  A GAO or CBO report satisfies Gate 1 by being published — these agencies act
+  by reporting. Do not reason that a research product is not an action, and do
+  not require that Congress has responded to it. (A routine manual revision or
+  data refresh with no findings is still a Gate 1 fail: nothing was examined.)
   FAIL: reaction and response statements, praise or criticism of the other
   party, floor speeches with no underlying action, "X responds to Y",
   "X slams Y", ICYMI roundups, op-ed reprints, newsletters, district events,
