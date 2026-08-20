@@ -18,6 +18,9 @@ export default function Header({ active }) {
         <Link href="/congress" className={`tab ${active === "congress" ? "on" : ""}`}>
           Congress
         </Link>
+        <Link href="/federal" className={`tab ${active === "federal" ? "on" : ""}`}>
+          Federal
+        </Link>
         <Link href="/methodology" className={`tab ${active === "methodology" ? "on" : ""}`}>
           Sources &amp; methodology
         </Link>

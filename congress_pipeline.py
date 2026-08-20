@@ -99,14 +99,10 @@ PILLAR_KEYWORDS = {
         "\\bEAC\\b", "election assistance commission",
     ],
     "incentives": [
-        # NOTE: the bare "GAO" token means every item from the GAO feed matches,
-        # so the pre-screen is effectively a no-op for that one source and all
-        # 25 items/3wk go to the Haiku gate. That's deliberate. Dropping the
-        # token screens GAO on its actual content and saves 6 LLM calls per
-        # window, but silently loses 3 of the 18 items the gate would have
-        # kept — including "Army Depot Maintenance: Workload, Workforce, and
-        # Challenges", which says "workforce" but not "federal workforce".
-        # GAO volume is low; paying for the LLM call is the better trade.
+        # The bare "GAO" token is kept even though the GAO feed itself moved to
+        # the federal tracker on 2026-08-20: committee letters TO GAO, and
+        # committee releases citing a GAO finding, are congressional events and
+        # this is what catches them.
         "oversight", "investigation", "subpoena", "document request",
         "inspector general", "\\bIG\\b report", "\\bGAO\\b",
         "government accountability office", "high-risk list",

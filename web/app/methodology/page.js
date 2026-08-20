@@ -2,6 +2,7 @@ import usa from "@svg-maps/usa";
 import Header from "../header";
 import sources from "./sources.json";
 import congress from "./congress-sources.json";
+import federal from "./federal-sources.json";
 
 export const metadata = {
   title: "Sources & methodology — State Capacity Tracker",
@@ -40,6 +41,7 @@ const TOC = [
   { id: "gaps", label: "Known gaps" },
   { id: "governors26", label: "Governors '26 — candidate tracker" },
   { id: "congress", label: "Congress — federal capacity" },
+  { id: "federal", label: "Federal — executive branch" },
   {
     id: "profiles",
     label: "State profiles — data & sources",
@@ -338,8 +340,7 @@ export default function Methodology() {
             The same four competencies, re-pointed at the <strong>federal</strong> government:
             how Washington hires, procures, builds technology, and runs its own learning loops.
             Coverage is scoped to the {Object.keys(congress.committees).length} committees that
-            govern how the federal government operates, plus both party whips and the two
-            nonpartisan support agencies. State impact is not a criterion — an action that stays
+            govern how the federal government operates, plus both party whips and CBO. State impact is not a criterion — an action that stays
             entirely inside the federal government is fully in scope.
           </p>
 
@@ -364,9 +365,13 @@ export default function Methodology() {
               a reaction to one.
             </li>
             <li>
-              <strong>GAO and CBO</strong> are shown separately. GAO reports are
-              oversight-of-capacity almost by construction and run at far higher volume than the
-              committees, so mixing them into the committee feed buried it.
+              <strong>CBO</strong> is shown separately — a nonpartisan support agency rather
+              than a committee. <strong>GAO moved to the Federal tab</strong> on 2026-08-20:
+              its reports are oversight-of-capacity almost by construction and outnumbered the
+              committee feed (21 of 41 events in one window), and because the trade press
+              covers them heavily they were landing on the Federal tab too, with nothing
+              deduplicating the two copies. They now live in one place, clustered with the
+              coverage of them.
             </li>
           </ul>
 
@@ -476,6 +481,183 @@ export default function Methodology() {
               sits on several committees, so an item is filed under the committee whose feed
               carried it. Joint letters are clustered across a whole chamber to avoid duplicate
               events.
+            </li>
+          </ul>
+        </section>
+
+        <section className="card msec" id="federal">
+          <h2>Federal — executive branch</h2>
+          <p>
+            The same four competencies again, pointed at what the{" "}
+            <strong>executive branch</strong> does to itself. This is a separate tab from{" "}
+            <a href="#congress">Congress</a> because the two answer different questions: Congress
+            is primary-source and committee-shaped (who has jurisdiction, what did they hold a
+            hearing on), while this tab is instrument-shaped (what did an agency actually issue,
+            and what does it change). Hill coverage that lands here carries a{" "}
+            <em>congress</em> chip rather than being filed twice.
+          </p>
+
+          <h3>The instrument test</h3>
+          <p>
+            Executive-branch press offices produce a great deal of language and comparatively few
+            actions, and the language is written to be quoted. So the gate here is not provenance
+            but <strong>instrument</strong>: an item enters only when a concrete thing can be
+            named — a numbered OMB memorandum or circular, agency guidance, a directive or
+            delegation, a proposed or final rule, an executive order, a workforce action actually
+            taken (a RIF, a hiring authority, a reclassification, a bargaining order), a
+            procurement action, a system launched or shut off, a reorganisation, a report with
+            findings, or a court order compelling an agency. ICYMI items, interviews, op-eds,
+            statements responding to statements, and announcements of intent to be more efficient
+            all fail.
+          </p>
+          <p>
+            Everything is then <strong>restated neutrally</strong>. &ldquo;Historic&rdquo;,
+            &ldquo;commonsense&rdquo;, &ldquo;radical&rdquo; and &ldquo;misguided&rdquo; are not
+            facts, and a release headlined as a partisan attack that in substance announces a
+            governmentwide staffing-plan requirement is recorded as the latter. Each row also
+            carries the primary document, so the framing can be checked against the instrument.
+          </p>
+
+          <h3>Four lanes, in descending order of provenance</h3>
+          <ul>
+            {Object.entries(federal.lanes).map(([key, desc]) => (
+              <li key={key}>
+                <strong>
+                  {{
+                    "executive-action": "Executive actions",
+                    oversight: "Oversight & watchdog",
+                    news: "Federal news",
+                    rulemaking: "Rulemaking & notices",
+                  }[key] || key}
+                </strong>{" "}
+                — {desc}.{" "}
+                {key === "news" ? (
+                  <>
+                    Reported and draft-stage actions are <em>kept and labelled</em> rather than
+                    dropped: a trade outlet describing a draft memo before it is signed is often
+                    the earliest real signal, so each row records whether the action is{" "}
+                    <em>official</em>, <em>reported</em>, or <em>draft-leaked</em>.
+                  </>
+                ) : null}
+                {key === "oversight" ? (
+                  <>
+                    A GAO report and the trade-press write-up of it are <em>one</em> row. GAO is
+                    a legislative-branch auditor, so it is not filed as an executive action;
+                    when an agency issues something <em>in response</em> to a GAO finding, the
+                    instrument wins and the row moves to Executive actions.
+                  </>
+                ) : null}
+                {key === "rulemaking" ? (
+                  <>
+                    Routine business — Paperwork Reduction Act collection renewals, meeting
+                    notices, Privacy Act reprints, technical corrections — is scored{" "}
+                    <em>none</em> even though it is formally about the government&apos;s own
+                    process. <em>Procedure</em> requires that the burden or the process itself
+                    changes.
+                  </>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+
+          <h3>How the Federal Register is scoped</h3>
+          <p className="muted">
+            The full Register runs about 1,600 documents every three weeks, nearly all of it
+            ordinary agency regulatory business. Pulling all of it would cost roughly ten times as
+            much for a handful more events, so the API is queried three ways: complete coverage of
+            the {federal.fedreg.agencies.length} agencies whose subject matter <em>is</em> the
+            machinery of government, every presidential document, and a{" "}
+            {federal.fedreg.terms.length}-phrase capacity-vocabulary sweep across all agencies to
+            catch the mission-agency actions that scoping by agency would miss (VA benefits
+            systems, DoD acquisition, IRS modernisation).
+          </p>
+          <p className="muted">
+            Agencies: {federal.fedreg.agencies.map(([, key]) => key.toUpperCase()).join(", ")}.
+            Phrases: {federal.fedreg.terms.map((t) => t.replaceAll('"', "")).join(", ")}.
+          </p>
+
+          <h3>Sources ({federal.sources.length})</h3>
+          <table className="srctable">
+            <thead>
+              <tr>
+                <th>Source</th>
+                <th>Lane</th>
+                <th>Type</th>
+              </tr>
+            </thead>
+            <tbody>
+              {federal.sources
+                .filter((s) => s.kind !== "fedreg-api")
+                .map((s) => (
+                  <tr key={s.name}>
+                    <td>
+                      <a href={s.url} target="_blank" rel="noreferrer">
+                        {s.name}
+                      </a>
+                      {s.broad ? <span className="muted"> · broad beat</span> : null}
+                    </td>
+                    <td className="muted">{s.lane}</td>
+                    <td className="muted">
+                      {{ wp_api: "WordPress API", rss: "RSS", html: "scraped" }[s.kind] || s.kind}
+                    </td>
+                  </tr>
+                ))}
+              <tr>
+                <td>
+                  <a
+                    href="https://www.federalregister.gov/developers/documentation/api/v1"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Federal Register API
+                  </a>
+                </td>
+                <td className="muted">rulemaking</td>
+                <td className="muted">
+                  {federal.sources.filter((s) => s.kind === "fedreg-api").length} queries
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Known gaps</h3>
+          <ul>
+            <li>
+              <strong>Government Executive and Nextgov have no API</strong> and their feeds ignore
+              pagination, so each holds about seven days. Daily runs are what keep them whole; a
+              backfill longer than a week cannot reach back through them.
+            </li>
+            <li>
+              <strong>The Hill needs a second filter.</strong> At roughly 100 posts a day across
+              every beat, the capacity vocabulary alone matches too much general political
+              coverage, so Hill items must also hit a machinery <em>anchor</em> — a named
+              institution or instrument. In a recent three-week window that took 1,706 posts down
+              to 13 candidates.
+            </li>
+            <li>
+              <strong>OMB&apos;s newsroom is near-dead</strong> (ten items reaching back into
+              2025). The memoranda listing is the real signal, and it is scraped separately; the
+              memos themselves are PDFs, so they are classified on title and listing text rather
+              than full body.
+            </li>
+            <li>
+              <strong>GAO&apos;s feed holds exactly 25 items</strong> — about three weeks at its
+              cadence — so the daily run is what keeps this lane whole, and a backfill longer
+              than three weeks cannot reach back through it. gao.gov&apos;s separate
+              press-release feed is <em>not</em> used: it has published nothing since
+              2026-06-04 and its items are announcements of the same reports.
+            </li>
+            <li>
+              <strong>There is still no dedupe between the Federal and Congress trackers.</strong>{" "}
+              Moving GAO here removed the case that was actually producing duplicates, but a
+              committee press release about an executive-branch action can still appear on both
+              tabs. Nothing in the pipeline prevents it.
+            </li>
+            <li>
+              <strong>Items are dated by the action, not by publication</strong>, so a story
+              published this week about guidance issued in May is dated May and falls outside a
+              30-day window. The dedupe step windows on ingestion instead, so nothing is lost from
+              the table — but the default view can hide it.
             </li>
           </ul>
         </section>
