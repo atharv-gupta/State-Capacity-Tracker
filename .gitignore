@@ -32,3 +32,6 @@ web/out/
 # stray Playwright screenshots in repo root
 /candidates-*.png
 /*-fixed.png
+
+# Generated review workbooks (export_review.py)
+/review/

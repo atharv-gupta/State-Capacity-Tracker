@@ -18,7 +18,9 @@ const COMMITTEES = [
   { key: "house-rules", label: "House Rules", chamber: "house", full: "House Rules" },
   { key: "house-approps", label: "House Approps", chamber: "house", full: "House Appropriations" },
   { key: "leadership", label: "Leadership", chamber: "house", full: "Chamber leadership (whips)" },
-  { key: "gao", label: "GAO", chamber: "n/a", full: "Government Accountability Office" },
+  // GAO moved to the Federal tab on 2026-08-20 — its reports were arriving on
+  // both tabs (the trade press covers them heavily) with no cross-tracker
+  // dedupe. CBO stays here.
   { key: "cbo", label: "CBO", chamber: "n/a", full: "Congressional Budget Office" },
 ];
 
@@ -251,7 +253,7 @@ function ActivityItem({ e }) {
         <span className="statechip">{COMMITTEE_LABEL[e.committee] || e.committee}</span>
         {/* Only majority/minority carries information. "member" is the default
             for a member's own feed, and "nonpartisan" would repeat on every
-            row of the GAO/CBO section. */}
+            row of the CBO section. */}
         {e.party_source === "majority" || e.party_source === "minority" ? (
           <span className={`partysrc ${e.party_source}`}>{e.party_source}</span>
         ) : null}
@@ -361,11 +363,11 @@ export default function Congress() {
 
   const shownBills = useMemo(() => (bills || []).filter((b) => matches(b)), [bills, matches]);
 
-  // GAO and CBO get their own section. They're nonpartisan support agencies
-  // rather than committees, and GAO alone accounted for 19 of the first 33
-  // events — mixed in, it crowds out everything the committees did.
+  // CBO gets its own section: a nonpartisan support agency rather than a
+  // committee. GAO used to share it and dominate it (19 of the first 33 events);
+  // GAO now lives on the Federal tab, in its own oversight lane.
   const shownEvents = useMemo(() => (events || []).filter((e) => matches(e)), [events, matches]);
-  const isWatchdog = (e) => e.committee === "gao" || e.committee === "cbo";
+  const isWatchdog = (e) => e.committee === "cbo";
   const committeeEvents = shownEvents.filter((e) => !isWatchdog(e));
   const watchdogEvents = shownEvents.filter(isWatchdog);
 
@@ -398,10 +400,12 @@ export default function Congress() {
 
       <p className="tabintro">
         Federal government-capacity activity from the seven committees that govern how
-        Washington runs itself &mdash; plus GAO and CBO. Hearings and bills come from the
-        Congress.gov API; committee and member activity is scraped from committee and member
-        press feeds. Everything is scored against the same four Recoding America competencies used on the
-        state tabs, re-pointed at the federal government.
+        Washington runs itself, plus CBO. Hearings and bills come from the Congress.gov API;
+        committee and member activity is scraped from committee and member press feeds.
+        Everything is scored against the same four Recoding America competencies used on the
+        state tabs, re-pointed at the federal government. <strong>GAO now lives on the{" "}
+        <a href="/federal">Federal</a> tab</strong>, in its own oversight lane, where its
+        reports cluster with the trade-press coverage of them.
       </p>
 
       <section className="panel racepanel congresspanel">
@@ -440,7 +444,7 @@ export default function Congress() {
               ["all", "All"],
               ["senate", "Senate"],
               ["house", "House"],
-              ["n/a", "GAO / CBO"],
+              ["n/a", "CBO"],
             ].map(([v, label]) => (
               <button
                 key={v}
@@ -485,7 +489,7 @@ export default function Congress() {
               ? "Loading…"
               : `${upcoming.length} upcoming · ${shownBills.length} bill${
                   shownBills.length === 1 ? "" : "s"
-                } · ${committeeEvents.length} committee · ${watchdogEvents.length} GAO/CBO`}
+                } · ${committeeEvents.length} committee · ${watchdogEvents.length} CBO`}
           </span>
           {hasFilters ? (
             <button className="clear" onClick={clearAll}>
@@ -602,9 +606,10 @@ export default function Congress() {
         )}
       </section>
 
-      {/* ---------- GAO & CBO ----------
-          Collapsed by default: GAO outnumbers the committee feed and, left
-          open, pushes it off the screen. */}
+      {/* ---------- CBO ----------
+          Collapsed by default. This was "GAO & CBO" until GAO moved to the
+          Federal tab; CBO alone is low-volume, but it is still a different kind
+          of actor from a committee. */}
       <section className="feedcard">
         <div className="feedhead">
           <h3>
@@ -614,7 +619,7 @@ export default function Congress() {
               aria-expanded={watchdogOpen}
             >
               <span className="caret">{watchdogOpen ? "▾" : "▸"}</span>
-              GAO &amp; CBO
+              CBO
             </button>
             <span className="feedwindow">
               {windowF === "all" ? " · all time" : ` · last ${windowF} days`} ·{" "}
@@ -625,8 +630,10 @@ export default function Congress() {
         {watchdogOpen ? (
           <>
             <p className="sectionnote">
-              Nonpartisan support agencies. GAO reports are oversight-of-capacity almost by
-              construction, so this runs at higher volume than the committee feed.
+              Congress&apos;s nonpartisan scorekeeper. Routine cost estimates are <em>none</em>
+              by design; a CBO analysis of an agency&apos;s administrative capacity or
+              implementation feasibility is <em>incentives</em>. For GAO, see the{" "}
+              <a href="/federal">Federal</a> tab.
             </p>
             {watchdogEvents.length ? (
               <ul className="devlist">
@@ -636,7 +643,7 @@ export default function Congress() {
               </ul>
             ) : (
               <p className="feedempty muted">
-                {loading ? "Loading…" : "No GAO or CBO items match these filters."}
+                {loading ? "Loading…" : "No CBO items match these filters."}
               </p>
             )}
           </>

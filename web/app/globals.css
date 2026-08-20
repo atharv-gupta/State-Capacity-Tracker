@@ -1657,3 +1657,52 @@ a.devheadline:hover {
     white-space: nowrap;
   }
 }
+
+/* --- federal tab ---------------------------------------------------------- */
+
+/* How well established the action is. `official` carries no chip — it is the
+   default and would repeat on every row of the executive-action lane. */
+.verifchip {
+  font-size: 10.5px;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 1px 7px;
+  white-space: nowrap;
+  border: 1px solid #fde68a;
+  background: #fffbeb;
+  color: #92400e;
+}
+.verifchip.draft-leaked {
+  border-style: dashed;
+  border-color: #cbd5e1;
+  background: #f8fafc;
+  color: #475569;
+}
+
+/* Branch of government the underlying action belongs to. Only shown for
+   non-executive rows: this tab is the executive branch by default, and the chip
+   exists to make Hill coverage legible next to the Congress tab. */
+.branchchip {
+  font-size: 10.5px;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 1px 7px;
+  white-space: nowrap;
+  border: 1px solid #ddd6fe;
+  background: #f5f3ff;
+  color: #6d28d9;
+}
+.branchchip.judiciary {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+  color: #475569;
+}
+
+/* A clustered federal event carries both the instrument and the reporting on
+   it; the expanded view offers one link of each, side by side. */
+.sourcelinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  align-items: baseline;
+}

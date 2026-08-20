@@ -55,10 +55,6 @@
       "chamber": "house",
       "name": "Chamber leadership (whips)"
     },
-    "gao": {
-      "chamber": "n/a",
-      "name": "Government Accountability Office"
-    },
     "cbo": {
       "chamber": "n/a",
       "name": "Congressional Budget Office"
@@ -169,13 +165,6 @@
       "committee": "leadership",
       "party": "minority",
       "url": "https://democraticwhip.house.gov/rss.xml"
-    },
-    {
-      "kind": "rss",
-      "name": "GAO reports",
-      "committee": "gao",
-      "party": "nonpartisan",
-      "url": "https://www.gao.gov/rss/reports.xml"
     },
     {
       "kind": "rss",

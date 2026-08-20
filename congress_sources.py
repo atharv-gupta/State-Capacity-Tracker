@@ -71,7 +71,8 @@ CODE_TO_COMMITTEE = {v["code"]: k for k, v in COMMITTEES.items()}
 # Non-committee sources that still map to a `committee` column in Airtable.
 EXTRA_COMMITTEES = {
     "leadership": {"chamber": "house", "name": "Chamber leadership (whips)"},
-    "gao": {"chamber": "n/a", "name": "Government Accountability Office"},
+    # `gao` is retained in the enum only so historical rows still resolve; the
+    # source is gone (see RSS_SOURCES) and no new GAO rows arrive here.
     "cbo": {"chamber": "n/a", "name": "Congressional Budget Office"},
 }
 
@@ -146,8 +147,12 @@ RSS_SOURCES = [
      "url": "https://democraticwhip.house.gov/rss.xml"},
 
     # --- nonpartisan support agencies ---
-    {"name": "GAO reports", "committee": "gao", "party": "nonpartisan",
-     "url": "https://www.gao.gov/rss/reports.xml"},
+    # GAO moved to the FEDERAL tracker on 2026-08-20 (federal_sources.py,
+    # oversight lane). It was producing duplicate events across the two tabs:
+    # the trade press covers GAO heavily, so its reports arrived on the federal
+    # tab through FedScoop and Federal News Network regardless, and nothing
+    # deduplicated across trackers. GAO's reports and the coverage of them now
+    # cluster into one event over there. CBO stays here.
     {"name": "CBO publications", "committee": "cbo", "party": "nonpartisan",
      "url": "https://www.cbo.gov/publications/all/rss.xml"},
 ]

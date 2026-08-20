@@ -1,0 +1,416 @@
+{
+  "lanes": {
+    "executive-action": "Agency primary sources \u2014 what the executive branch did, in its own words",
+    "oversight": "GAO \u2014 the audit record of whether federal programs and systems work",
+    "news": "Federal trade press and The Hill \u2014 second-hand, but catches what agencies don't announce",
+    "rulemaking": "Federal Register \u2014 the legal record of rules, notices and presidential documents"
+  },
+  "sources": [
+    {
+      "lane": "news",
+      "kind": "wp_api",
+      "name": "FedScoop",
+      "outlet": "FedScoop",
+      "agency": "",
+      "broad": false,
+      "url": "https://fedscoop.com/wp-json/wp/v2/posts"
+    },
+    {
+      "lane": "news",
+      "kind": "wp_api",
+      "name": "Federal News Network",
+      "outlet": "Federal News Network",
+      "agency": "",
+      "broad": false,
+      "url": "https://federalnewsnetwork.com/wp-json/wp/v2/posts"
+    },
+    {
+      "lane": "news",
+      "kind": "wp_api",
+      "name": "MeriTalk",
+      "outlet": "MeriTalk",
+      "agency": "",
+      "broad": false,
+      "url": "https://www.meritalk.com/wp-json/wp/v2/posts"
+    },
+    {
+      "lane": "news",
+      "kind": "rss",
+      "name": "Nextgov/FCW",
+      "outlet": "Nextgov/FCW",
+      "agency": "",
+      "broad": false,
+      "url": "https://www.nextgov.com/rss/all/"
+    },
+    {
+      "lane": "news",
+      "kind": "rss",
+      "name": "Government Executive",
+      "outlet": "Government Executive",
+      "agency": "",
+      "broad": false,
+      "url": "https://www.govexec.com/rss/all/"
+    },
+    {
+      "lane": "news",
+      "kind": "rss",
+      "name": "Route Fifty",
+      "outlet": "Route Fifty",
+      "agency": "",
+      "broad": false,
+      "url": "https://www.route-fifty.com/rss/all/"
+    },
+    {
+      "lane": "news",
+      "kind": "rss",
+      "name": "Washington Technology",
+      "outlet": "Washington Technology",
+      "agency": "",
+      "broad": false,
+      "url": "https://washingtontechnology.com/rss/all/"
+    },
+    {
+      "lane": "news",
+      "kind": "wp_api",
+      "name": "The Hill",
+      "outlet": "The Hill",
+      "agency": "",
+      "broad": true,
+      "url": "https://thehill.com/wp-json/wp/v2/posts"
+    },
+    {
+      "lane": "executive-action",
+      "kind": "html",
+      "name": "OPM press releases",
+      "outlet": "",
+      "agency": "opm",
+      "broad": false,
+      "url": "https://www.opm.gov/news/news-releases/"
+    },
+    {
+      "lane": "executive-action",
+      "kind": "html",
+      "name": "OMB news",
+      "outlet": "",
+      "agency": "omb",
+      "broad": false,
+      "url": "https://www.whitehouse.gov/omb/news/"
+    },
+    {
+      "lane": "executive-action",
+      "kind": "html",
+      "name": "OMB memoranda",
+      "outlet": "",
+      "agency": "omb",
+      "broad": false,
+      "url": "https://www.whitehouse.gov/omb/information-for-agencies/memoranda/"
+    },
+    {
+      "lane": "executive-action",
+      "kind": "html",
+      "name": "GSA news releases",
+      "outlet": "",
+      "agency": "gsa",
+      "broad": false,
+      "url": "https://www.gsa.gov/about-gsa/newsroom/news-releases"
+    },
+    {
+      "lane": "oversight",
+      "kind": "rss",
+      "name": "GAO reports",
+      "outlet": "GAO",
+      "agency": "gao",
+      "broad": false,
+      "url": "https://www.gao.gov/rss/reports.xml"
+    },
+    {
+      "lane": "rulemaking",
+      "kind": "fedreg-api",
+      "name": "FR agency \u2014 OPM",
+      "outlet": "",
+      "agency": "opm",
+      "broad": false,
+      "url": "https://www.federalregister.gov/api/v1/documents.json"
+    },
+    {
+      "lane": "rulemaking",
+      "kind": "fedreg-api",
+      "name": "FR agency \u2014 OMB",
+      "outlet": "",
+      "agency": "omb",
+      "broad": false,
+      "url": "https://www.federalregister.gov/api/v1/documents.json"
+    },
+    {
+      "lane": "rulemaking",
+      "kind": "fedreg-api",
+      "name": "FR agency \u2014 GSA",
+      "outlet": "",
+      "agency": "gsa",
+      "broad": false,
+      "url": "https://www.federalregister.gov/api/v1/documents.json"
+    },
+    {
+      "lane": "rulemaking",
+      "kind": "fedreg-api",
+      "name": "FR agency \u2014 MSPB",
+      "outlet": "",
+      "agency": "mspb",
+      "broad": false,
+      "url": "https://www.federalregister.gov/api/v1/documents.json"
+    },
+    {
+      "lane": "rulemaking",
+      "kind": "fedreg-api",
+      "name": "FR agency \u2014 FLRA",
+      "outlet": "",
+      "agency": "flra",
+      "broad": false,
+      "url": "https://www.federalregister.gov/api/v1/documents.json"
+    },
+    {
+      "lane": "rulemaking",
+      "kind": "fedreg-api",
+      "name": "FR agency \u2014 OGE",
+      "outlet": "",
+      "agency": "oge",
+      "broad": false,
+      "url": "https://www.federalregister.gov/api/v1/documents.json"
+    },
+    {
+      "lane": "rulemaking",
+      "kind": "fedreg-api",
+      "name": "FR agency \u2014 NARA",
+      "outlet": "",
+      "agency": "nara",
+      "broad": false,
+      "url": "https://www.federalregister.gov/api/v1/documents.json"
+    },
+    {
+      "lane": "rulemaking",
+      "kind": "fedreg-api",
+      "name": "FR type \u2014 PRESDOCU",
+      "outlet": "",
+      "agency": "white-house",
+      "broad": false,
+      "url": "https://www.federalregister.gov/api/v1/documents.json"
+    },
+    {
+      "lane": "rulemaking",
+      "kind": "fedreg-api",
+      "name": "FR term \u2014 federal workforce",
+      "outlet": "",
+      "agency": "",
+      "broad": false,
+      "url": "https://www.federalregister.gov/api/v1/documents.json"
+    },
+    {
+      "lane": "rulemaking",
+      "kind": "fedreg-api",
+      "name": "FR term \u2014 civil service",
+      "outlet": "",
+      "agency": "",
+      "broad": false,
+      "url": "https://www.federalregister.gov/api/v1/documents.json"
+    },
+    {
+      "lane": "rulemaking",
+      "kind": "fedreg-api",
+      "name": "FR term \u2014 Schedule F",
+      "outlet": "",
+      "agency": "",
+      "broad": false,
+      "url": "https://www.federalregister.gov/api/v1/documents.json"
+    },
+    {
+      "lane": "rulemaking",
+      "kind": "fedreg-api",
+      "name": "FR term \u2014 reduction in force",
+      "outlet": "",
+      "agency": "",
+      "broad": false,
+      "url": "https://www.federalregister.gov/api/v1/documents.json"
+    },
+    {
+      "lane": "rulemaking",
+      "kind": "fedreg-api",
+      "name": "FR term \u2014 hiring authority",
+      "outlet": "",
+      "agency": "",
+      "broad": false,
+      "url": "https://www.federalregister.gov/api/v1/documents.json"
+    },
+    {
+      "lane": "rulemaking",
+      "kind": "fedreg-api",
+      "name": "FR term \u2014 human capital",
+      "outlet": "",
+      "agency": "",
+      "broad": false,
+      "url": "https://www.federalregister.gov/api/v1/documents.json"
+    },
+    {
+      "lane": "rulemaking",
+      "kind": "fedreg-api",
+      "name": "FR term \u2014 Federal Acquisition Regulation",
+      "outlet": "",
+      "agency": "",
+      "broad": false,
+      "url": "https://www.federalregister.gov/api/v1/documents.json"
+    },
+    {
+      "lane": "rulemaking",
+      "kind": "fedreg-api",
+      "name": "FR term \u2014 Technology Modernization Fund",
+      "outlet": "",
+      "agency": "",
+      "broad": false,
+      "url": "https://www.federalregister.gov/api/v1/documents.json"
+    },
+    {
+      "lane": "rulemaking",
+      "kind": "fedreg-api",
+      "name": "FR term \u2014 FedRAMP",
+      "outlet": "",
+      "agency": "",
+      "broad": false,
+      "url": "https://www.federalregister.gov/api/v1/documents.json"
+    },
+    {
+      "lane": "rulemaking",
+      "kind": "fedreg-api",
+      "name": "FR term \u2014 Login.gov",
+      "outlet": "",
+      "agency": "",
+      "broad": false,
+      "url": "https://www.federalregister.gov/api/v1/documents.json"
+    },
+    {
+      "lane": "rulemaking",
+      "kind": "fedreg-api",
+      "name": "FR term \u2014 shared services",
+      "outlet": "",
+      "agency": "",
+      "broad": false,
+      "url": "https://www.federalregister.gov/api/v1/documents.json"
+    },
+    {
+      "lane": "rulemaking",
+      "kind": "fedreg-api",
+      "name": "FR term \u2014 artificial intelligence",
+      "outlet": "",
+      "agency": "",
+      "broad": false,
+      "url": "https://www.federalregister.gov/api/v1/documents.json"
+    },
+    {
+      "lane": "rulemaking",
+      "kind": "fedreg-api",
+      "name": "FR term \u2014 data governance",
+      "outlet": "",
+      "agency": "",
+      "broad": false,
+      "url": "https://www.federalregister.gov/api/v1/documents.json"
+    },
+    {
+      "lane": "rulemaking",
+      "kind": "fedreg-api",
+      "name": "FR term \u2014 improper payments",
+      "outlet": "",
+      "agency": "",
+      "broad": false,
+      "url": "https://www.federalregister.gov/api/v1/documents.json"
+    },
+    {
+      "lane": "rulemaking",
+      "kind": "fedreg-api",
+      "name": "FR term \u2014 burden reduction",
+      "outlet": "",
+      "agency": "",
+      "broad": false,
+      "url": "https://www.federalregister.gov/api/v1/documents.json"
+    },
+    {
+      "lane": "rulemaking",
+      "kind": "fedreg-api",
+      "name": "FR term \u2014 regulatory reform",
+      "outlet": "",
+      "agency": "",
+      "broad": false,
+      "url": "https://www.federalregister.gov/api/v1/documents.json"
+    },
+    {
+      "lane": "rulemaking",
+      "kind": "fedreg-api",
+      "name": "FR term \u2014 customer experience",
+      "outlet": "",
+      "agency": "",
+      "broad": false,
+      "url": "https://www.federalregister.gov/api/v1/documents.json"
+    },
+    {
+      "lane": "rulemaking",
+      "kind": "fedreg-api",
+      "name": "FR term \u2014 government efficiency",
+      "outlet": "",
+      "agency": "",
+      "broad": false,
+      "url": "https://www.federalregister.gov/api/v1/documents.json"
+    }
+  ],
+  "fedreg": {
+    "agencies": [
+      [
+        "personnel-management-office",
+        "opm"
+      ],
+      [
+        "management-and-budget-office",
+        "omb"
+      ],
+      [
+        "general-services-administration",
+        "gsa"
+      ],
+      [
+        "merit-systems-protection-board",
+        "mspb"
+      ],
+      [
+        "federal-labor-relations-authority",
+        "flra"
+      ],
+      [
+        "government-ethics-office",
+        "oge"
+      ],
+      [
+        "national-archives-and-records-administration",
+        "nara"
+      ]
+    ],
+    "types": [
+      "PRESDOCU"
+    ],
+    "terms": [
+      "\"federal workforce\"",
+      "\"civil service\"",
+      "\"Schedule F\"",
+      "\"reduction in force\"",
+      "\"hiring authority\"",
+      "\"human capital\"",
+      "\"Federal Acquisition Regulation\"",
+      "\"Technology Modernization Fund\"",
+      "\"FedRAMP\"",
+      "\"Login.gov\"",
+      "\"shared services\"",
+      "\"artificial intelligence\"",
+      "\"data governance\"",
+      "\"improper payments\"",
+      "\"burden reduction\"",
+      "\"regulatory reform\"",
+      "\"customer experience\"",
+      "\"government efficiency\""
+    ]
+  }
+}
