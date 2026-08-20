@@ -24,7 +24,7 @@ last N days         + 2 LLM gates            one row per     event, classify    
 
 A parallel pipeline covering the seven committees that govern how the *federal* government
 runs itself — Senate HSGAC, Senate Rules, Senate Appropriations, House Oversight, House
-Administration, House Rules, House Appropriations — plus both whips, GAO, and CBO. Same four
+Administration, House Rules, House Appropriations — plus both whips and CBO. Same four
 competencies, re-pointed at the federal government by
 **`congress_rubric_adaptation.md`**, which is prepended to the shared `rubric.md`. The state
 rubric is untouched.
@@ -33,7 +33,7 @@ Two independent paths, because hearings and bills need no clustering — one API
 one hearing or one bill, with a stable ID:
 
 ```
-[Press path]   29 sources (HSGAC WP API + 15 RSS + 11 HTML)
+[Press path]   28 sources (HSGAC WP API + 14 RSS + 11 HTML)
                  --> keyword pre-screen --> Haiku gate --> 'Congress Raw'
                  --> congress_dedupe.py (cluster + Sonnet rubric) --> 'Congress Events'
 
@@ -42,7 +42,7 @@ one hearing or one bill, with a stable ID:
 ```
 
 - **`congress_sources.py`** — the registry. HSGAC and Padilla expose WordPress REST APIs
-  (typed endpoints, full article bodies, server-side `?after=` filtering); 15 sources have
+  (typed endpoints, full article bodies, server-side `?after=` filtering); 14 sources have
   working RSS; 11 need HTML scraping. No JS rendering anywhere, so no headless browser.
   `python congress_fetch.py --days 21` probes every source and prints what each returned.
 - **`congress_api_sync.py`** — hearings and bills. `--crosscheck` compares HSGAC's own CMS
@@ -63,6 +63,188 @@ one hearing or one bill, with a stable ID:
 The dry-run funnel prints fetched → in-window → pre-screened → passed per source. That table
 is how you tell "this committee was quiet" from "this scraper broke" — several member offices
 legitimately go weeks without posting, especially during recess.
+
+## Federal executive-branch tracker
+
+A third pipeline, covering what the **executive branch** does to itself: OMB memoranda, OPM
+and GSA instruments, executive orders, the Federal Register, and the federal trade press that
+covers all of it. Same four competencies, re-pointed by
+**`federal_rubric_adaptation.md`**, which is prepended to the shared `rubric.md` exactly as
+the congressional adaptation is. Neither the state rubric nor the congressional adaptation is
+touched.
+
+This is a separate tab from Congress rather than a section of it, because the two answer
+different questions. Congress is primary-source and committee-shaped — who has jurisdiction,
+what did they hold a hearing on. This is instrument-shaped — what did an agency actually
+issue, and what does it change. Hill coverage that lands here carries a `congress` branch chip
+instead of being filed twice.
+
+```
+[news]              8 outlets (4 WordPress APIs + 4 RSS)
+                      --> keyword pre-screen (+ anchor for broad beats)
+                      --> Haiku instrument gate --> 'Federal Raw'
+
+[executive-action]  4 agency listings (OPM, OMB news, OMB memoranda, GSA)
+                      --> Haiku instrument gate --> 'Federal Raw'
+
+[oversight]         GAO reports feed
+                      --> Haiku instrument gate --> 'Federal Raw'
+
+[rulemaking]        26 Federal Register API queries
+                      --> Haiku instrument gate --> 'Federal Raw'
+
+                          all four --> federal_dedupe.py
+                          (cluster by agency + Sonnet rubric) --> 'Federal Events'
+```
+
+### The four lanes, and why the lane belongs to the source
+
+The lane is assigned by the SOURCE, never by the model: a FedScoop story about an OMB memo is
+news *about* an executive action, and conflating the two would let trade-press coverage
+masquerade as a primary-source instrument. When a cluster spans lanes the highest-provenance
+member wins — `LANE_RANK = {executive-action: 4, rulemaking: 3, oversight: 2, news: 1}`. So a
+Federal Register rule plus a Federal News Network story files under `rulemaking`; that same
+rule plus OPM's own release files under `executive-action`; a GAO report plus three trade
+write-ups files under `oversight`. An instrument always outranks the coverage of it, and it
+also outranks a finding about it: if OPM issues guidance in response to a GAO report, the
+event is the guidance.
+
+`oversight` is GAO, moved here from the Congress tab on 2026-08-20. Its own lane rather than
+`executive-action` for two reasons: GAO is a legislative-branch auditor, so filing it as an
+executive action mislabels it; and at ~24 reports per 21 days it outweighs everything else on
+the tab, so it has to be collapsible. Agency inspectors general are *not* routed here — an IG
+audit reported by FedScoop arrives through the news lane, which is where it belongs, because
+the lane records how directly you are hearing it.
+
+The web view offers one link per kind out of each expanded event — the instrument and one
+press write-up of it — split on whether the source host is a `.gov`. A cluster holding a
+Federal Register rule and a Federal News Network story shows both, rather than whichever URL
+sorted first.
+
+### The instrument test
+
+The gate that matters here is not provenance but **instrument**. Executive-branch press
+offices produce a great deal of language and comparatively few actions, and the language is
+written to be quoted. An item enters only when a concrete thing can be named: a numbered OMB
+memorandum or circular, agency guidance, a directive or delegation, a proposed or final rule,
+an executive order, a workforce action actually taken (RIF, hiring authority, reclassification,
+bargaining order), a procurement action, a system launched or shut off, a reorganization, a
+report with findings, or a court order compelling an agency. ICYMI items, interviews, op-eds,
+statements responding to statements, and announcements of intent to be more efficient all
+fail. Everything that passes is then **restated neutrally** — the promotional and partisan
+adjectives are stripped, and each row carries the primary document so the framing can be
+checked against the instrument.
+
+Reported and draft-stage actions are **kept and labelled**, not dropped: a trade outlet
+describing a draft memo before it is signed is often the earliest real signal. Every row
+records `verification` as `official`, `reported`, or `draft-leaked`.
+
+### Where the pre-screen applies, and where it deliberately doesn't
+
+- **news** — pre-screened. Sources flagged `broad` in the registry (The Hill, ~100 posts a
+  day across every beat) must *also* hit a machinery **anchor** — a named institution or
+  instrument — because the capacity vocabulary alone matches half of general political
+  coverage on words like "oversight", "accountability" and "AI". In the first 21-day window
+  that took The Hill from 1,706 posts to 13 candidates and 5 events, while FedScoop kept 20
+  of 45.
+- **executive-action** — not pre-screened. About ten items a window, and the point of the
+  lane is that a bland agency headline can hide a governmentwide instrument.
+- **rulemaking** — not pre-screened. The Federal Register queries *are* the pre-screen.
+
+### How the Federal Register is scoped
+
+The full Register runs ~1,637 documents per 21 days (1,285 notices, 220 rules, 115 proposed
+rules, 17 presidential documents), nearly all of it ordinary agency regulatory business, plus
+~525 routine Paperwork Reduction Act collection renewals. Pulling all of it would cost roughly
+ten times as much for a handful more events, so `federal_sources.py` queries the API three
+ways: complete coverage of the seven agencies whose subject matter *is* the machinery of
+government (OPM, OMB, GSA, MSPB, FLRA, OGE, NARA), every presidential document, and an
+18-phrase capacity-vocabulary sweep across all agencies to catch mission-agency actions that
+scoping by agency would miss. That is 212 documents fetched, 18 kept, in the first window.
+
+```bash
+.venv/bin/python federal_sources.py                          # print the registry
+.venv/bin/python federal_fetch.py --days 21                  # reachability probe
+.venv/bin/python federal_pipeline.py --days 21 --dry-run     # per-source funnel, no writes
+.venv/bin/python federal_pipeline.py --days 21
+.venv/bin/python federal_dedupe.py   --days 21
+```
+
+Both federal steps run **daily** in the workflow, like the congressional ones. Two of the
+three lanes are perishable: Government Executive and Nextgov hold about seven days of feed and
+The Hill about two, so a missed day is a permanent hole.
+
+### Reviewer package — workbooks and walkthrough documents
+
+Two generators, both writing into `review/` (gitignored):
+
+**`export_review.py`** writes one .xlsx per tracker: the deduped layer *and* the raw layer,
+filterable, with a verdict dropdown, a Read me sheet stating what the reviewer is deciding,
+and rows that matched no competency shaded rather than hidden (the reviewer is checking for
+false negatives too). The two layers are both there on purpose — the raw sheet carries the
+cheap gate's `pillars` guess, the events sheet carries the authoritative `competency` and
+`relevance`, and the disagreement between them is where the second model overruled the first.
+
+**`export_docs.py`** writes one walkthrough per tracker: a plain-language description of how
+an item becomes a row (sources → keyword pre-screen → gate → clustering → classification),
+then appendices carrying every prompt, keyword list and enum **verbatim**. The appendices are
+read out of the live modules at build time rather than retyped, so a prompt edit can never
+leave the document describing a pipeline that no longer exists. Markdown always; `.docx` too
+when pandoc is installed, because reviewers need to comment.
+
+```bash
+.venv/bin/python export_review.py                     # both trackers, last 21 days -> review/
+.venv/bin/python export_review.py --tracker federal --days 7
+.venv/bin/python export_review.py --all --relevant-only --out ~/Desktop
+.venv/bin/python export_docs.py                       # md + docx walkthroughs -> review/
+.venv/bin/python export_docs.py --format md
+```
+
+The export is deliberately one-way. Airtable's `review_status` / `reviewer_notes` are the
+durable record (the upsert path preserves them through every nightly run), so a verdict typed
+into the workbook has to be typed back there to survive; round-tripping would mean two sources
+of truth for the same field.
+
+### Known gaps & gotchas (federal)
+
+- **The four GovExec-family outlets have no API** — Government Executive, Nextgov/FCW, Route
+  Fifty and Washington Technology all run the same platform, and their feeds ignore
+  pagination, so each holds ~25 items (~7 days). A backfill longer than a week cannot reach
+  back through them; only the daily run keeps them whole.
+- **The Hill is the most expensive source and the least productive.** In the first three-week
+  window it fetched 1,706 posts to reach 13 candidates and 4 events, and every in-window event
+  it touched was already covered by FedScoop or Federal News Network — its two solo items were
+  both dated outside a 30-day view. Kept for now because federal-capacity coverage there is
+  episodic rather than absent, but it is the first source to cut if cost matters.
+- **OMB's newsroom is near-dead** — 10 items reaching back into 2025. The memoranda listing is
+  the real signal and is scraped separately. The memos are PDFs, so they are classified on
+  title and listing text; adding a PDF dependency for a few documents a year isn't worth it.
+- **whitehouse.gov blocks `wp-json`** (403), so OMB is scraped rather than API'd.
+- **GAO's feed holds exactly 25 items** — about three weeks at its cadence — so the daily run
+  is what keeps the oversight lane whole, and a backfill longer than three weeks cannot reach
+  back through it. `gao.gov/rss/press.xml` is deliberately unused: it has published nothing
+  since 2026-06-04 and its items announce the same reports.
+- **There is still no dedupe between the federal and congressional trackers.** Moving GAO
+  removed the case that was actually producing duplicates, but a committee press release about
+  an executive-branch action can still land on both tabs. Nothing in either pipeline prevents
+  it.
+- **Items are dated by the action, not by publication.** A story published this week about
+  guidance issued in May is dated May and falls outside a 30-day view. `federal_dedupe.py`
+  windows on `ingested_at`, so nothing is lost from the table — but the default UI window can
+  hide it. Storing the publication date alongside the action date is the fix; it is not built
+  yet because it would be blank for every backfilled row.
+- **Clustering groups by agency**, using the alphabetically-first *subject* agency (GAO,
+  `governmentwide`, `courts` and `other` are treated as reporters, not subjects). Sorting is
+  what makes the key order-independent: two outlets covering one GAO report on FEMA returned
+  `["gao","fema"]` and `["fema","gao"]` and were surviving as duplicate events until the key
+  was sorted. Rows whose agency lists don't overlap at all still can't cluster together.
+- **Federal Register term queries have low individual yield** — most of the 18 phrases
+  contributed zero events in the first window, and the ones that did (Treasury's Do Not Pay
+  designation, NIST's NVD modernization RFI, deregulatory agenda notices) came from a handful.
+  They cost ~180 Haiku calls per backfill and are the first place to trim if cost matters.
+- **The `instrument_type` vocabulary is press-shaped, not legislative.** A news story about a
+  bill introduction can come back as `regulation-proposed`; the `branch` field is the reliable
+  signal for congressional items.
 
 ## Setup
 
@@ -89,6 +271,44 @@ cd web && npm install
 cp ../.env  .env.local   # or create .env.local with AIRTABLE_TOKEN + AIRTABLE_BASE_ID
 npm run dev              # http://localhost:3000
 ```
+
+## Weekly email digest
+
+`digest.py` composes one email covering both halves of the tracker and sends it via Resend,
+after the dedupe steps have rebuilt the clean tables:
+
+```
+STATE     four competency sections, then Governors '26
+FEDERAL   the week's calendar, then Congress by competency,
+          then agencies and the executive branch by competency
+```
+
+Five tables feed it — `Events`, `Candidate Events`, `Congress Events`, `Congress Hearings`,
+`Federal Events` — and a table that doesn't exist yet is skipped rather than fatal, so a half
+that has never run degrades to a "nothing notable" line instead of killing the send.
+
+Three structural decisions worth knowing before editing:
+
+- **Every section renders through one item shape** (`item()`), so adding a section is a loader
+  plus a selection rule. The previous version had a renderer per section and they had drifted.
+- **State shows all four competencies even when empty; federal omits empty ones.** The state
+  rhythm is the tracker's spine and readers learn it. Federal has two branch groups times four
+  competencies, and eight "nothing notable" lines is a wall of nothing.
+- **Federal deduplicates across competency sections; state doesn't.** On the federal side
+  `incentives` is nearly co-extensive with "a watchdog published something", so without this
+  the Incentives subsection restates most of Digital and Civil service — 22 slots for 15
+  events the first week. Federal items print under the first competency they match and carry
+  the rest on the meta line ("also incentives").
+
+```bash
+.venv/bin/python digest.py --days 7 --dry-run              # per-section counts, no send
+.venv/bin/python digest.py --days 7 --html-out /tmp/d.html # preview file, no send
+.venv/bin/python digest.py --days 7                        # compose and send
+```
+
+`--html-out` deliberately does **not** send — writing a preview is a look-before-you-send
+action, and the earlier behaviour of sending anyway mailed a real digest during development.
+Pass `--send` alongside it to do both.
 
 ## Automation
 
@@ -228,9 +448,18 @@ Complementary coverage per state; the only layer covering the 11 states with no 
 - **StateScoop** retains only ~10 items (~a week of their publishing volume).
 - `phase0.py` is the original single-feed prototype (Google News query approach) — superseded, kept for reference. The Google News index layer is the planned Phase 1 completeness guarantee.
 - **`dedupe.py` windows on the wrong field.** `Raw Events` has no ingestion timestamp, so the window filters on `date` — which the Haiku gate fills with *the date of the government action*, not the publish date. An article ingested today about an action six weeks ago is written with a six-week-old date, falls outside Monday's 7-day window, and never clusters into `Events`. Fixing it needs an `ingested_at` field on `Raw Events` plus a backfill. The congressional pipeline has that field from the start and windows on it, so it doesn't inherit the bug.
-- **GAO dominates the congressional feed.** GAO published 25 reports in the first 21-day backfill, and nearly all are oversight-of-capacity by construction — 19 of 33 classified events. That's real signal, not a bug, but it's worth deciding during review whether GAO belongs in its own section rather than mixed into committee activity.
+- **GAO moved to the federal tracker on 2026-08-20.** It had dominated this feed (21 of 41 events in one window) and, because the trade press covers its reports heavily, the same reports were arriving on the federal tab too — 5 of 6 GAO-actor federal events restated a `Congress Events` row — with nothing deduplicating the two copies. GAO now lives in the federal tracker's `oversight` lane, where a report and the coverage of it cluster into one event. CBO stays here. The 21 GAO rows in `Congress Raw` / `Congress Events` were deleted and re-ingested federally rather than translated: the schemas differ, and re-ingesting is what let them cluster with the coverage.
 - **Congressional press volume is recess-sensitive.** In the August 2026 backfill, 11 of 29 press sources returned zero items for the window; every one was verified quiet (newest item predated the window), not broken. Always check the `--dry-run` funnel before assuming a scraper failed.
 
 ## Data model
 
 One row per event in `Events`: `Name`, `Notes`, `date`, `state`, `competency` (multi — zero or more of civil-service/procedure/digital/incentives; empty = fits none), `relevance` (1–3, blank when no competency), `topic_tags` (multi — descriptive themes, independent of competency; see `rubric.md`), `activity_type` (bill-introduced/bill-passed/veto/EO/rulemaking/appointment/reorg/RFP-procurement/budget/program-launch/audit-report), `actor_type` (governor/legislature/state agency/statewide official/board-commission/court/university system), `gov_actor`, `why_it_matters`, `source_urls`, `source_outlets`, `article_count`, `Status`. (The previous `pillars`/`significance` model is preserved in the `old_Events` table.)
+
+`Federal Events` mirrors that shape for the executive branch, with the classification fields
+unchanged (`competency`, `relevance`, `topic_tags`) and the descriptive fields re-pointed:
+`lane` (executive-action / oversight / news / rulemaking), `branch` (executive / congress / judiciary /
+multi), `agency` (multi), `instrument_type`, `instrument_id`, `verification` (official /
+reported / draft-leaked), `document_url`, plus the same `review_status` / `reviewer_notes`
+pair the congressional tables carry. `federal_schema.py` is the single declaration; it imports
+the competency and topic-tag vocabularies from `congress_schema.py` so a tag means the same
+thing on every tab.

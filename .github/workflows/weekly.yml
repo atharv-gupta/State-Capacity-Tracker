@@ -51,6 +51,21 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
           AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+      # The federal steps also run DAILY, both of them. Two of the three lanes
+      # are perishable: Government Executive and Nextgov hold about seven days
+      # of feed, and The Hill about two, so a missed day is a permanent hole.
+      - name: Ingest federal executive-branch activity into Federal Raw
+        run: python federal_pipeline.py --days 7
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+      - name: Cluster and classify into Federal Events
+        run: python federal_dedupe.py --days 7
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
       # Skips with a clear message (not a failure) if CONGRESS_API_KEY is unset.
       - name: Sync hearings and bills from Congress.gov
         run: python congress_api_sync.py --days 7
@@ -76,7 +91,9 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
           AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
-      - name: Send weekly digest (Mondays, or manual opt-in)
+      # Runs last: the digest reads the clean tables the steps above rebuild,
+      # and it now covers both halves (state + governors, federal + congress).
+      - name: Send weekly capacity digest (Mondays, or manual opt-in)
         if: (github.event_name == 'schedule' && steps.day.outputs.dow == '1') || (github.event_name == 'workflow_dispatch' && inputs.digest)
         run: python digest.py --days 7
         env:
