@@ -37,6 +37,65 @@ Dates are the date of the work, not of the write-up.
 
 ## Unreleased
 
+### Governors '26 — the classifier was reading headlines, not articles — 2026-08-31
+
+A diagnostic across all 87 active candidates and 2,227 articles found the
+candidate tracker keeping **5 items in a week, and zero from any of the ten
+competitive races**. The cause was not the gates being too strict.
+
+- **The classifier never saw the articles.** `candidates/pipeline.py` stored the
+  Google News RSS `<description>` as the article body, but for a search feed
+  that field is the headline plus the outlet name — median 101 characters, and
+  100% of them merely restating the title. The `[:1500]` truncation had never
+  once been reached. Both gates were being asked to judge a governing agenda
+  from a headline, and 26% of rejections cited, in the model's own words, that
+  there was no text to read. Results are now resolved to the publisher URL with
+  `googlenewsdecoder` and the article fetched before classification.
+  A controlled A/B on one Wisconsin article: headline stub → `keep:false`
+  ("body text is empty/missing"); real 2,586-char article → `keep:true`,
+  competency `incentives`. A horse-race control was correctly rejected both
+  ways, so this restores recall without costing precision.
+- **Headline-only fallback.** Some publishers (The Hill, Politico) return 403 to
+  any crawler, honest user-agent or not. Those items are marked headline-only
+  and the prompt is told to judge the headline on its own merits and to stop
+  rejecting for absent text.
+- **The permitting boundary was mis-drawn.** The gate read every data-centre
+  story as private-sector economic regulation and dropped it — nationwide, in
+  the middle of the biggest state-capacity story of the cycle. A state changing
+  how *it* approves, permits, licenses, sites or subsidises something is
+  changing its own machinery. Now explicit in the prompt.
+- **The per-candidate cap was selecting, not bounding.** `entries[:30]` was
+  applied to Google's *relevance*-ordered list before any date filter, silently
+  discarding 30% of the week and binding on exactly the highest-profile
+  candidates. Entries are now date-filtered and sorted before the cap, which
+  rose to 100.
+- **The dedupe back-dating bug was present here too.** `candidates/dedupe.py`
+  windowed on `date` (publication) while `ingested_at` sat unused in the same
+  table, so anything ingested late fell out of every future window — 16 rows
+  permanently orphaned, six in one week, all of which had already passed both
+  gates. Now windows on `ingested_at`. Widening the raw selection alone would
+  have broken the clean-table rebuild (a row published outside the window
+  produces a clean row the clear step would miss, duplicating on re-run), so the
+  rebuild floor is derived from what was actually selected and is never narrower
+  than the old window. Measured on live data: 8 → 31 rows selected in one
+  window, recovering 23 tagged developments.
+- **`news_query` was unreachable.** The per-candidate search override has been in
+  the schema since the table was created, but `seed.py:row_from_candidate` never
+  populated it, so 0 of 121 rows had one. Now passed through. Default queries
+  also OR in name variants, since the roster stores legal names and the press
+  uses shorter ones: `Helena Buonanno Foulkes` 14 → 26 results. Nicknames
+  ("Dan" for "Daniel") still cannot be derived and need the override.
+- **`source_urls` now stores the publisher URL** rather than the Google
+  interstitial, since the redirect is resolved anyway. The dedupe key is
+  unchanged. Fixes dead links in both the web tab and the digest.
+- **The candidates tab gained "Show other activity."** It filtered out
+  no-competency developments unconditionally, unlike the state map which has the
+  same filter with a toggle — hiding 12 of 22 rows with no way to reach them.
+
+Still outstanding: the roster needs Elaine Pelino (RI GOP front-runner, absent
+entirely), the Oklahoma runoff and Alaska certification resolved, and Andrea
+James's party corrected — see the calibration log.
+
 ### Repository restructure — 2026-08-31
 
 Navigation only. No behaviour changed: 21 of the 29 moved modules are
@@ -221,6 +280,62 @@ The classification model the tracker still uses today.
 ---
 
 # Calibration log
+
+## 2026-08-31 — Governors '26 funnel diagnostic (automated, full roster)
+
+**Corpus.** All 87 active roster candidates across 36 states, 2,227 Google News
+articles in a 7-day window, every one re-classified with the production prompt
+and model. Read-only; no writes.
+
+**Finding.** 2,227 → 5 kept. **Zero of 621 articles across the ten competitive
+races passed gate 1.** The cause was upstream of the rubric entirely — the
+classifier was being handed headline stubs, not articles. Drop taxonomy:
+
+| bucket | n | % |
+|---|---:|---:|
+| gate 1 — horse-race / off-agenda | 910 | 62.7% |
+| gate 1 — explicitly "no substantive content" | 377 | 26.0% |
+| gate 2 — no competency | 157 | 10.8% |
+| kept | 5 | 0.2% |
+
+**The prior hypothesis was wrong and is worth recording as such.** The standing
+theory was that gate 2 was mis-specified for campaign coverage — that candidates
+campaign on tax and crime, not governing machinery, so the competency test
+structurally rejected everything real. Gate 2 accounts for only 11% of drops.
+The gates were well-specified; they were starved. Fixes are in the release entry
+above.
+
+**The one genuine rubric miss** was the boundary between the state's own
+machinery and private-sector regulation: every data-centre story nationwide was
+being dropped as "economic regulation" when pausing state *approvals* is a
+change to the state's own permitting. Now explicit in the prompt.
+
+**Roster hygiene — found, not yet applied.** These are Airtable edits, listed so
+they are not lost:
+
+- **Elaine Pelino (RI, R) is missing from the roster entirely** despite leading
+  Guckian 37–17 for the Sept 8 primary — she generates zero coverage because she
+  does not exist in the system. Guckian is wrongly `presumptive-nominee`.
+- **OK is overdue:** Mazzei won the Aug 25 runoff (50.28%), Drummond conceded;
+  both still sit at `runoff-pending`.
+- **AK certified 2026-08-31:** Wilson and Bronson advance → `primary-winner`;
+  Taylor and Bishop → `defeated`; Walker likely defeated (medium confidence,
+  verify against certification). Kreiss-Tomkins still has no platform pass.
+- **Andrea James (MA)** is recorded as an Independent skipping the primary; she
+  is on the Sept 1 **Democratic** ballot.
+- `primary_held` unset for NY.
+
+Worth stating plainly: fixing every roster row moves the funnel from 5 keeps to
+roughly 5. Roster staleness is real hygiene debt but was **not** the volume
+problem. Of 121 rows, 34 are correctly `defeated`/`withdrawn` and skipped — a
+real and intended post-primary volume drop that should not be mistaken for a
+leak.
+
+**Not yet done.** Failed items are never recorded, so each is re-fetched and
+re-classified daily for 7 days — ~10,500 Haiku calls/week to produce ~3 rows,
+and it means the effective gate is "pass at least once in seven nondeterministic
+tries." Persisting rejects with a `kept` boolean would make future drops
+diagnosable without a re-run.
 
 ## 2026-08-28 — Congress and federal validation round (Taylor Swift, Anna Heetderks)
 

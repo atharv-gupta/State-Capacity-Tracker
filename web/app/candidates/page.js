@@ -189,6 +189,10 @@ export default function Candidates() {
   const [partyF, setPartyF] = useState("all");
   const [signalF, setSignalF] = useState("all");
   const [windowF, setWindowF] = useState("30"); // 7 | 30 | 90 | all
+  // Developments matching none of the four competencies are hidden by default,
+  // as on the state map. Without this escape hatch they were unreachable —
+  // more than half the feed was invisible with no way to see it.
+  const [showOther, setShowOther] = useState(false);
 
   const cutoff = useMemo(
     () => cutoffFor(WINDOWS.find(([v]) => v === windowF)?.[2]),
@@ -268,7 +272,7 @@ export default function Candidates() {
   const rafDevs = useMemo(
     () =>
       windowedDevs
-        .filter((d) => (d.competency || []).length)
+        .filter((d) => showOther || (d.competency || []).length)
         .filter((d) => {
           if (signalF !== "all" && !(d.competency || []).includes(signalF)) return false;
           const c = candByKey.get(`${d.state}|${d.candidate}`);
@@ -279,7 +283,7 @@ export default function Candidates() {
           return true;
         })
         .slice(0, 60),
-    [windowedDevs, signalF, partyF, ratingF, candByKey]
+    [windowedDevs, signalF, partyF, ratingF, candByKey, showOther]
   );
 
   const total = candidates
@@ -289,7 +293,13 @@ export default function Candidates() {
 
   return (
     <main className="wrap">
-      <Header active="candidates" />
+      <Header />
+
+      {/* No tab highlights this view any more — it is reached from the State Map
+          page — so the page names itself. */}
+      <div className="pagelead">
+        <h2 className="pagetitle">Governors &rsquo;26</h2>
+      </div>
 
       {error ? <p className="error">Error: {error}</p> : null}
 
@@ -343,6 +353,14 @@ export default function Candidates() {
               </button>
             ))}
           </div>
+          <label className="checkrow">
+            <input
+              type="checkbox"
+              checked={showOther}
+              onChange={(e) => setShowOther(e.target.checked)}
+            />
+            Show other activity
+          </label>
         </div>
         <div className="panelfoot">
           <span className="count">

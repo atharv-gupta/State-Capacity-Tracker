@@ -302,6 +302,49 @@ of truth for the same field.
   bill introduction can come back as `regulation-proposed`; the `branch` field is the reliable
   signal for congressional items.
 
+## Governors '26 candidate tracker
+
+The main tracker excludes campaign coverage, so the 2026 gubernatorial races get their own
+layer with the opposite filter: what candidates *say, plan, and have done* about how state
+government builds and runs itself. Roster in the `Gov Candidates` Airtable table,
+developments in `Candidate Developments` (raw, daily) clustered into `Candidate Events`
+(clean, Mondays).
+
+```bash
+.venv/bin/python -m tracker.candidates.pipeline --days 7 --dry-run   # per-candidate funnel, no writes
+.venv/bin/python -m tracker.candidates.pipeline --state WI --days 7  # one state
+.venv/bin/python -m tracker.candidates.dedupe --days 7               # cluster + full-rubric reclassify
+.venv/bin/python -m tracker.candidates.seed                          # upsert the roster from data/
+```
+
+Four things about this pipeline that are not obvious and cost real coverage when forgotten:
+
+- **Google News gives you a headline, not an article.** The RSS `<description>` on a *search*
+  feed is the title plus the outlet name — about 85 characters — and the `link` is an opaque
+  redirect token, not the publisher URL. The pipeline resolves the token with
+  `googlenewsdecoder` and fetches the article before classifying. Until 2026-08-31 it did not,
+  and the gates were judging headlines: one week produced five kept items nationwide and zero
+  from any competitive race. Some publishers 403 any crawler; those are flagged
+  `headline-only` and the prompt is told to judge the headline rather than reject it for
+  missing text.
+
+- **The cap bounds a run, it does not select.** Entries are date-filtered and sorted *before*
+  `PER_CANDIDATE_CAP` applies. Google returns relevance-ordered results with jumbled dates, so
+  slicing the raw list took an arbitrary subset — and dropped 30% of the week, concentrated on
+  the highest-profile candidates, who are the ones that return a full 100.
+
+- **The dedupe windows on `ingested_at`, not `date`.** `date` is the article's publication
+  date, so windowing on it orphans anything ingested late — permanently, because the clean
+  table is rebuilt per-window. The rebuild floor is derived from the selected rows so that
+  everything the clear step deletes is also rebuilt; see the comments in
+  `tracker/candidates/dedupe.py`.
+
+- **The roster stores legal names; the press uses shorter ones.** Default queries OR in
+  initial-stripped and first+last variants, but nicknames ("Dan" for "Daniel") cannot be
+  derived — set the per-candidate `news_query` override for those. Statuses
+  (`primary-winner` / `defeated` / `withdrawn`) are maintained by hand in Airtable after each
+  primary, and the pipeline skips withdrawn and defeated rows.
+
 ## Setup
 
 ```bash
