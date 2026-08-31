@@ -58,6 +58,7 @@ CONGRESS_BILLS_TABLE = "Congress Bills"
 FEDERAL_EVENTS_TABLE = "Federal Events"
 
 TRACKER_URL = os.environ.get("TRACKER_URL", "https://state-tracker-e2i7.vercel.app/")
+CANDIDATES_URL = TRACKER_URL.rstrip("/") + "/candidates"
 
 # The digest covers both halves now, so the old "State Activity Digest from Last
 # Week" subject undersold it. Kept fixed (no date or count) as before.
@@ -448,14 +449,28 @@ def dev_sources(d: dict) -> tuple[list[tuple[str, str]], list[str]]:
     return [], []
 
 
-def select_governors(devs: list[dict], roster: dict) -> tuple[list[dict], list[dict]]:
-    """Two tiers, deliberately NOT by competency:
-         tier 1 — an open-seat or competitive race, relevance >= 2
-         tier 2 — anything else, only at relevance 3
+GOVERNORS_CAP = 5
+
+
+def select_governors(devs: list[dict], roster: dict) -> tuple[list[dict], int]:
+    """The competitive races only, capped, most relevant first.
+
+    Previously this ran two tiers — open-seat OR competitive at relevance >= 2,
+    then everything else at relevance 3 — and printed up to thirteen items. In a
+    digest whose whole state section is four competencies, that made the 2026
+    races the longest thing in the email and buried the government activity the
+    tracker exists for.
+
+    So: Toss-up and Lean races only. A safe race is not news about the election
+    even when the candidate says something interesting, and an open seat in a
+    safe state is still a safe state — `race_type == "open"` no longer qualifies
+    on its own. Capped at GOVERNORS_CAP, with the overflow count returned so the
+    section can point at the tracker for the rest.
+
     Defeated and withdrawn candidates are dropped: after a primary their platform
     is no longer news, and post-primary the roster carries the losers on purpose.
     """
-    tier1, tier2 = [], []
+    picked = []
     for d in devs:
         r = roster.get((d["state"], d["candidate"]), {})
         if r.get("status") in ("defeated", "withdrawn"):
@@ -473,15 +488,10 @@ def select_governors(devs: list[dict], roster: dict) -> tuple[list[dict], list[d
         d["item"] = item(d["headline"], summary, " · ".join(bits), d["relevance"],
                          links, d["date"])
         d["item"]["outlet_note"] = outlet_summary(names)
-        priority = r.get("race_type") == "open" or is_competitive(r.get("race_rating", ""))
-        if priority and d["relevance"] >= 2:
-            tier1.append(d)
-        elif d["relevance"] >= 3:
-            tier2.append(d)
-    order = lambda d: (-d["relevance"], -d["article_count"], -d["date_epoch"])
-    tier1.sort(key=order)
-    tier2.sort(key=order)
-    return tier1[:8], tier2[:5]
+        if is_competitive(r.get("race_rating", "")) and d["relevance"] >= 2:
+            picked.append(d)
+    picked.sort(key=lambda d: (-d["relevance"], -d["article_count"], -d["date_epoch"]))
+    return picked[:GOVERNORS_CAP], max(0, len(picked) - GOVERNORS_CAP)
 
 
 # --------------------------------------------------------------------------- #
@@ -706,7 +716,7 @@ def h_by_competency(by_comp: dict[str, list[dict]], skip_empty: bool) -> str:
 def render_html(d: dict, generated_on: date, window_days: int) -> str:
     state, fed = d["state"], d["federal"]
     n_state = sum(len(v) for v in state["by_comp"].values())
-    n_gov = len(state["governors"][0]) + len(state["governors"][1])
+    n_gov = len(state["governors"][0])
     n_cong = sum(len(v) for v in fed["congress_by_comp"].values())
     n_agency = sum(len(v) for v in fed["agency_by_comp"].values())
 
@@ -747,21 +757,22 @@ def render_html(d: dict, generated_on: date, window_days: int) -> str:
                                  "by competency &mdash; plus the 2026 races."))
     out.append(h_by_competency(state["by_comp"], skip_empty=False))
 
-    tier1, tier2 = state["governors"]
+    govs, more_govs = state["governors"]
     out.append(h_subhead("Governors ’26",
-                         "What candidates are saying and doing on state capacity. "
-                         "Open-seat and competitive races first."))
-    if not tier1 and not tier2:
-        out.append(h_empty("Nothing notable from the 2026 races last week."))
+                         "What candidates are saying and doing on state capacity, "
+                         "in the toss-up and lean races."))
+    if not govs:
+        out.append(h_empty("Nothing notable from the competitive 2026 races last week."))
     else:
-        for dv in tier1:
+        for dv in govs:
             out.append(h_item(dv["item"], "#0ea5e9"))
-        if tier2:
-            out.append(f'<div style="font-family:{FONT};font-size:11px;font-weight:700;'
-                       f'color:{MUTED};text-transform:uppercase;letter-spacing:.06em;'
-                       f'margin:12px 0 9px;">Also notable elsewhere</div>')
-            for dv in tier2:
-                out.append(h_item(dv["item"], "#bae6fd"))
+    # Always offered, not only on overflow: the section now shows a deliberately
+    # narrow slice, so the way to the rest should not appear and disappear.
+    tail = (f"{more_govs} more from the competitive races this week"
+            if more_govs else "All candidate developments")
+    out.append(f'<div style="font-family:{FONT};font-size:12px;margin:10px 0 4px;">'
+               f'<a href="{escape(CANDIDATES_URL)}" style="color:{LINK};'
+               f'text-decoration:none;font-weight:600;">{escape(tail)} &rarr;</a></div>')
 
     # --- FEDERAL
     out.append(h_banner("Federal", "Washington on itself: what Congress moved, and what "
@@ -852,18 +863,18 @@ def render_text(d: dict, generated_on: date, window_days: int) -> str:
               "What state governments did to their own capacity, by competency.", ""]
     lines += t_by_competency(state["by_comp"], skip_empty=False)
 
-    tier1, tier2 = state["governors"]
+    govs, more_govs = state["governors"]
     lines += ["-- GOVERNORS '26 --",
-              "What candidates are saying and doing on state capacity.", ""]
-    if not tier1 and not tier2:
-        lines += ["Nothing notable from the 2026 races last week.", ""]
+              "What candidates are saying and doing on state capacity, "
+              "in the toss-up and lean races.", ""]
+    if not govs:
+        lines += ["Nothing notable from the competitive 2026 races last week.", ""]
     else:
-        for dv in tier1:
+        for dv in govs:
             lines += t_item(dv["item"])
-        if tier2:
-            lines += ["   Also notable elsewhere:", ""]
-            for dv in tier2:
-                lines += t_item(dv["item"], indent="   ")
+    tail = (f"{more_govs} more from the competitive races this week"
+            if more_govs else "All candidate developments")
+    lines += [f"{tail}: {CANDIDATES_URL}", ""]
 
     lines += ["=" * 62, "FEDERAL", "=" * 62,
               "Washington on itself: what Congress moved, and what the agencies issued.",
@@ -946,11 +957,12 @@ def print_dry_run(d: dict, cutoff: str, window_days: int) -> None:
             print(f"    {'●' * r['relevance']:<3} {r['item']['title'][:66]}")
         if not rows:
             print("    (nothing notable)")
-    tier1, tier2 = state["governors"]
-    print(f"[Governors '26] {len(tier1)} priority + {len(tier2)} other")
-    for dv in tier1 + tier2:
+    govs, more_govs = state["governors"]
+    print(f"[Governors '26] {len(govs)} shown (competitive races only)"
+          + (f", {more_govs} more not shown" if more_govs else ""))
+    for dv in govs:
         print(f"    {'●' * dv['relevance']:<3} {dv['state']:<3} "
-              f"{dv['candidate']:<20} {dv['item']['title'][:44]}")
+              f"{dv['candidate']:<20} {dv['_rating']:<9} {dv['item']['title'][:34]}")
 
     print("\n" + "=" * 60)
     print(f"FEDERAL  ({fed['total']} events in window)")
