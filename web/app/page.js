@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import usa from "@svg-maps/usa";
 import Header from "./header";
 
@@ -179,6 +180,20 @@ export default function Home() {
   return (
     <main className="wrap">
       <Header active="map" />
+
+      <section className="pagelead">
+        <h2 className="pagetitle">State Map</h2>
+        <nav className="leadcta" aria-label="Other state views">
+          <Link href="/states" className="ctabtn">
+            State Profiles
+            <span className="ctaarrow" aria-hidden="true">→</span>
+          </Link>
+          <Link href="/candidates" className="ctabtn">
+            Governors &rsquo;26
+            <span className="ctaarrow" aria-hidden="true">→</span>
+          </Link>
+        </nav>
+      </section>
 
       <section className="top">
         <div className="mapcard">

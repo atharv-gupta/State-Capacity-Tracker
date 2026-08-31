@@ -113,7 +113,13 @@ export default function StatesPage() {
 
   return (
     <main className="wrap">
-      <Header active="states" />
+      <Header />
+
+      {/* No tab highlights this view any more — it is reached from the State Map
+          page — so the page names itself. */}
+      <div className="pagelead">
+        <h2 className="pagetitle">State Profiles</h2>
+      </div>
 
       <section className="top">
         <div className="mapcard">
