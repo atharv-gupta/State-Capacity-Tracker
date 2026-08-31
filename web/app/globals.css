@@ -83,6 +83,66 @@ h1 {
   font-weight: 600;
 }
 
+/* ---------- page lead: the view's own title, plus the two cross-links ----------
+   State Profiles and Governors '26 are not in the tab bar — these two buttons
+   on the State Map page are the only way in — so they have to read as a call to
+   action, not as two more tabs. .tab is 13px regular grey in a joined,
+   hairline-divided bar; these are separate rounded buttons, bold and near-black,
+   with the arrow pushed to the far edge so the label sits left and the button
+   still fills a deliberate width. Sizes reuse the existing scale (17px section
+   heading / 13px control label).
+
+   .pagelead alone (no .leadcta) is how /states and /candidates title
+   themselves, since neither has a highlighted tab any more. */
+
+.pagelead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 2px 0 14px;
+}
+
+.pagetitle {
+  margin: 0;
+  font-size: 17px;
+  letter-spacing: -0.02em;
+}
+
+.leadcta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  flex: 1;
+  max-width: 380px;
+}
+
+.ctabtn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.ctabtn:hover {
+  background: #f1f5f9;
+  border-color: #2563eb;
+}
+
+.ctaarrow {
+  color: #2563eb;
+  font-weight: 400;
+}
+
 /* ---------- top: map + filter panel ---------- */
 
 .top {
@@ -1627,6 +1687,16 @@ a.devheadline:hover {
   .top {
     grid-template-columns: 1fr;
   }
+  /* the two cross-links get a line each rather than half a phone screen */
+  .pagelead {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .leadcta {
+    grid-template-columns: 1fr;
+    max-width: none;
+  }
   .mapcard svg {
     max-height: 36vh;
   }
@@ -1642,8 +1712,8 @@ a.devheadline:hover {
     flex-direction: row;
     gap: 7px;
   }
-  /* Five tabs no longer fit on a phone. Let the bar scroll rather than clip
-     the last one — `overflow: hidden` on .tabs is what rounds the corners. */
+  /* The tab bar still overflows a phone. Let it scroll rather than clip the
+     last tab — `overflow: hidden` on .tabs is what rounds the corners. */
   .tabs {
     margin-left: 0;
     width: 100%;

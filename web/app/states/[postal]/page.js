@@ -90,7 +90,9 @@ export default function StateProfile() {
 
   return (
     <main className="wrap">
-      <Header active="states" />
+      {/* No tab for State Profiles any more; the crumb below and the profile
+          heading carry this page's identity. */}
+      <Header />
 
       <div className="crumbs">
         <Link href="/states">← All states</Link>

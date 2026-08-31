@@ -1,5 +1,13 @@
 import Link from "next/link";
 
+/**
+ * Site header and tab bar.
+ *
+ * State Profiles and Governors '26 are deliberately NOT tabs: they are reached
+ * from the two buttons at the top of the State Map page, which is their only
+ * entry point. Those pages render <Header /> with no `active` — nothing in the
+ * bar highlights, which is correct, and they carry their own .pagetitle.
+ */
 export default function Header({ active }) {
   return (
     <header className="head">
@@ -7,13 +15,7 @@ export default function Header({ active }) {
       <p className="sub">What state governments are actually doing, in Recoding America&apos;s capacities</p>
       <nav className="tabs">
         <Link href="/" className={`tab ${active === "map" ? "on" : ""}`}>
-          Map
-        </Link>
-        <Link href="/states" className={`tab ${active === "states" ? "on" : ""}`}>
-          State profiles
-        </Link>
-        <Link href="/candidates" className={`tab ${active === "candidates" ? "on" : ""}`}>
-          Governors &rsquo;26
+          States
         </Link>
         <Link href="/congress" className={`tab ${active === "congress" ? "on" : ""}`}>
           Congress
