@@ -29,6 +29,7 @@ from datetime import date, timedelta
 import feedparser
 from anthropic import Anthropic
 from dotenv import load_dotenv
+from tracker.shared.wim import RULES
 from pyairtable import Api
 
 from tracker.state import sources
@@ -211,7 +212,7 @@ If BOTH gates pass, output ONLY this JSON object:
   "name": "concise title of the action, 5-10 words, no state name, sentence case",
   "headline": "one-line what happened, in your own words",
   "notes": "1-2 plain sentences: what happened and why it matters for state capacity",
-  "why_it_matters": "optional one line for the digest, empty string if none",
+  "why_it_matters": "one line, MAX 30 WORDS, written to the why_it_matters rules below",
   "status": "optional: introduced | enacted | etc., empty string if N/A"
 }
 
@@ -237,7 +238,7 @@ If EITHER gate fails, output ONLY:
 {"pass": false, "reason": "which gate failed and why, one short line"}
 
 Output ONLY the JSON object. No markdown fences, no preamble, no trailing text.
-"""
+""" + RULES
 
 
 MAX_FEED_PAGES = 30
@@ -330,7 +331,14 @@ def parse_json_response(text):
     end = text.rfind("}")
     if start >= 0 and end > start:
         text = text[start:end + 1]
-    return json.loads(text)
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        # Two JSON objects back to back make the slice above span both, and
+        # json.loads reports "Extra data". Take the first complete object —
+        # congress/llm.py has done this for a while; the other copies had not.
+        obj, _ = json.JSONDecoder().raw_decode(text)
+        return obj
 
 
 def classify(client, article):

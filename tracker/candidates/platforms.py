@@ -155,7 +155,14 @@ def parse_json_response(text):
     end = text.rfind("}")
     if start >= 0 and end > start:
         text = text[start:end + 1]
-    return json.loads(text)
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        # Two JSON objects back to back make the slice above span both, and
+        # json.loads reports "Extra data". Take the first complete object —
+        # congress/llm.py has done this for a while; the other copies had not.
+        obj, _ = json.JSONDecoder().raw_decode(text)
+        return obj
 
 
 def profile(client, rec_fields, site_text):
