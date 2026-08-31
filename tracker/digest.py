@@ -25,16 +25,17 @@ Structure notes worth knowing before editing:
     both, because upcoming hearings are the only perishable thing in the email.
 
 Usage:
-    python digest.py --days 7              # compose + send to RECIPIENTS
+    python digest.py --days 7              # compose + send to the active recipients
     python digest.py --days 7 --dry-run    # render + per-section counts, send nothing
     python digest.py --days 7 --html-out /tmp/d.html   # write the HTML to a file
-    python digest.py --days 7 --to me@x.com            # override recipient
+    python digest.py --days 7 --to me@x.com            # send to one address only
 """
 
 import argparse
 import os
 import re
 import sys
+import urllib.parse
 from datetime import date, datetime, timedelta
 from html import escape
 
@@ -58,6 +59,20 @@ CONGRESS_BILLS_TABLE = "Congress Bills"
 FEDERAL_EVENTS_TABLE = "Federal Events"
 
 TRACKER_URL = os.environ.get("TRACKER_URL", "https://state-tracker-e2i7.vercel.app/")
+CANDIDATES_URL = TRACKER_URL.rstrip("/") + "/candidates"
+RECIPIENTS_TABLE = "Digest Recipients"
+EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+# Address that receives unsubscribe requests. Deliberately the sending address:
+# a mailto unsubscribe needs no web endpoint, no token scheme and no place for a
+# bug to leak the list, and at this size processing them by hand is honest. If
+# the list grows past what a person will actually keep up with, replace this
+# with a tokenised /api/unsubscribe route on the Vercel app and have it write
+# status=unsubscribed back to the table.
+UNSUBSCRIBE_MAILTO = os.environ.get("UNSUBSCRIBE_MAILTO", "digest@updates.recodingamerica.org")
+
+# Substituted per recipient just before send, so one render serves everyone.
+UNSUB_TOKEN = "{{UNSUBSCRIBE_URL}}"
 
 # The digest covers both halves now, so the old "State Activity Digest from Last
 # Week" subject undersold it. Kept fixed (no date or count) as before.
@@ -66,7 +81,6 @@ SUBJECT = "Capacity Digest: what states and Washington did last week"
 INTRO = ("Everything you need to know about what state governments and the federal "
          "government got up to last week in the world of government capacity.")
 
-RECIPIENTS = ["atharv@recodingamerica.org"]
 
 COMPETENCIES = ["civil-service", "procedure", "digital", "incentives"]
 COMPETENCY_LABELS = {
@@ -448,14 +462,28 @@ def dev_sources(d: dict) -> tuple[list[tuple[str, str]], list[str]]:
     return [], []
 
 
-def select_governors(devs: list[dict], roster: dict) -> tuple[list[dict], list[dict]]:
-    """Two tiers, deliberately NOT by competency:
-         tier 1 — an open-seat or competitive race, relevance >= 2
-         tier 2 — anything else, only at relevance 3
+GOVERNORS_CAP = 5
+
+
+def select_governors(devs: list[dict], roster: dict) -> tuple[list[dict], int]:
+    """The competitive races only, capped, most relevant first.
+
+    Previously this ran two tiers — open-seat OR competitive at relevance >= 2,
+    then everything else at relevance 3 — and printed up to thirteen items. In a
+    digest whose whole state section is four competencies, that made the 2026
+    races the longest thing in the email and buried the government activity the
+    tracker exists for.
+
+    So: Toss-up and Lean races only. A safe race is not news about the election
+    even when the candidate says something interesting, and an open seat in a
+    safe state is still a safe state — `race_type == "open"` no longer qualifies
+    on its own. Capped at GOVERNORS_CAP, with the overflow count returned so the
+    section can point at the tracker for the rest.
+
     Defeated and withdrawn candidates are dropped: after a primary their platform
     is no longer news, and post-primary the roster carries the losers on purpose.
     """
-    tier1, tier2 = [], []
+    picked = []
     for d in devs:
         r = roster.get((d["state"], d["candidate"]), {})
         if r.get("status") in ("defeated", "withdrawn"):
@@ -473,15 +501,10 @@ def select_governors(devs: list[dict], roster: dict) -> tuple[list[dict], list[d
         d["item"] = item(d["headline"], summary, " · ".join(bits), d["relevance"],
                          links, d["date"])
         d["item"]["outlet_note"] = outlet_summary(names)
-        priority = r.get("race_type") == "open" or is_competitive(r.get("race_rating", ""))
-        if priority and d["relevance"] >= 2:
-            tier1.append(d)
-        elif d["relevance"] >= 3:
-            tier2.append(d)
-    order = lambda d: (-d["relevance"], -d["article_count"], -d["date_epoch"])
-    tier1.sort(key=order)
-    tier2.sort(key=order)
-    return tier1[:8], tier2[:5]
+        if is_competitive(r.get("race_rating", "")) and d["relevance"] >= 2:
+            picked.append(d)
+    picked.sort(key=lambda d: (-d["relevance"], -d["article_count"], -d["date_epoch"]))
+    return picked[:GOVERNORS_CAP], max(0, len(picked) - GOVERNORS_CAP)
 
 
 # --------------------------------------------------------------------------- #
@@ -494,16 +517,18 @@ def rank(r: dict):
 
 
 def select(rows: list[dict], comp: str, cap: int = 5) -> list[dict]:
-    """Every relevance-3 item in this competency, then the best 2s up to `cap`."""
+    """The best `cap` items in this competency: threes first, then twos.
+
+    `cap` used to bind only on the twos — every relevance-3 item was taken and
+    the cap merely limited the top-up. That assumed threes were scarce, which is
+    true on the state side and false on the federal one: in a normal week every
+    agency item is a three, so digital alone printed nine against a cap of five
+    and the agency section ran twice the length of the whole state section.
+    """
     in_comp = [r for r in rows if comp in (r["competency"] or [])]
     threes = sorted((r for r in in_comp if r["relevance"] == 3), key=rank)
     twos = sorted((r for r in in_comp if r["relevance"] == 2), key=rank)
-    selected = list(threes)
-    for r in twos:
-        if len(selected) >= cap:
-            break
-        selected.append(r)
-    return selected
+    return (threes + twos)[:cap]
 
 
 def select_by_competency(rows: list[dict], cap: int = 5,
@@ -706,7 +731,7 @@ def h_by_competency(by_comp: dict[str, list[dict]], skip_empty: bool) -> str:
 def render_html(d: dict, generated_on: date, window_days: int) -> str:
     state, fed = d["state"], d["federal"]
     n_state = sum(len(v) for v in state["by_comp"].values())
-    n_gov = len(state["governors"][0]) + len(state["governors"][1])
+    n_gov = len(state["governors"][0])
     n_cong = sum(len(v) for v in fed["congress_by_comp"].values())
     n_agency = sum(len(v) for v in fed["agency_by_comp"].values())
 
@@ -742,26 +767,39 @@ def render_html(d: dict, generated_on: date, window_days: int) -> str:
                f'coming up, {n_cong} from Congress, {n_agency} from the agencies'
                f'</div></td></tr></table>')
 
+    # Qualifies the counts immediately above: each competency is capped, so this
+    # is a selection and not an inventory. Unsubscribe sits here as well as in
+    # the footer — someone deciding whether to keep reading should not have to
+    # scroll the whole digest to find the way out.
+    out.append(f'<div style="font-family:{FONT};font-size:12px;color:{MUTED};'
+               f'line-height:1.6;margin:11px 0 4px;">'
+               f'A sampling of the week, not everything we tracked &mdash; '
+               f'<a href="{escape(TRACKER_URL)}" style="color:{LINK};'
+               f'text-decoration:none;font-weight:600;">see the full news tracker</a>. '
+               f'<a href="{UNSUB_TOKEN}" style="color:{MUTED};'
+               f'text-decoration:underline;">Unsubscribe</a>.</div>')
+
     # --- STATE
     out.append(h_banner("State", "What state governments did to their own capacity, "
                                  "by competency &mdash; plus the 2026 races."))
     out.append(h_by_competency(state["by_comp"], skip_empty=False))
 
-    tier1, tier2 = state["governors"]
+    govs, more_govs = state["governors"]
     out.append(h_subhead("Governors ’26",
-                         "What candidates are saying and doing on state capacity. "
-                         "Open-seat and competitive races first."))
-    if not tier1 and not tier2:
-        out.append(h_empty("Nothing notable from the 2026 races last week."))
+                         "What candidates are saying and doing on state capacity, "
+                         "in the toss-up and lean races."))
+    if not govs:
+        out.append(h_empty("Nothing notable from the competitive 2026 races last week."))
     else:
-        for dv in tier1:
+        for dv in govs:
             out.append(h_item(dv["item"], "#0ea5e9"))
-        if tier2:
-            out.append(f'<div style="font-family:{FONT};font-size:11px;font-weight:700;'
-                       f'color:{MUTED};text-transform:uppercase;letter-spacing:.06em;'
-                       f'margin:12px 0 9px;">Also notable elsewhere</div>')
-            for dv in tier2:
-                out.append(h_item(dv["item"], "#bae6fd"))
+    # Always offered, not only on overflow: the section now shows a deliberately
+    # narrow slice, so the way to the rest should not appear and disappear.
+    tail = (f"{more_govs} more from the competitive races this week"
+            if more_govs else "All candidate developments")
+    out.append(f'<div style="font-family:{FONT};font-size:12px;margin:10px 0 4px;">'
+               f'<a href="{escape(CANDIDATES_URL)}" style="color:{LINK};'
+               f'text-decoration:none;font-weight:600;">{escape(tail)} &rarr;</a></div>')
 
     # --- FEDERAL
     out.append(h_banner("Federal", "Washington on itself: what Congress moved, and what "
@@ -799,6 +837,10 @@ def render_html(d: dict, generated_on: date, window_days: int) -> str:
                f'<a href="{escape(TRACKER_URL)}" style="font-family:{FONT};font-size:13px;'
                f'color:{LINK};text-decoration:none;font-weight:600;">'
                f'See the full tracker &rarr;</a>'
+               f'<div style="font-family:{FONT};font-size:11px;color:{MUTED};margin-top:10px;">'
+               f'You are receiving this because you asked to follow state-capacity news. '
+               f'<a href="{UNSUB_TOKEN}" style="color:{MUTED};text-decoration:underline;">'
+               f'Unsubscribe</a>.</div>'
                f'</td></tr></table>')
 
     out.append('</td></tr></table></td></tr></table></div>')
@@ -847,23 +889,26 @@ def render_text(d: dict, generated_on: date, window_days: int) -> str:
     lines = ["CAPACITY DIGEST",
              f"{generated_on.strftime('%B %-d, %Y')} · the last {window_days} days",
              "", INTRO, ""]
+    lines += ["A sampling of the week, not everything we tracked.",
+              f"See the full news tracker: {TRACKER_URL}",
+              f"Unsubscribe: {UNSUB_TOKEN}", ""]
 
     lines += ["=" * 62, "STATE", "=" * 62,
               "What state governments did to their own capacity, by competency.", ""]
     lines += t_by_competency(state["by_comp"], skip_empty=False)
 
-    tier1, tier2 = state["governors"]
+    govs, more_govs = state["governors"]
     lines += ["-- GOVERNORS '26 --",
-              "What candidates are saying and doing on state capacity.", ""]
-    if not tier1 and not tier2:
-        lines += ["Nothing notable from the 2026 races last week.", ""]
+              "What candidates are saying and doing on state capacity, "
+              "in the toss-up and lean races.", ""]
+    if not govs:
+        lines += ["Nothing notable from the competitive 2026 races last week.", ""]
     else:
-        for dv in tier1:
+        for dv in govs:
             lines += t_item(dv["item"])
-        if tier2:
-            lines += ["   Also notable elsewhere:", ""]
-            for dv in tier2:
-                lines += t_item(dv["item"], indent="   ")
+    tail = (f"{more_govs} more from the competitive races this week"
+            if more_govs else "All candidate developments")
+    lines += [f"{tail}: {CANDIDATES_URL}", ""]
 
     lines += ["=" * 62, "FEDERAL", "=" * 62,
               "Washington on itself: what Congress moved, and what the agencies issued.",
@@ -896,7 +941,9 @@ def render_text(d: dict, generated_on: date, window_days: int) -> str:
     else:
         lines += ["Nothing notable from the agencies last week.", ""]
 
-    lines += [f"See the full tracker: {TRACKER_URL}"]
+    lines += [f"See the full tracker: {TRACKER_URL}", "",
+              "You are receiving this because you asked to follow state-capacity news.",
+              f"Unsubscribe: {UNSUB_TOKEN}"]
     return "\n".join(lines).rstrip() + "\n"
 
 
@@ -904,25 +951,94 @@ def render_text(d: dict, generated_on: date, window_days: int) -> str:
 # Sending
 # --------------------------------------------------------------------------- #
 
-def get_recipients(override: str | None) -> list[str]:
-    return [override] if override else RECIPIENTS
+def unsubscribe_link(email: str) -> str:
+    """A mailto the recipient's client turns into a one-click unsubscribe, and
+    that also populates the List-Unsubscribe header."""
+    q = urllib.parse.urlencode({"subject": f"Unsubscribe {email}"})
+    return f"mailto:{UNSUBSCRIBE_MAILTO}?{q}"
 
 
-def send_email(subject: str, html: str, text: str, recipients: list[str]) -> None:
+def get_recipients(override: str | None) -> list[dict]:
+    """Active rows from the `Digest Recipients` Airtable table.
+
+    Unsubscribes are honoured by status, never by deleting the row — a deleted
+    row would silently reappear the next time someone re-imports a list.
+
+    Returns dicts rather than bare strings because each recipient now gets their
+    own message (see send_email) and so needs their own unsubscribe link.
+    """
+    if override:
+        return [{"email": override, "name": ""}]
+
+    seen, out, skipped = set(), [], 0
+    for f in read_table(RECIPIENTS_TABLE):
+        email = (f.get("email") or "").strip()
+        if (f.get("status") or "").strip().lower() != "active":
+            continue
+        if not EMAIL_RE.match(email):
+            skipped += 1
+            continue
+        if email.lower() in seen:
+            continue
+        seen.add(email.lower())
+        out.append({"email": email, "name": (f.get("name") or "").strip()})
+    if skipped:
+        print(f"  {skipped} recipient row(s) skipped: missing or malformed email")
+    if not out:
+        # Silence here would look like success while nobody got the digest.
+        sys.exit(f"No active recipients in '{RECIPIENTS_TABLE}' — nothing sent.")
+    return out
+
+
+BATCH_SIZE = 100   # Resend's per-call ceiling on /emails/batch
+
+
+def send_email(subject: str, html: str, text: str, recipients: list[dict]) -> None:
+    """One message per recipient, via Resend's batch endpoint.
+
+    The previous version passed the whole list as `to`, which put every
+    subscriber's address in every subscriber's To header. That was harmless
+    while the list was one person and becomes a privacy breach the moment it is
+    not. BCC would hide them but reads as a blast to spam filters and gives no
+    way to vary the body.
+
+    Batching keeps it to one HTTP call per hundred while still producing
+    genuinely separate messages, which is also what makes a per-recipient
+    unsubscribe link possible.
+    """
     if not RESEND_API_KEY:
         sys.exit("Missing RESEND_API_KEY; see docs/digest-feature-brief.md §6.")
-    resp = requests.post(
-        "https://api.resend.com/emails",
-        headers={"Authorization": f"Bearer {RESEND_API_KEY}",
-                 "Content-Type": "application/json"},
-        json={"from": DIGEST_FROM, "to": recipients, "subject": subject,
-              "html": html, "text": text},
-        timeout=30,
-    )
-    if not (200 <= resp.status_code < 300):
-        # A 403 here usually means the recipient isn't the Resend account address
-        # and the sending domain isn't verified yet.
-        raise RuntimeError(f"Resend send failed: HTTP {resp.status_code} — {resp.text}")
+
+    messages = []
+    for r in recipients:
+        link = unsubscribe_link(r["email"])
+        messages.append({
+            "from": DIGEST_FROM,
+            "to": [r["email"]],
+            "subject": subject,
+            "html": html.replace(UNSUB_TOKEN, escape(link)),
+            "text": text.replace(UNSUB_TOKEN, link),
+            # Lets Gmail and Outlook show their own unsubscribe control, which
+            # people use instead of reporting spam.
+            "headers": {"List-Unsubscribe": f"<{link}>"},
+        })
+
+    for i in range(0, len(messages), BATCH_SIZE):
+        chunk = messages[i:i + BATCH_SIZE]
+        resp = requests.post(
+            "https://api.resend.com/emails/batch",
+            headers={"Authorization": f"Bearer {RESEND_API_KEY}",
+                     "Content-Type": "application/json"},
+            json=chunk,
+            timeout=60,
+        )
+        if not (200 <= resp.status_code < 300):
+            # A 403 here usually means the sending domain isn't verified, or the
+            # recipient isn't the Resend account address on an unverified domain.
+            sent = i
+            raise RuntimeError(
+                f"Resend batch failed at message {i + 1} of {len(messages)} "
+                f"({sent} already sent): HTTP {resp.status_code} — {resp.text}")
 
 
 # --------------------------------------------------------------------------- #
@@ -946,11 +1062,12 @@ def print_dry_run(d: dict, cutoff: str, window_days: int) -> None:
             print(f"    {'●' * r['relevance']:<3} {r['item']['title'][:66]}")
         if not rows:
             print("    (nothing notable)")
-    tier1, tier2 = state["governors"]
-    print(f"[Governors '26] {len(tier1)} priority + {len(tier2)} other")
-    for dv in tier1 + tier2:
+    govs, more_govs = state["governors"]
+    print(f"[Governors '26] {len(govs)} shown (competitive races only)"
+          + (f", {more_govs} more not shown" if more_govs else ""))
+    for dv in govs:
         print(f"    {'●' * dv['relevance']:<3} {dv['state']:<3} "
-              f"{dv['candidate']:<20} {dv['item']['title'][:44]}")
+              f"{dv['candidate']:<20} {dv['_rating']:<9} {dv['item']['title'][:34]}")
 
     print("\n" + "=" * 60)
     print(f"FEDERAL  ({fed['total']} events in window)")
@@ -1017,8 +1134,9 @@ def main() -> None:
     recipients = get_recipients(args.to)
     send_email(SUBJECT, html, text, recipients)
     total = d["state"]["total"] + d["federal"]["total"]
-    print(f"Sent digest ({total} events in window) to {', '.join(recipients)} "
-          f"from {DIGEST_FROM}")
+    addrs = ", ".join(r["email"] for r in recipients)
+    print(f"Sent digest ({total} events in window) to {len(recipients)} recipient(s) "
+          f"from {DIGEST_FROM}\n  {addrs}")
 
 
 if __name__ == "__main__":
