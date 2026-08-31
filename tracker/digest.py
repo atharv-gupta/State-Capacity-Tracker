@@ -25,16 +25,17 @@ Structure notes worth knowing before editing:
     both, because upcoming hearings are the only perishable thing in the email.
 
 Usage:
-    python digest.py --days 7              # compose + send to RECIPIENTS
+    python digest.py --days 7              # compose + send to the active recipients
     python digest.py --days 7 --dry-run    # render + per-section counts, send nothing
     python digest.py --days 7 --html-out /tmp/d.html   # write the HTML to a file
-    python digest.py --days 7 --to me@x.com            # override recipient
+    python digest.py --days 7 --to me@x.com            # send to one address only
 """
 
 import argparse
 import os
 import re
 import sys
+import urllib.parse
 from datetime import date, datetime, timedelta
 from html import escape
 
@@ -59,6 +60,19 @@ FEDERAL_EVENTS_TABLE = "Federal Events"
 
 TRACKER_URL = os.environ.get("TRACKER_URL", "https://state-tracker-e2i7.vercel.app/")
 CANDIDATES_URL = TRACKER_URL.rstrip("/") + "/candidates"
+RECIPIENTS_TABLE = "Digest Recipients"
+EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+# Address that receives unsubscribe requests. Deliberately the sending address:
+# a mailto unsubscribe needs no web endpoint, no token scheme and no place for a
+# bug to leak the list, and at this size processing them by hand is honest. If
+# the list grows past what a person will actually keep up with, replace this
+# with a tokenised /api/unsubscribe route on the Vercel app and have it write
+# status=unsubscribed back to the table.
+UNSUBSCRIBE_MAILTO = os.environ.get("UNSUBSCRIBE_MAILTO", "digest@updates.recodingamerica.org")
+
+# Substituted per recipient just before send, so one render serves everyone.
+UNSUB_TOKEN = "{{UNSUBSCRIBE_URL}}"
 
 # The digest covers both halves now, so the old "State Activity Digest from Last
 # Week" subject undersold it. Kept fixed (no date or count) as before.
@@ -67,7 +81,6 @@ SUBJECT = "Capacity Digest: what states and Washington did last week"
 INTRO = ("Everything you need to know about what state governments and the federal "
          "government got up to last week in the world of government capacity.")
 
-RECIPIENTS = ["atharv@recodingamerica.org"]
 
 COMPETENCIES = ["civil-service", "procedure", "digital", "incentives"]
 COMPETENCY_LABELS = {
@@ -810,6 +823,10 @@ def render_html(d: dict, generated_on: date, window_days: int) -> str:
                f'<a href="{escape(TRACKER_URL)}" style="font-family:{FONT};font-size:13px;'
                f'color:{LINK};text-decoration:none;font-weight:600;">'
                f'See the full tracker &rarr;</a>'
+               f'<div style="font-family:{FONT};font-size:11px;color:{MUTED};margin-top:10px;">'
+               f'You are receiving this because you asked to follow state-capacity news. '
+               f'<a href="{UNSUB_TOKEN}" style="color:{MUTED};text-decoration:underline;">'
+               f'Unsubscribe</a>.</div>'
                f'</td></tr></table>')
 
     out.append('</td></tr></table></td></tr></table></div>')
@@ -907,7 +924,9 @@ def render_text(d: dict, generated_on: date, window_days: int) -> str:
     else:
         lines += ["Nothing notable from the agencies last week.", ""]
 
-    lines += [f"See the full tracker: {TRACKER_URL}"]
+    lines += [f"See the full tracker: {TRACKER_URL}", "",
+              "You are receiving this because you asked to follow state-capacity news.",
+              f"Unsubscribe: {UNSUB_TOKEN}"]
     return "\n".join(lines).rstrip() + "\n"
 
 
@@ -915,25 +934,94 @@ def render_text(d: dict, generated_on: date, window_days: int) -> str:
 # Sending
 # --------------------------------------------------------------------------- #
 
-def get_recipients(override: str | None) -> list[str]:
-    return [override] if override else RECIPIENTS
+def unsubscribe_link(email: str) -> str:
+    """A mailto the recipient's client turns into a one-click unsubscribe, and
+    that also populates the List-Unsubscribe header."""
+    q = urllib.parse.urlencode({"subject": f"Unsubscribe {email}"})
+    return f"mailto:{UNSUBSCRIBE_MAILTO}?{q}"
 
 
-def send_email(subject: str, html: str, text: str, recipients: list[str]) -> None:
+def get_recipients(override: str | None) -> list[dict]:
+    """Active rows from the `Digest Recipients` Airtable table.
+
+    Unsubscribes are honoured by status, never by deleting the row — a deleted
+    row would silently reappear the next time someone re-imports a list.
+
+    Returns dicts rather than bare strings because each recipient now gets their
+    own message (see send_email) and so needs their own unsubscribe link.
+    """
+    if override:
+        return [{"email": override, "name": ""}]
+
+    seen, out, skipped = set(), [], 0
+    for f in read_table(RECIPIENTS_TABLE):
+        email = (f.get("email") or "").strip()
+        if (f.get("status") or "").strip().lower() != "active":
+            continue
+        if not EMAIL_RE.match(email):
+            skipped += 1
+            continue
+        if email.lower() in seen:
+            continue
+        seen.add(email.lower())
+        out.append({"email": email, "name": (f.get("name") or "").strip()})
+    if skipped:
+        print(f"  {skipped} recipient row(s) skipped: missing or malformed email")
+    if not out:
+        # Silence here would look like success while nobody got the digest.
+        sys.exit(f"No active recipients in '{RECIPIENTS_TABLE}' — nothing sent.")
+    return out
+
+
+BATCH_SIZE = 100   # Resend's per-call ceiling on /emails/batch
+
+
+def send_email(subject: str, html: str, text: str, recipients: list[dict]) -> None:
+    """One message per recipient, via Resend's batch endpoint.
+
+    The previous version passed the whole list as `to`, which put every
+    subscriber's address in every subscriber's To header. That was harmless
+    while the list was one person and becomes a privacy breach the moment it is
+    not. BCC would hide them but reads as a blast to spam filters and gives no
+    way to vary the body.
+
+    Batching keeps it to one HTTP call per hundred while still producing
+    genuinely separate messages, which is also what makes a per-recipient
+    unsubscribe link possible.
+    """
     if not RESEND_API_KEY:
         sys.exit("Missing RESEND_API_KEY; see docs/digest-feature-brief.md §6.")
-    resp = requests.post(
-        "https://api.resend.com/emails",
-        headers={"Authorization": f"Bearer {RESEND_API_KEY}",
-                 "Content-Type": "application/json"},
-        json={"from": DIGEST_FROM, "to": recipients, "subject": subject,
-              "html": html, "text": text},
-        timeout=30,
-    )
-    if not (200 <= resp.status_code < 300):
-        # A 403 here usually means the recipient isn't the Resend account address
-        # and the sending domain isn't verified yet.
-        raise RuntimeError(f"Resend send failed: HTTP {resp.status_code} — {resp.text}")
+
+    messages = []
+    for r in recipients:
+        link = unsubscribe_link(r["email"])
+        messages.append({
+            "from": DIGEST_FROM,
+            "to": [r["email"]],
+            "subject": subject,
+            "html": html.replace(UNSUB_TOKEN, escape(link)),
+            "text": text.replace(UNSUB_TOKEN, link),
+            # Lets Gmail and Outlook show their own unsubscribe control, which
+            # people use instead of reporting spam.
+            "headers": {"List-Unsubscribe": f"<{link}>"},
+        })
+
+    for i in range(0, len(messages), BATCH_SIZE):
+        chunk = messages[i:i + BATCH_SIZE]
+        resp = requests.post(
+            "https://api.resend.com/emails/batch",
+            headers={"Authorization": f"Bearer {RESEND_API_KEY}",
+                     "Content-Type": "application/json"},
+            json=chunk,
+            timeout=60,
+        )
+        if not (200 <= resp.status_code < 300):
+            # A 403 here usually means the sending domain isn't verified, or the
+            # recipient isn't the Resend account address on an unverified domain.
+            sent = i
+            raise RuntimeError(
+                f"Resend batch failed at message {i + 1} of {len(messages)} "
+                f"({sent} already sent): HTTP {resp.status_code} — {resp.text}")
 
 
 # --------------------------------------------------------------------------- #
@@ -1029,8 +1117,9 @@ def main() -> None:
     recipients = get_recipients(args.to)
     send_email(SUBJECT, html, text, recipients)
     total = d["state"]["total"] + d["federal"]["total"]
-    print(f"Sent digest ({total} events in window) to {', '.join(recipients)} "
-          f"from {DIGEST_FROM}")
+    addrs = ", ".join(r["email"] for r in recipients)
+    print(f"Sent digest ({total} events in window) to {len(recipients)} recipient(s) "
+          f"from {DIGEST_FROM}\n  {addrs}")
 
 
 if __name__ == "__main__":

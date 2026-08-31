@@ -411,6 +411,44 @@ Three structural decisions worth knowing before editing:
 action, and the earlier behaviour of sending anyway mailed a real digest during development.
 Pass `--send` alongside it to do both.
 
+### Recipients and sending
+
+Recipients live in the **`Digest Recipients`** Airtable table, not in code:
+
+| field | notes |
+|---|---|
+| `name` | display only |
+| `email` | validated before send; malformed rows are skipped and reported |
+| `status` | `active` · `paused` · `unsubscribed` · `bounced` — only `active` is mailed |
+| `added_at`, `source`, `notes` | provenance, so you know which cohort is unsubscribing |
+| `unsubscribed_at` | set when someone opts out |
+
+**Unsubscribes are honoured by status, never by deleting the row.** A deleted row
+silently reappears the next time someone re-imports a list.
+
+`get_recipients()` fails loudly if no row is active — silence there would look like a
+successful send that nobody received.
+
+**Every recipient gets their own message.** The digest goes out through Resend's
+`/emails/batch` endpoint, up to 100 messages per call, each addressed to one person.
+The earlier version passed the whole list as `to`, which put every subscriber's address
+in every subscriber's header — harmless with one recipient, a privacy breach with forty.
+BCC would hide them but reads as a blast to spam filters and gives no way to vary the
+body per person, which is what makes the unsubscribe link possible.
+
+Each message carries a `List-Unsubscribe` header so Gmail and Outlook show their own
+unsubscribe control — people use that instead of reporting spam. The link is a `mailto:`
+to `digest@updates.recodingamerica.org`, which needs no web endpoint, no token scheme,
+and no place for a bug to leak the list; requests are processed by hand. If the list
+outgrows that, replace it with a tokenised `/api/unsubscribe` route on the Vercel app
+that writes `status=unsubscribed` back to the table.
+
+```bash
+.venv/bin/python -m tracker.digest --days 7 --dry-run          # counts only, no send
+.venv/bin/python -m tracker.digest --days 7 --to me@x.com      # one address, bypasses the table
+.venv/bin/python -m tracker.digest --days 7                    # send to every active row
+```
+
 ## Automation
 
 `.github/workflows/weekly.yml` runs the ingest every day at 13:00 UTC (~7am MT) — daily because 90+ feeds retain less than a week of items (see Known gaps) — and additionally runs dedupe on Mondays. It can be triggered manually from the Actions tab (with an opt-in checkbox to also dedupe). To activate, add the repo secrets on GitHub: **Settings → Secrets and variables → Actions → New repository secret** for `ANTHROPIC_API_KEY`, `AIRTABLE_TOKEN`, `AIRTABLE_BASE_ID`, and `CONGRESS_API_KEY`.

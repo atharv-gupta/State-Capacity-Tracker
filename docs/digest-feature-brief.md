@@ -1,3 +1,11 @@
+> **Superseded as of 2026-08-31 — kept as the original handoff spec, not as current
+> behaviour.** Phase 1 is done. `updates.recodingamerica.org` is verified, the digest
+> sends from `digest@updates.recodingamerica.org`, and recipients come from the
+> `Digest Recipients` Airtable table rather than a hard-coded list. Each recipient now
+> receives their own message with their own unsubscribe link — see the "Weekly email
+> digest" section of the README. The §0 constraints below (send only from
+> `onboarding@resend.dev`, only to the account address) no longer apply.
+
 # Feature brief: weekly email digest (`digest.py`)
 
 A handoff spec for Claude Code. Build a new script that runs **right after `dedupe.py`** each week and emails a digest of the most notable state-capacity events. **Phase 1 (now): send to one hard-coded recipient — `atharv@recodingamerica.fund` — via Resend's pre-verification sender.** Designed so the recipient source can later become a signup table, and the sending domain can flip to the real Recoding America domain, without touching the selection/formatting logic.

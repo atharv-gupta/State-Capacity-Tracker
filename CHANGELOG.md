@@ -37,6 +37,47 @@ Dates are the date of the work, not of the write-up.
 
 ## Unreleased
 
+### Digest: real recipients, and one message per person — 2026-08-31
+
+`updates.recodingamerica.org` is verified, so the digest now sends from
+`digest@updates.recodingamerica.org` to a real list.
+
+- **Recipients moved to Airtable** (`Digest Recipients`), replacing
+  `RECIPIENTS = ["atharv@recodingamerica.org"]`. Status-driven: only `active` is
+  mailed, and unsubscribes are honoured by status rather than by deleting the row,
+  because a deleted row reappears the next time someone re-imports a list.
+  `get_recipients()` exits rather than returning empty — silence there would look
+  like a successful send nobody received. v0.4 had deliberately isolated this
+  function for exactly this swap, and nothing in the renderer changed.
+- **Every recipient gets their own message**, via Resend's `/emails/batch`
+  endpoint. The previous call passed the whole list as `to`, which put every
+  subscriber's address in every subscriber's header. Harmless at one recipient,
+  a privacy breach at forty. BCC would hide them but reads as a blast to spam
+  filters and leaves no way to vary the body per person.
+- **Unsubscribe**, which the per-recipient split is what makes possible: a
+  `List-Unsubscribe` header so Gmail and Outlook show their own control (people
+  use it instead of reporting spam), plus a footer link. Both are a `mailto:` —
+  no web endpoint, no token scheme, no place for a bug to leak the list, and at
+  this size processing by hand is honest. The upgrade path, when the list
+  outgrows that, is a tokenised `/api/unsubscribe` route writing back to the
+  table.
+- `docs/digest-feature-brief.md` marked superseded rather than rewritten; its §0
+  constraints (send only from `onboarding@resend.dev`, only to the account
+  address) described a phase that is now over.
+
+Verified by a real send to both seeded addresses.
+
+### Digest: Governors '26 narrowed to the competitive races — 2026-08-31
+
+The section ran two tiers — open-seat OR competitive at relevance >= 2, then
+everything else at relevance 3 — and printed up to thirteen items, making the
+2026 races the longest thing in an email whose state section is four
+competencies. Now Toss-up and Lean only, relevance >= 2, five items, most
+relevant first, with the overflow count linking to the candidates tab.
+`race_type == "open"` no longer qualifies on its own: an open seat in a safe
+state is still a safe state. On 30 days of live data, 5 shown and 6 held back.
+
+
 ### why_it_matters rewritten against a blind A/B — 2026-08-31
 
 The line under every event on the tracker and in the digest was specified, in four
