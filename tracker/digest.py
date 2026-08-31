@@ -517,16 +517,18 @@ def rank(r: dict):
 
 
 def select(rows: list[dict], comp: str, cap: int = 5) -> list[dict]:
-    """Every relevance-3 item in this competency, then the best 2s up to `cap`."""
+    """The best `cap` items in this competency: threes first, then twos.
+
+    `cap` used to bind only on the twos — every relevance-3 item was taken and
+    the cap merely limited the top-up. That assumed threes were scarce, which is
+    true on the state side and false on the federal one: in a normal week every
+    agency item is a three, so digital alone printed nine against a cap of five
+    and the agency section ran twice the length of the whole state section.
+    """
     in_comp = [r for r in rows if comp in (r["competency"] or [])]
     threes = sorted((r for r in in_comp if r["relevance"] == 3), key=rank)
     twos = sorted((r for r in in_comp if r["relevance"] == 2), key=rank)
-    selected = list(threes)
-    for r in twos:
-        if len(selected) >= cap:
-            break
-        selected.append(r)
-    return selected
+    return (threes + twos)[:cap]
 
 
 def select_by_competency(rows: list[dict], cap: int = 5,
@@ -765,6 +767,18 @@ def render_html(d: dict, generated_on: date, window_days: int) -> str:
                f'coming up, {n_cong} from Congress, {n_agency} from the agencies'
                f'</div></td></tr></table>')
 
+    # Qualifies the counts immediately above: each competency is capped, so this
+    # is a selection and not an inventory. Unsubscribe sits here as well as in
+    # the footer — someone deciding whether to keep reading should not have to
+    # scroll the whole digest to find the way out.
+    out.append(f'<div style="font-family:{FONT};font-size:12px;color:{MUTED};'
+               f'line-height:1.6;margin:11px 0 4px;">'
+               f'A sampling of the week, not everything we tracked &mdash; '
+               f'<a href="{escape(TRACKER_URL)}" style="color:{LINK};'
+               f'text-decoration:none;font-weight:600;">see the full news tracker</a>. '
+               f'<a href="{UNSUB_TOKEN}" style="color:{MUTED};'
+               f'text-decoration:underline;">Unsubscribe</a>.</div>')
+
     # --- STATE
     out.append(h_banner("State", "What state governments did to their own capacity, "
                                  "by competency &mdash; plus the 2026 races."))
@@ -875,6 +889,9 @@ def render_text(d: dict, generated_on: date, window_days: int) -> str:
     lines = ["CAPACITY DIGEST",
              f"{generated_on.strftime('%B %-d, %Y')} · the last {window_days} days",
              "", INTRO, ""]
+    lines += ["A sampling of the week, not everything we tracked.",
+              f"See the full news tracker: {TRACKER_URL}",
+              f"Unsubscribe: {UNSUB_TOKEN}", ""]
 
     lines += ["=" * 62, "STATE", "=" * 62,
               "What state governments did to their own capacity, by competency.", ""]
