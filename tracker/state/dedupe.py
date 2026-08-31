@@ -23,6 +23,7 @@ from datetime import date, timedelta
 
 from anthropic import Anthropic
 from dotenv import load_dotenv
+from tracker.shared.wim import RULES
 from pyairtable import Api
 
 load_dotenv()
@@ -129,11 +130,11 @@ Output ONLY this JSON (no fences, no preamble):
       "activity_type": "one of: {' | '.join(ACTIVITY_TYPE_CHOICES)}",
       "gov_actor": "which body/office acted",
       "actor_type": "one of: {' | '.join(ACTOR_TYPE_CHOICES)}",
-      "why_it_matters": "one line for the digest, empty string if none",
+      "why_it_matters": "one line, written to the why_it_matters rules in the system prompt",
       "status": "optional: introduced | enacted | etc., empty string if N/A"
     }}
   ]
-}}"""
+}}""" + RULES
 
 
 def parse_json_response(text):

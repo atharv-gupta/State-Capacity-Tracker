@@ -35,6 +35,7 @@ from datetime import date, datetime, timedelta, timezone
 
 from anthropic import Anthropic
 from dotenv import load_dotenv
+from tracker.shared.wim import CANDIDATE_RULES
 from pyairtable import Api
 
 load_dotenv()
@@ -151,14 +152,14 @@ Output ONLY this JSON (no fences, no preamble):
       "name": "concise title of the development, 5-10 words, no candidate name, sentence case",
       "headline": "one plain sentence: what the candidate said/did, best synthesis of the member rows",
       "summary": "2-3 sentences of substance",
-      "why_it_matters": "one line for the digest, empty string if none",
+      "why_it_matters": "one line, written to the why_it_matters rules in the system prompt",
       "quote": "a short verbatim candidate quote if one carries the story, else \\"\\"",
       "dev_type": "one of: {' | '.join(DEV_TYPE_CHOICES)}",
       "date": "YYYY-MM-DD of the development (earliest credible)",
       "status": "optional short stage note, empty string if N/A"
     }}
   ]
-}}"""
+}}""" + CANDIDATE_RULES
 
 
 def parse_json_response(text):

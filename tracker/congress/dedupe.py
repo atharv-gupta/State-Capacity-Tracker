@@ -35,6 +35,7 @@ from tracker.congress import llm as congress_llm
 from tracker.congress import schema as cs
 from tracker.congress import sources as congress_sources
 from tracker.shared.airtable import ensure_table, upsert
+from tracker.shared.wim import RULES
 
 load_dotenv()
 
@@ -81,7 +82,7 @@ Output ONLY this JSON (no fences, no preamble):
       "name": "concise title of the action, 5-10 words, sentence case",
       "headline": "one line: what happened, best synthesis of the member rows",
       "summary": "2-3 plain sentences: what happened and what it would actually do",
-      "why_it_matters": "one line for a Recoding America reader, empty string if none",
+      "why_it_matters": "one line, written to the why_it_matters rules in the system prompt",
       "date": "YYYY-MM-DD of the action (earliest credible)",
       "activity_type": "one of: {' | '.join(cs.ACTIVITY_TYPE_CHOICES)}",
       "actor": "which committee, member, or agency acted",
@@ -90,7 +91,7 @@ Output ONLY this JSON (no fences, no preamble):
     }}
   ]
 }}
-"""
+""" + RULES
 
 CLASSIFY_SYSTEM = congress_llm.RUBRIC_SYSTEM + """
 

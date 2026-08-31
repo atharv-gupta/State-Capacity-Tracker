@@ -31,6 +31,7 @@ from tracker.congress import llm as congress_llm
 from tracker.congress import schema as cs
 from tracker.congress import sources as congress_sources
 from tracker.shared.airtable import ensure_table, upsert
+from tracker.shared.wim import RULES
 
 load_dotenv()
 
@@ -64,14 +65,14 @@ Output ONLY this JSON, no fences:
 {
   "short_title": "6-12 word title naming what this actually is, sentence case. For a hearing or markup, write a real title — the agenda text you were given is not one. Name the committee's action and its main subject, e.g. 'HSGAC markup of federal workforce and rulemaking bills' or 'House Oversight hearing on IG independence'. When a markup covers many bills, describe the through-line rather than listing them. For a bill, the bill's own short title is usually already right.",
   "summary": "2-3 plain sentences: what this is and what it would actually do. No jargon, no press-release voice. For a hearing, what the committee is examining and why it was called.",
-  "why_it_matters": "one line on the capacity angle for a Recoding America reader, or \\"\\" if the item is `none`",
+  "why_it_matters": "one line, written to the why_it_matters rules in the system prompt",
   "competencies": ["digital"],
   "relevance": 3,
   "topic_tags": ["it-modernization"]
 }
 
 For a non-fit: {"short_title": "...", "summary": "...", "why_it_matters": "", "competencies": [], "relevance": 0, "topic_tags": []}
-"""
+""" + RULES
 
 
 def classify_all(client, payloads, label):

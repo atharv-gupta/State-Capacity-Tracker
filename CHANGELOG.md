@@ -37,6 +37,61 @@ Dates are the date of the work, not of the write-up.
 
 ## Unreleased
 
+### why_it_matters rewritten against a blind A/B — 2026-08-31
+
+The line under every event on the tracker and in the digest was specified, in four
+files, as `"why_it_matters": "one line for a Recoding America reader, empty string if
+none"`. That was the entire instruction. The model filled the vacuum with the only
+vocabulary it had — the rubric's — so 11% of lines contained "capacity", 5% "machinery",
+and most restated the competency the reader could already see on the chip.
+
+`tracker/shared/wim.py` now holds the spec in two variants, imported by all five places
+that generate the field (the four dedupes plus `congress/api_sync.py`, which writes
+bills and hearings).
+
+- **RULES** (state, congress, federal): name something concrete from this event; say
+  what the title and summary do not; never restate the competency; say the smallest true
+  thing about routine housekeeping rather than inflating it.
+- **CANDIDATE_RULES** (governors '26): deliberately permits what the general rules
+  forbid — naming plainly what kind of governing action it is, and placing it in the
+  race. The substance stays the subject; the race may appear only as a trailing clause.
+- **Both:** stop at what is known (no "whether X is the open question", no guessing at
+  intent, no predicting unobserved outcomes); absolute grounding; flat register; 30
+  words; never empty.
+
+How the rules were earned, since none of this should be re-derived on instinct:
+
+- **Blind A/B over 60 events** — 20 from the Taylor/Anna validated rows (inclusion
+  already settled, so prose was the only variable), 30 state, 10 candidates, all four
+  competencies in each group, same model both sides. Revised won 36-20-4. The split
+  mattered more than the total: congress 85%, federal 69%, state 63%, **candidates 20%**.
+- **The candidate loss produced the fork.** Every candidate line preferred did one of two
+  things the general prompt banned: placed the action in the race, or named the action
+  type plainly. For an enacted rule the reader wants the mechanism; for a candidate, what
+  it reveals about how they would govern.
+- **The tail ban came from the notes, not the scores.** "Whether X is the open question"
+  appeared in 17 of 60 revised lines and drew 8 of 18 comments — usually on lines marked
+  as winners. It did not predict losing (58% vs 60%), so it was a quality defect the
+  scores could not see.
+- **Round 2 on the 20 hardest rows:** general rules won 9 of 10 against rows that had
+  already drawn complaints. The candidate fork half-worked (4-4-2) because it
+  overcorrected — lines making the campaign the subject appeared in 0 of 4 winners and 3
+  of 6 losers. Hence substance-is-the-subject, and the ban on "first concrete", a tic in
+  6 of 10 lines.
+- **Grounding was added after the model invented statistics.** Told to name concrete
+  detail, it supplied "~2.9 million federal employees enrolled in FERS", "roughly 6,000
+  WV state employees", "roughly 30 other states" — none in the source. Seven of the 16
+  lines carrying numbers had untraceable ones; the rule took that to zero.
+- **A terse final checklist was needed because prose rules dilute.** Verified end-to-end,
+  the candidate variant produced 31-34 word lines with a banned tail and the word
+  "capacity", even though the same rules held in isolation — the test harness had a
+  retry-on-overlength loop the pipeline does not. A numbered check at the end of the
+  prompt fixed it: candidates now run 25-29 words, general 16-22, no banned vocabulary.
+
+The two raw-layer prompts (`state/pipeline.py`, `candidates/pipeline.py`) keep the old
+one-liner. Their output is overwritten by the dedupe pass and never surfaces.
+
+
 ### Governors '26 — the classifier was reading headlines, not articles — 2026-08-31
 
 A diagnostic across all 87 active candidates and 2,227 articles found the
@@ -280,6 +335,43 @@ The classification model the tracker still uses today.
 ---
 
 # Calibration log
+
+## 2026-08-31 — why_it_matters prose calibration (Atharv, blind A/B)
+
+**Corpus.** 60 events (20 validated Congress/Federal, 30 state, 10 candidates), two
+versions each from the same model, A/B randomised, marked blind. Then a second round on
+the 20 hardest rows, three-way.
+
+**Round 1:** revised 36, current 20, both bad 4 — congress 85%, federal 69%, state 63%,
+candidates 20%. **Round 2:** general rules 9 of 10; candidates 4-4-2.
+
+**What the notes taught that the scores did not.** The most repeated complaint — the
+em-dash speculative tail — did not predict losing (58% vs 60%). It appeared on lines
+marked as winners: *"B is better ALL BEFORE THE EMM DASH"*, *"better EXCEPT FOR THE
+'WHETHER THAT PRODUCES'"*. Scores said which version to ship; notes said what was still
+wrong with the winner. Run both, and read the notes on the rows you won.
+
+**Stated preferences worth keeping:**
+- No guessing at intent. Reviewer's own rewrite: *"Peters is pushing for public pressure
+  that helps convert IG findings into binding action"*, not *"Peters is betting that..."*.
+- No guessing at impact not yet observed — *"making a guess at its impact/output, that we
+  don't actually know yet"*.
+- Flatter register: "rare" → "noteworthy"; "the chronic chokepoint" → "a chokepoint";
+  "recurring political awkwardness" is too editorialised.
+- Candidates want the race as context and the action type named — the opposite of the
+  general rules.
+
+**Deliberately not implemented.** That with vendor contracts the risk is whether the
+*vendor* delivers, not just whether the agency can absorb the tools. That is an RA
+position, not a writing rule; it belongs in the rubric, where it would also affect
+classification. **Still open.**
+
+**Two rows were flagged as bad events, not bad prose** (FL Independence Day holiday, a
+DHS Senate Democrats press release) — feedback for the gate, not this prompt.
+
+**Fixture.** `review/REVIEWED-why-it-matters-comparison-2026-08-31.xlsx` and
+`review/REVIEWED-why-it-matters-ROUND2-2026-08-31.xlsx`. Re-run the comparison before
+changing `tracker/shared/wim.py`.
 
 ## 2026-08-31 — Governors '26 funnel diagnostic (automated, full roster)
 
