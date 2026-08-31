@@ -350,15 +350,42 @@ def main():
     schema = base.schema()
     raw = base.table(next(t.id for t in schema.tables if t.name == RAW_TABLE))
 
+    # Window on ingested_at, not date. `date` is the article's publication
+    # date, so a development ingested today about a three-week-old action fell
+    # outside every future window and was never clustered — 16 rows were lost
+    # permanently that way. congress/dedupe.py already windows on ingested_at.
+    #
+    # But widening the raw selection alone would break the clean-table rebuild
+    # below: a row published outside the window produces a clean row dated
+    # outside it, which the clear step would miss, duplicating on the next run.
+    # So derive the rebuild floor from what we actually selected, then re-select
+    # every raw row at or after that floor. The superset guarantees that
+    # everything the clear step deletes is rebuilt.
+    all_raw = [(r["id"], r["fields"]) for r in raw.all()]
+
+    def when_ingested(f):
+        return (f.get("ingested_at") or f.get("date") or "")[:10]
+
+    if args.all:
+        rebuild_from = ""
+    else:
+        fresh = [f for _, f in all_raw if when_ingested(f) >= min_date]
+        dates = [(f.get("date") or "")[:10] for f in fresh if f.get("date")]
+        # Never narrower than the plain date window, so behaviour is unchanged
+        # when nothing arrived late.
+        rebuild_from = min(dates + [min_date]) if dates else min_date
+
     rows = []
-    for r in raw.all():
-        f = r["fields"]
-        if (f.get("date") or "") < min_date:
+    for rid, f in all_raw:
+        if (f.get("date") or "") < rebuild_from:
             continue
         if state_filter and (f.get("state") or "").upper() != state_filter:
             continue
-        rows.append((r["id"], f))
-    scope = " (all)" if args.all else f" since {min_date}"
+        rows.append((rid, f))
+    scope = (" (all)" if args.all else
+             f" since {rebuild_from}"
+             + (f" (widened from {min_date} for late-ingested rows)"
+                if rebuild_from < min_date else ""))
     print(f"{len(rows)} raw rows{scope}"
           + (f" in {state_filter}" if state_filter else ""))
     if not rows:
@@ -448,7 +475,7 @@ def main():
 
     def in_window(f):
         d = f.get("date") or ""
-        return d >= min_date or not d
+        return d >= rebuild_from or not d
 
     stale = [r["id"] for r in clean.all()
              if in_window(r["fields"])

@@ -320,16 +320,39 @@ export default function Methodology() {
             </li>
             <li>
               <strong>Developments.</strong> A daily pipeline queries Google News per candidate,
-              then a model gate keeps only items with governing-agenda substance — policy plans,
-              press releases, speeches, actions in current office — and drops horse-race coverage
+              resolves each result to its publisher URL and fetches the article itself, then a
+              model gate keeps only items with governing-agenda substance — policy plans, press
+              releases, speeches, actions in current office — and drops horse-race coverage
               (polls, fundraising, attacks, vote counts). Kept items are classified against the
               same four-competency rubric as the main tracker, with statements and plans counting
               the same as enacted actions.
             </li>
             <li>
+              <strong>Reading the article, not the headline.</strong> Google News supplies only a
+              headline and an opaque redirect link, never article text. Until 2026-08-31 the gate
+              was judging that headline stub and rejecting almost everything for lack of content:
+              across one week, no article in any of the ten competitive races passed. Results are
+              now resolved to the publisher and the article fetched before classification. A few
+              publishers block automated fetches; those items are marked headline-only and the
+              gate is told to judge the headline on its own terms rather than reject it for
+              missing text.
+            </li>
+            <li>
+              <strong>Where the state&apos;s own machinery ends.</strong> A candidate&apos;s
+              position on how the state <em>approves, permits, licenses, sites, or subsidises</em>
+              something counts as procedure or incentives, even when the thing being approved is
+              private. Pausing state approvals of data centres or conditioning a tax abatement on
+              performance benchmarks are changes to how the state operates. Only rules aimed
+              purely at private conduct, leaving the state&apos;s own processes untouched, are out
+              of scope.
+            </li>
+            <li>
               <strong>Caveats.</strong> Candidate fields shift quickly — statuses (runoffs,
               withdrawals) are updated manually; platform summaries are point-in-time scrapes of
-              campaign sites, stamped with an as-of date.
+              campaign sites, stamped with an as-of date. Developments are clustered weekly on
+              Mondays, so mid-week the feed lags the raw ingest. Items matching none of the four
+              competencies are hidden behind the &ldquo;Show other activity&rdquo; toggle rather
+              than dropped.
             </li>
           </ul>
         </section>

@@ -30,11 +30,15 @@ import json
 import os
 import re
 import sys
+import threading
+import time
 import urllib.parse
 from datetime import date, datetime, timedelta, timezone
 
 import feedparser
+import requests
 from anthropic import Anthropic
+from googlenewsdecoder import gnewsdecoder
 from dotenv import load_dotenv
 from pyairtable import Api
 
@@ -58,7 +62,23 @@ CANDIDATES_TABLE = "Gov Candidates"
 DEVELOPMENTS_TABLE = "Candidate Developments"
 MODEL = "claude-haiku-4-5"
 CLASSIFY_WORKERS = 8
-PER_CANDIDATE_CAP = 30  # Google News RSS returns ~100/query; keep runs bounded
+# Google News RSS returns ~100/query. The cap exists to bound a run, not to
+# select: entries are date-sorted BEFORE it applies (see fetch_candidate_items),
+# because Google orders by relevance and the old relevance-ordered [:30] was
+# silently discarding 30% of the week — concentrated on exactly the
+# highest-profile candidates, who are the ones that return a full 100.
+PER_CANDIDATE_CAP = 100
+
+# Body fetching. Google News gives us a headline and an opaque redirect token,
+# never article text, so the classifier used to judge a ~85-character stub that
+# merely restated the title. gnewsdecoder resolves the token to the publisher
+# URL and we fetch the article itself.
+BODY_WORKERS = 6
+BODY_TIMEOUT = 20
+BODY_CHARS = 6000     # plenty for a news article; keeps classify cost bounded
+BODY_MIN_CHARS = 400  # below this, treat as a failed extraction, not a short story
+HOST_DELAY = 1.0      # seconds between requests to the same host
+UA = "Recoding America State Capacity Tracker (+atharv@recodingamerica.fund)"
 
 COMPETENCY_CHOICES = ["civil-service", "procedure", "digital", "incentives"]
 DEV_TYPE_CHOICES = [
@@ -111,6 +131,16 @@ for Recoding America's Gubernatorial Candidates Tracker. Recoding America works 
 four state-capacity competencies; the tracker watches what candidates say, plan,
 and do about how state government BUILDS AND RUNS ITSELF.
 
+The `body_is` field tells you what evidence you have. When it says "full
+article text", judge on the article. When it says "HEADLINE ONLY", the
+publisher blocked our fetch and no article text exists — judge the headline on
+its own merits and DO NOT reject for thin or missing content. "No substantive
+content", "headline-only stub" and "appears to be a stub" are not valid reasons
+in that case; decide from what the headline itself asserts, and reject only if
+the headline's own subject fails a gate. A headline naming a concrete
+governing action ("orders a pause on data center approvals", "pledges to
+replace agency heads") passes gate 1 on its own.
+
 Apply BOTH gates. keep=true ONLY if both pass; otherwise keep=false.
 
 GATE 1 — GOVERNING AGENDA: the item is substantively about the named
@@ -141,6 +171,14 @@ lean toward keep only when a competency is genuinely present.
 - civil-service: how the state hires, classifies, pays, evaluates, promotes, or
   separates its own employees, or where that authority sits. (Workforce plans,
   merit/at-will reform, union stances about the STATE workforce, hiring pledges.)
+  A state changing how IT approves, permits, licenses, sites or subsidises
+  something is changing its OWN process, and counts — even though the thing
+  being approved is private. "Pause state approvals of data centres", "condition
+  a tax abatement on performance benchmarks", "speed up permitting" are
+  procedure and/or incentives, NOT out-of-scope economic regulation. Only a rule
+  aimed purely at private conduct, with no change to the state's own machinery,
+  is out of scope.
+
 - procedure: deliberate changes to procedural/compliance burden — regulatory
   reform, red-tape cutting, permitting and occupational-licensing reform,
   government-efficiency initiatives. (A substantive industry policy with an
@@ -279,8 +317,39 @@ def load_candidates(api, state_filter=None):
     return out
 
 
+def name_variants(name):
+    """Exact-phrase forms worth searching for one candidate.
+
+    The roster stores legal names; the press uses shorter ones. A middle
+    initial alone costs real coverage — "Daniel J. McKee" returns a third of
+    what "Dan McKee" does — so search the stored name OR the same name with any
+    single-letter initials removed. Nicknames can't be derived and still need
+    the per-candidate news_query override.
+    """
+    variants = [name]
+    words = name.split()
+    # Drop single-letter initials: "Fredrick J. Love" -> "Fredrick Love".
+    stripped = " ".join(w for w in words if not re.fullmatch(r"[A-Za-z]\.?", w))
+    if stripped and stripped not in variants:
+        variants.append(stripped)
+    # First + last: "Helena Buonanno Foulkes" -> "Helena Foulkes". Additive, so
+    # a wrong guess on a compound surname costs a few off-target results the
+    # gates already reject, not lost coverage.
+    sw = stripped.split()
+    if len(sw) > 2:
+        short = f"{sw[0]} {sw[-1]}"
+        if short not in variants:
+            variants.append(short)
+    return variants
+
+
 def gnews_url(cand, days):
-    q = cand["news_query"] or f'"{cand["candidate"]}" {POSTAL_TO_NAME.get(cand["state"], cand["state"])} governor'
+    if cand["news_query"]:
+        q = cand["news_query"]
+    else:
+        state = POSTAL_TO_NAME.get(cand["state"], cand["state"])
+        names = " OR ".join(f'"{v}"' for v in name_variants(cand["candidate"]))
+        q = f"({names}) {state} governor"
     q = f"{q} when:{days}d"
     return ("https://news.google.com/rss/search?q="
             + urllib.parse.quote(q) + "&hl=en-US&gl=US&ceid=US:en")
@@ -288,11 +357,14 @@ def gnews_url(cand, days):
 
 def fetch_candidate_items(cand, days, min_date):
     entries = parse_feed(gnews_url(cand, days))
+    # Date-sort before capping. Google News returns relevance-ordered results
+    # with jumbled dates, so slicing the raw list took an arbitrary subset and
+    # let an article enter the window days after publication.
+    dated = [(entry_date(e), e) for e in entries]
+    dated = [(d, e) for d, e in dated if d and d >= min_date]
+    dated.sort(key=lambda de: de[0], reverse=True)
     items = []
-    for e in entries[:PER_CANDIDATE_CAP]:
-        pub = entry_date(e)
-        if not pub or pub < min_date:
-            continue
+    for pub, e in dated[:PER_CANDIDATE_CAP]:
         url = e.get("link", "")
         if not url:
             continue
@@ -313,7 +385,84 @@ def fetch_candidate_items(cand, days, min_date):
             "pub_date": pub,
             "url": url,
             "summary": strip_html(e.get("summary", ""))[:1500].strip(),
+            # Seeded with the Google News stub (title + outlet). enrich_bodies
+            # replaces this with real article text where the publisher allows.
+            "body": strip_html(e.get("summary", ""))[:1500].strip(),
+            "body_source": "headline-only",
+            "article_url": "",
         })
+    return items
+
+
+_host_last = {}
+_host_lock = threading.Lock()
+
+
+def _host_wait(host):
+    """One request per host per HOST_DELAY, so a burst of same-outlet articles
+    doesn't hammer a single publisher."""
+    with _host_lock:
+        prev = _host_last.get(host, 0.0)
+        wait = prev + HOST_DELAY - time.monotonic()
+        if wait > 0:
+            time.sleep(wait)
+        _host_last[host] = time.monotonic()
+
+
+def extract_body(html):
+    """Article text from a publisher page. Paragraph tags only — good enough
+    across the outlet mix here, and it degrades to '' rather than to nav
+    furniture when a page is script-rendered."""
+    html = re.sub(r"(?is)<(script|style|noscript)\b.*?</\1>", " ", html)
+    main = re.search(r"(?is)<article\b.*?</article>", html)
+    if main:
+        html = main.group(0)
+    paras = re.findall(r"(?is)<p\b[^>]*>(.*?)</p>", html)
+    text = " ".join(strip_html(x) for x in paras)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def fetch_body(item):
+    """Resolve the Google News token to a publisher URL and fetch the article.
+
+    Sets body/body_source/article_url on the item. Failure is normal and not
+    fatal: some publishers (The Hill, Politico) return 403 to any crawler, so
+    those fall back to headline-only and the prompt is told so explicitly.
+    """
+    item["body_source"] = "headline-only"
+    item["article_url"] = ""
+    try:
+        decoded = gnewsdecoder(item["url"], interval=0)
+    except Exception:
+        return item
+    if not decoded or not decoded.get("status"):
+        return item
+    url = decoded.get("decoded_url") or ""
+    if not url:
+        return item
+    item["article_url"] = url
+    try:
+        _host_wait(urllib.parse.urlparse(url).netloc)
+        r = requests.get(url, headers={"User-Agent": UA}, timeout=BODY_TIMEOUT)
+        if r.status_code != 200:
+            return item
+        body = extract_body(r.text)
+    except Exception:
+        return item
+    if len(body) >= BODY_MIN_CHARS:
+        item["body"] = body[:BODY_CHARS]
+        item["body_source"] = "article"
+    return item
+
+
+def enrich_bodies(items):
+    """Fetch article bodies in parallel. Runs AFTER the already-ingested filter
+    so we only pay for items we are about to classify."""
+    with concurrent.futures.ThreadPoolExecutor(max_workers=BODY_WORKERS) as ex:
+        list(ex.map(fetch_body, items))
+    got = sum(1 for i in items if i["body_source"] == "article")
+    print(f"Article bodies fetched:    {got}/{len(items)} "
+          f"({len(items) - got} fall back to headline-only)")
     return items
 
 
@@ -327,7 +476,9 @@ def classify(client, item):
         "title": item["title"],
         "outlet": item["outlet"],
         "published": item["published"],
-        "body": item["summary"],
+        "body": item["body"],
+        "body_is": ("full article text" if item.get("body_source") == "article"
+                    else "HEADLINE ONLY - no article text available"),
     })
     resp = client.messages.create(
         model=MODEL,
@@ -360,7 +511,11 @@ def build_row(item, verdict, ingested_at):
         "summary": (verdict.get("summary") or "").strip(),
         "why_it_matters": (verdict.get("why_it_matters") or "").strip(),
         "quote": (verdict.get("quote") or "").strip(),
-        "source_urls": item["url"],
+        # Link to the publisher where we resolved it. `url` below stays the
+        # Google News token because the already-ingested check dedups on it;
+        # source_urls is what the web tab and the digest actually link to, and
+        # a Google interstitial is useless to a reader.
+        "source_urls": item.get("article_url") or item["url"],
         "source_outlets": item["outlet"],
         "url": item["url"],
         "ingested_at": ingested_at,
@@ -416,6 +571,8 @@ def main():
     if not items:
         print("Nothing new to classify.")
         return
+
+    enrich_bodies(items)
 
     client = Anthropic(api_key=ANTHROPIC_API_KEY)
     kept, dropped, errors = [], [], []

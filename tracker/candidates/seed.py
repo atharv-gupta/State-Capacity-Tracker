@@ -148,6 +148,12 @@ def row_from_candidate(state_obj, cand, seeded_at):
         row["press_url"] = cand["press_url"]
     if cand.get("notes"):
         row["notes"] = cand["notes"]
+    # The per-candidate Google News override. The field has existed in the
+    # schema since the table was created but was never populated here, so it
+    # was unreachable: a candidate the press calls by a nickname ("Dan McKee"
+    # for Daniel J. McKee) had no way to be searched under it.
+    if cand.get("news_query"):
+        row["news_query"] = cand["news_query"]
     return row
 
 
