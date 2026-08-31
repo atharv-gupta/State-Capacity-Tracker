@@ -82,7 +82,7 @@ Output ONLY this JSON (no fences, no preamble):
       "name": "concise title of the action, 5-10 words, sentence case",
       "headline": "one line: what happened, best synthesis of the member rows",
       "summary": "2-3 plain sentences: what happened and what it would actually do",
-      "why_it_matters": "one line, written to the why_it_matters rules in the system prompt",
+      "why_it_matters": "one line, MAX 30 WORDS, written to the why_it_matters rules in the system prompt",
       "date": "YYYY-MM-DD of the action (earliest credible)",
       "activity_type": "one of: {' | '.join(cs.ACTIVITY_TYPE_CHOICES)}",
       "actor": "which committee, member, or agency acted",

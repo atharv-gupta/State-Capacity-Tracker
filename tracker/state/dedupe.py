@@ -130,7 +130,7 @@ Output ONLY this JSON (no fences, no preamble):
       "activity_type": "one of: {' | '.join(ACTIVITY_TYPE_CHOICES)}",
       "gov_actor": "which body/office acted",
       "actor_type": "one of: {' | '.join(ACTOR_TYPE_CHOICES)}",
-      "why_it_matters": "one line, written to the why_it_matters rules in the system prompt",
+      "why_it_matters": "one line, MAX 30 WORDS, written to the why_it_matters rules in the system prompt",
       "status": "optional: introduced | enacted | etc., empty string if N/A"
     }}
   ]
@@ -146,7 +146,16 @@ def parse_json_response(text):
         text = "\n".join(lines)
     start = text.find("{")
     end = text.rfind("}")
-    return json.loads(text[start:end + 1])
+    blob = text[start:end + 1]
+    try:
+        return json.loads(blob)
+    except json.JSONDecodeError:
+        # The model occasionally emits two JSON objects back to back. Slicing
+        # first-brace-to-last-brace then spans both and json.loads reports
+        # "Extra data". Take the first complete object instead — silently
+        # losing a classification is worse than using the first answer.
+        obj, _ = json.JSONDecoder().raw_decode(blob)
+        return obj
 
 
 def cluster_state(client, state, rows):

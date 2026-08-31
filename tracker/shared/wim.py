@@ -108,3 +108,36 @@ verbal tic across a majority of generated lines and read as machine-written in a
 A pledge that is only a pledge is still worth describing accurately: say what it would
 do, not whether it will happen.
 """ + _COMMON
+
+
+MAX_WORDS = 30
+
+
+def enforce_length(client, model, text, max_words=MAX_WORDS):
+    """Tighten one why_it_matters that came back over the cap.
+
+    The word cap is stated twice in the prompt — in the rules and again in the
+    JSON contract — and still fails about a quarter of the time on the
+    candidates tracker, because that cluster call emits several lines in one
+    response and the model tracks a per-line budget poorly across them. The
+    trackers that emit one or two lines per call stay inside it.
+
+    So the cap is enforced in code, not asked for. One short follow-up call,
+    only for the lines that overran. Returns the original if the rewrite fails
+    or comes back longer — a slightly long line beats a lost one.
+    """
+    if not text or len(text.split()) <= max_words:
+        return text
+    try:
+        r = client.messages.create(
+            model=model, max_tokens=200,
+            system=("Tighten the sentence to at most %d words. Keep the concrete detail — "
+                    "the agency, figure, instrument or named thing. Drop the trailing clause "
+                    "rather than the specifics. Do not add anything that is not already there. "
+                    "Reply with the sentence only, no quotes, no preamble." % max_words),
+            messages=[{"role": "user", "content": text}],
+        )
+        out = "".join(b.text for b in r.content if b.type == "text").strip().strip('"')
+    except Exception:
+        return text
+    return out if out and len(out.split()) < len(text.split()) else text

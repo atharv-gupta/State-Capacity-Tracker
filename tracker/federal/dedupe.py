@@ -109,7 +109,7 @@ Output ONLY this JSON (no fences, no preamble):
       "name": "concise neutral title of the action, 5-10 words, sentence case",
       "headline": "one neutral line: what happened, best synthesis of the rows",
       "summary": "2-3 plain sentences: the mechanism, and what it would actually do",
-      "why_it_matters": "one line, written to the why_it_matters rules in the system prompt",
+      "why_it_matters": "one line, MAX 30 WORDS, written to the why_it_matters rules in the system prompt",
       "date": "YYYY-MM-DD of the action (earliest credible)",
       "instrument_type": "one of: {' | '.join(fs.INSTRUMENT_TYPE_CHOICES)}",
       "instrument_id": "the document's identifier if any, e.g. 'M-26-15', else \\"\\"",

@@ -35,7 +35,7 @@ from datetime import date, datetime, timedelta, timezone
 
 from anthropic import Anthropic
 from dotenv import load_dotenv
-from tracker.shared.wim import CANDIDATE_RULES
+from tracker.shared.wim import CANDIDATE_RULES, enforce_length
 from pyairtable import Api
 
 load_dotenv()
@@ -152,7 +152,7 @@ Output ONLY this JSON (no fences, no preamble):
       "name": "concise title of the development, 5-10 words, no candidate name, sentence case",
       "headline": "one plain sentence: what the candidate said/did, best synthesis of the member rows",
       "summary": "2-3 sentences of substance",
-      "why_it_matters": "one line, written to the why_it_matters rules in the system prompt",
+      "why_it_matters": "one line, MAX 30 WORDS, written to the why_it_matters rules in the system prompt",
       "quote": "a short verbatim candidate quote if one carries the story, else \\"\\"",
       "dev_type": "one of: {' | '.join(DEV_TYPE_CHOICES)}",
       "date": "YYYY-MM-DD of the development (earliest credible)",
@@ -171,7 +171,16 @@ def parse_json_response(text):
         text = "\n".join(lines)
     start = text.find("{")
     end = text.rfind("}")
-    return json.loads(text[start:end + 1])
+    blob = text[start:end + 1]
+    try:
+        return json.loads(blob)
+    except json.JSONDecodeError:
+        # The model occasionally emits two JSON objects back to back. Slicing
+        # first-brace-to-last-brace then spans both and json.loads reports
+        # "Extra data". Take the first complete object instead — silently
+        # losing a classification is worse than using the first answer.
+        obj, _ = json.JSONDecoder().raw_decode(blob)
+        return obj
 
 
 def cluster_candidate(client, candidate, rows):
@@ -485,6 +494,21 @@ def main():
     if stale:
         clean.batch_delete(stale)
         print(f"Cleared {len(stale)} stale clean rows in window")
+
+    # The cap is stated in the rules and again in the JSON contract and still
+    # overruns on roughly a quarter of these, because one cluster call emits
+    # several lines and the model tracks a per-line budget poorly across them.
+    # Enforce it rather than ask again; only the overruns cost a call.
+    long_ones = sum(1 for _, _, ev, _ in all_devs
+                    if len((ev.get("why_it_matters") or "").split()) > 30)
+    if long_ones:
+        print(f"Tightening {long_ones} why_it_matters over 30 words...")
+        with concurrent.futures.ThreadPoolExecutor(max_workers=WORKERS) as ex:
+            fixed = list(ex.map(
+                lambda ev: enforce_length(client, MODEL, ev.get("why_it_matters", "")),
+                [ev for _, _, ev, _ in all_devs]))
+        for (_, _, ev, _), text in zip(all_devs, fixed):
+            ev["why_it_matters"] = text
 
     created = 0
     for state, candidate, ev, members in all_devs:
