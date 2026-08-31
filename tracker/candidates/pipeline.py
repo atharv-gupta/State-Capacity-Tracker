@@ -40,6 +40,7 @@ import requests
 from anthropic import Anthropic
 from googlenewsdecoder import gnewsdecoder
 from dotenv import load_dotenv
+from tracker.shared.wim import CANDIDATE_RULES
 from pyairtable import Api
 
 load_dotenv()
@@ -202,13 +203,13 @@ MUST be non-empty (an empty list means the item failed gate 2 -> keep=false):
   "dev_type": "one of: policy-plan | press-release | speech-quote | interview | news-coverage | official-action | other",
   "headline": "one plain sentence, your own words: what the candidate said/did",
   "summary": "2-3 sentences of substance",
-  "why_it_matters": "one sentence tying it to the competency it touches",
+  "why_it_matters": "one line, MAX 30 WORDS, written to the why_it_matters rules below",
   "competencies": ["procedure"],
   "relevance": 2,
   "quote": "a short verbatim candidate quote if one carries the story, else \\"\\""
 }
 If it fails EITHER gate: {"keep": false, "reason": "which gate failed, one short line"}
-"""
+""" + CANDIDATE_RULES
 
 
 # --- Helpers lifted from ecosystem_pipeline.py --------------------------------
