@@ -18,6 +18,8 @@ tracker/                 Python package. Every entry point runs as `python -m tr
   export/                review (xlsx workbooks) · docs (walkthroughs)
   digest.py              the weekly email, reads every clean table
   shared/airtable.py     ensure_table · upsert · remap, used by all five trackers
+  shared/wim.py          the why_it_matters spec — two variants, one per audience;
+                         derived from a blind A/B, so re-run it before editing
   paths.py               resolves rubrics/ and data/ from the repo root
 
 rubrics/                 Loaded at RUNTIME and injected into the classifier prompts.
