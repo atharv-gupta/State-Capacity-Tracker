@@ -55,7 +55,7 @@ const TOC = [
 ];
 
 // Static reference layer (State profiles tab). One block per bucket; mirrors
-// static-state-specs.md §3–§4. Each metric carries its named primary source.
+// docs/specs/static-state-specs.md §3–§4. Each metric carries its named primary source.
 const SPEC_BUCKETS = [
   {
     id: "p-basic",

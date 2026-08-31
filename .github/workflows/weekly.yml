@@ -24,13 +24,13 @@ jobs:
           python-version: "3.11"
       - run: pip install -r requirements.txt
       - name: Ingest past week into Raw Events
-        run: python pipeline.py --days 7
+        run: python -m tracker.state.pipeline --days 7
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
           AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
       - name: Ingest candidate developments into Candidate Developments
-        run: python candidates_pipeline.py --days 7
+        run: python -m tracker.candidates.pipeline --days 7
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
@@ -40,13 +40,13 @@ jobs:
       # Monday-only classify would surface a Wednesday hearing notice after the
       # hearing had already happened.
       - name: Ingest congressional press into Congress Raw
-        run: python congress_pipeline.py --days 7
+        run: python -m tracker.congress.pipeline --days 7
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
           AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
       - name: Cluster and classify into Congress Events
-        run: python congress_dedupe.py --days 7
+        run: python -m tracker.congress.dedupe --days 7
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
@@ -55,20 +55,20 @@ jobs:
       # are perishable: Government Executive and Nextgov hold about seven days
       # of feed, and The Hill about two, so a missed day is a permanent hole.
       - name: Ingest federal executive-branch activity into Federal Raw
-        run: python federal_pipeline.py --days 7
+        run: python -m tracker.federal.pipeline --days 7
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
           AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
       - name: Cluster and classify into Federal Events
-        run: python federal_dedupe.py --days 7
+        run: python -m tracker.federal.dedupe --days 7
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
           AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
       # Skips with a clear message (not a failure) if CONGRESS_API_KEY is unset.
       - name: Sync hearings and bills from Congress.gov
-        run: python congress_api_sync.py --days 7
+        run: python -m tracker.congress.api_sync --days 7
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
@@ -79,14 +79,14 @@ jobs:
         run: echo "dow=$(date -u +%u)" >> "$GITHUB_OUTPUT"
       - name: Dedupe into Events (Mondays, or manual opt-in)
         if: (github.event_name == 'schedule' && steps.day.outputs.dow == '1') || (github.event_name == 'workflow_dispatch' && inputs.dedupe)
-        run: python dedupe.py --days 7
+        run: python -m tracker.state.dedupe --days 7
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
           AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
       - name: Dedupe candidate developments into Candidate Events (Mondays, or manual opt-in)
         if: (github.event_name == 'schedule' && steps.day.outputs.dow == '1') || (github.event_name == 'workflow_dispatch' && inputs.dedupe)
-        run: python candidates_dedupe.py --days 7
+        run: python -m tracker.candidates.dedupe --days 7
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
@@ -95,7 +95,7 @@ jobs:
       # and it now covers both halves (state + governors, federal + congress).
       - name: Send weekly capacity digest (Mondays, or manual opt-in)
         if: (github.event_name == 'schedule' && steps.day.outputs.dow == '1') || (github.event_name == 'workflow_dispatch' && inputs.digest)
-        run: python digest.py --days 7
+        run: python -m tracker.digest --days 7
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}

@@ -4,6 +4,62 @@ A weekly, queryable feed of what state governments are actually doing, classifie
 
 The pipeline ingests ~170 state-government news feeds, keeps only items that represent real government activity touching those capacities, de-duplicates them into distinct *events*, classifies each against Recoding America's rubric, stores everything in Airtable, and surfaces a filterable map view on the web.
 
+Version history and the record of what each human validation round changed live in **[`CHANGELOG.md`](CHANGELOG.md)** — releases in one half, relevance calibration in the other.
+
+## Repository layout
+
+```
+tracker/                 Python package. Every entry point runs as `python -m tracker.<pkg>.<mod>`.
+  state/                 pipeline · dedupe · sources        the state news tracker
+  congress/              pipeline · dedupe · fetch · llm · schema · sources · api · api_sync
+  federal/               pipeline · dedupe · fetch · llm · schema · sources
+  candidates/            pipeline · dedupe · seed · platforms    Governors '26
+  ecosystem/             pipeline · sources                 exploratory
+  export/                review (xlsx workbooks) · docs (walkthroughs)
+  digest.py              the weekly email, reads every clean table
+  shared/airtable.py     ensure_table · upsert · remap, used by all five trackers
+  paths.py               resolves rubrics/ and data/ from the repo root
+
+rubrics/                 Loaded at RUNTIME and injected into the classifier prompts.
+                         Editing these changes model behaviour on the next run, so
+                         record why in CHANGELOG.md.
+  rubric.md              the shared four-competency rubric
+  congress-adaptation.md prepended to it for the congressional tracker
+  federal-adaptation.md  prepended to it for the federal tracker
+
+docs/                    Design docs. SPEC.md is the original tracker spec; specs/ holds
+                         the per-feature specs; digest-feature-brief.md the digest brief.
+data/                    Static inputs (candidate roster, gov feed sweep) and legacy files.
+tools/                   Standalone one-offs, run by path: phase0.py, discover_gov_feeds.py
+web/                     Next.js app. Vercel root directory is `web/`; reads Airtable server-side.
+.github/                 The daily Actions workflow.
+```
+
+Three things worth knowing about the structure:
+
+- **`federal/` deliberately reuses `congress/`.** `federal.fetch` imports the congressional
+  fetch primitives, `federal.schema` re-exports congressional enums, and `federal.llm`
+  re-exports the congressional JSON contract. The two trackers are siblings by design, not
+  copies — a fix to congressional fetching reaches federal for free.
+- **Assets live at the repo root, not inside the package.** `rubrics/` and `data/` are edited
+  by humans, so burying them under `tracker/` would hide them. `tracker/paths.py` resolves
+  both from `__file__`, so any entry point works from any working directory.
+- **Run from the repo root.** `python -m` needs the root on `sys.path`, which it is when the
+  root is your working directory. The CI workflow does this automatically after checkout.
+
+Command reference:
+
+| Tracker | Ingest | Cluster + classify |
+|---|---|---|
+| State | `python -m tracker.state.pipeline --days 7` | `python -m tracker.state.dedupe --days 7` |
+| Congress | `python -m tracker.congress.pipeline --days 7` | `python -m tracker.congress.dedupe --days 7` |
+| Federal | `python -m tracker.federal.pipeline --days 7` | `python -m tracker.federal.dedupe --days 7` |
+| Candidates | `python -m tracker.candidates.pipeline --days 7` | `python -m tracker.candidates.dedupe --days 7` |
+
+Plus `python -m tracker.congress.api_sync --days 7` (hearings and bills from Congress.gov),
+`python -m tracker.digest --days 7` (the weekly email), and
+`python -m tracker.export.review` / `.docs` (the reviewer package).
+
 ## How it works
 
 ```
@@ -13,11 +69,11 @@ last N days         + 2 LLM gates            one row per     event, classify    
                     (provenance, capacity)   article         vs. rubric (Sonnet)    + web map view
 ```
 
-1. **`pipeline.py`** — fetches every feed in `sources.py` (paging back through WordPress feeds until past the lookback window, since many feeds retain <7 days), keeps items from the last N days, pre-screens with competency keywords (cheap, before any LLM call), then gates each survivor with Claude Haiku:
+1. **`tracker/state/pipeline.py`** — fetches every feed in `tracker/state/sources.py` (paging back through WordPress feeds until past the lookback window, since many feeds retain <7 days), keeps items from the last N days, pre-screens with competency keywords (cheap, before any LLM call), then gates each survivor with Claude Haiku:
    - **Gate 1 (provenance):** is the underlying activity an action by a *state-level* government actor in their official capacity? Bills, vetoes, EOs, rulemaking, appointments, reorgs, procurement, budgets, program launches, audits. Federal-only, city-only, opinion, campaign coverage, and private lawsuits fail.
    - **Gate 2 (competency):** does it touch one of the four capacities — civil-service / procedure / digital / incentives? (A coarse filter; the final competencies are decided per-event in step 2.)
    - Survivors land in the **`Raw Events`** Airtable table, one row per article, tagged with state, candidate pillar(s), activity type, and actor type.
-2. **`dedupe.py`** — clusters the window's raw rows (one government action shows up across many outlets) with Claude Sonnet, then classifies **every** event against the rubric in **`rubric.md`** (sent as a cached system prompt): zero, one, or more **competencies** (an event can span two — e.g. oversight of a failing IT system is both `digital` and `incentives`; matching none is the common case), a **1–3 relevance** score for how central an example it is (direction-agnostic — undermining a capacity counts as much as advancing it), and a set of descriptive **topic tags**. It then rebuilds that window of the **`Events`** table: one row per event, all source URLs/outlets merged. Rows outside the window are never touched, so the table accumulates history week over week. Use `--all` to reclassify every raw row and `--clean-table NAME` to build into a side table (e.g. for review before swapping it in).
+2. **`tracker/state/dedupe.py`** — clusters the window's raw rows (one government action shows up across many outlets) with Claude Sonnet, then classifies **every** event against the rubric in **`rubrics/rubric.md`** (sent as a cached system prompt): zero, one, or more **competencies** (an event can span two — e.g. oversight of a failing IT system is both `digital` and `incentives`; matching none is the common case), a **1–3 relevance** score for how central an example it is (direction-agnostic — undermining a capacity counts as much as advancing it), and a set of descriptive **topic tags**. It then rebuilds that window of the **`Events`** table: one row per event, all source URLs/outlets merged. Rows outside the window are never touched, so the table accumulates history week over week. Use `--all` to reclassify every raw row and `--clean-table NAME` to build into a side table (e.g. for review before swapping it in).
 3. **`web/`** — Next.js app: US map shaded by event count, filters for time window (week / month / all), competency, topic tag, activity type, and government actor type, with an event list beneath; each event shows its competencies, a relevance dot rating, and clickable topic-tag chips. Reads Airtable server-side via `/api/events` (the token never reaches the browser).
 
 ## Congressional tracker
@@ -26,7 +82,7 @@ A parallel pipeline covering the seven committees that govern how the *federal* 
 runs itself — Senate HSGAC, Senate Rules, Senate Appropriations, House Oversight, House
 Administration, House Rules, House Appropriations — plus both whips and CBO. Same four
 competencies, re-pointed at the federal government by
-**`congress_rubric_adaptation.md`**, which is prepended to the shared `rubric.md`. The state
+**`rubrics/congress-adaptation.md`**, which is prepended to the shared `rubrics/rubric.md`. The state
 rubric is untouched.
 
 Two independent paths, because hearings and bills need no clustering — one API record *is*
@@ -41,23 +97,23 @@ one hearing or one bill, with a stable ID:
                              --> committee/*/bills  --> 'Congress Bills'
 ```
 
-- **`congress_sources.py`** — the registry. HSGAC and Padilla expose WordPress REST APIs
+- **`tracker/congress/sources.py`** — the registry. HSGAC and Padilla expose WordPress REST APIs
   (typed endpoints, full article bodies, server-side `?after=` filtering); 14 sources have
   working RSS; 11 need HTML scraping. No JS rendering anywhere, so no headless browser.
-  `python congress_fetch.py --days 21` probes every source and prints what each returned.
-- **`congress_api_sync.py`** — hearings and bills. `--crosscheck` compares HSGAC's own CMS
+  `python -m tracker.congress.fetch --days 21` probes every source and prints what each returned.
+- **`tracker/congress/api_sync.py`** — hearings and bills. `--crosscheck` compares HSGAC's own CMS
   against Congress.gov on hearing date; as of the last run the API covered everything the
   CMS had, plus one hearing it didn't.
 - Both clean tables **upsert** rather than delete-and-rewrite, and `review_status` /
   `reviewer_notes` are preserved on update — so a reviewer's annotations survive nightly runs.
-- `Congress Raw` carries an `ingested_at` timestamp and `congress_dedupe.py` windows on it,
+- `Congress Raw` carries an `ingested_at` timestamp and `tracker/congress/dedupe.py` windows on it,
   rather than on the model-supplied action date (see Known gaps).
 
 ```bash
-.venv/bin/python congress_pipeline.py --days 21 --dry-run   # per-source funnel, no writes
-.venv/bin/python congress_pipeline.py --days 21
-.venv/bin/python congress_dedupe.py   --days 21
-.venv/bin/python congress_api_sync.py --days 21
+.venv/bin/python -m tracker.congress.pipeline --days 21 --dry-run   # per-source funnel, no writes
+.venv/bin/python -m tracker.congress.pipeline --days 21
+.venv/bin/python -m tracker.congress.dedupe   --days 21
+.venv/bin/python -m tracker.congress.api_sync --days 21
 ```
 
 The dry-run funnel prints fetched → in-window → pre-screened → passed per source. That table
@@ -69,7 +125,7 @@ legitimately go weeks without posting, especially during recess.
 A third pipeline, covering what the **executive branch** does to itself: OMB memoranda, OPM
 and GSA instruments, executive orders, the Federal Register, and the federal trade press that
 covers all of it. Same four competencies, re-pointed by
-**`federal_rubric_adaptation.md`**, which is prepended to the shared `rubric.md` exactly as
+**`rubrics/federal-adaptation.md`**, which is prepended to the shared `rubrics/rubric.md` exactly as
 the congressional adaptation is. Neither the state rubric nor the congressional adaptation is
 touched.
 
@@ -156,18 +212,18 @@ records `verification` as `official`, `reported`, or `draft-leaked`.
 The full Register runs ~1,637 documents per 21 days (1,285 notices, 220 rules, 115 proposed
 rules, 17 presidential documents), nearly all of it ordinary agency regulatory business, plus
 ~525 routine Paperwork Reduction Act collection renewals. Pulling all of it would cost roughly
-ten times as much for a handful more events, so `federal_sources.py` queries the API three
+ten times as much for a handful more events, so `tracker/federal/sources.py` queries the API three
 ways: complete coverage of the seven agencies whose subject matter *is* the machinery of
 government (OPM, OMB, GSA, MSPB, FLRA, OGE, NARA), every presidential document, and an
 18-phrase capacity-vocabulary sweep across all agencies to catch mission-agency actions that
 scoping by agency would miss. That is 212 documents fetched, 18 kept, in the first window.
 
 ```bash
-.venv/bin/python federal_sources.py                          # print the registry
-.venv/bin/python federal_fetch.py --days 21                  # reachability probe
-.venv/bin/python federal_pipeline.py --days 21 --dry-run     # per-source funnel, no writes
-.venv/bin/python federal_pipeline.py --days 21
-.venv/bin/python federal_dedupe.py   --days 21
+.venv/bin/python -m tracker.federal.sources                          # print the registry
+.venv/bin/python -m tracker.federal.fetch --days 21                  # reachability probe
+.venv/bin/python -m tracker.federal.pipeline --days 21 --dry-run     # per-source funnel, no writes
+.venv/bin/python -m tracker.federal.pipeline --days 21
+.venv/bin/python -m tracker.federal.dedupe   --days 21
 ```
 
 Both federal steps run **daily** in the workflow, like the congressional ones. Two of the
@@ -178,14 +234,14 @@ The Hill about two, so a missed day is a permanent hole.
 
 Two generators, both writing into `review/` (gitignored):
 
-**`export_review.py`** writes one .xlsx per tracker: the deduped layer *and* the raw layer,
+**`tracker/export/review.py`** writes one .xlsx per tracker: the deduped layer *and* the raw layer,
 filterable, with a verdict dropdown, a Read me sheet stating what the reviewer is deciding,
 and rows that matched no competency shaded rather than hidden (the reviewer is checking for
 false negatives too). The two layers are both there on purpose — the raw sheet carries the
 cheap gate's `pillars` guess, the events sheet carries the authoritative `competency` and
 `relevance`, and the disagreement between them is where the second model overruled the first.
 
-**`export_docs.py`** writes one walkthrough per tracker: a plain-language description of how
+**`tracker/export/docs.py`** writes one walkthrough per tracker: a plain-language description of how
 an item becomes a row (sources → keyword pre-screen → gate → clustering → classification),
 then appendices carrying every prompt, keyword list and enum **verbatim**. The appendices are
 read out of the live modules at build time rather than retyped, so a prompt edit can never
@@ -193,11 +249,11 @@ leave the document describing a pipeline that no longer exists. Markdown always;
 when pandoc is installed, because reviewers need to comment.
 
 ```bash
-.venv/bin/python export_review.py                     # both trackers, last 21 days -> review/
-.venv/bin/python export_review.py --tracker federal --days 7
-.venv/bin/python export_review.py --all --relevant-only --out ~/Desktop
-.venv/bin/python export_docs.py                       # md + docx walkthroughs -> review/
-.venv/bin/python export_docs.py --format md
+.venv/bin/python -m tracker.export.review                     # both trackers, last 21 days -> review/
+.venv/bin/python -m tracker.export.review --tracker federal --days 7
+.venv/bin/python -m tracker.export.review --all --relevant-only --out ~/Desktop
+.venv/bin/python -m tracker.export.docs                       # md + docx walkthroughs -> review/
+.venv/bin/python -m tracker.export.docs --format md
 ```
 
 The export is deliberately one-way. Airtable's `review_status` / `reviewer_notes` are the
@@ -229,7 +285,7 @@ of truth for the same field.
   an executive-branch action can still land on both tabs. Nothing in either pipeline prevents
   it.
 - **Items are dated by the action, not by publication.** A story published this week about
-  guidance issued in May is dated May and falls outside a 30-day view. `federal_dedupe.py`
+  guidance issued in May is dated May and falls outside a 30-day view. `tracker/federal/dedupe.py`
   windows on `ingested_at`, so nothing is lost from the table — but the default UI window can
   hide it. Storing the publication date alongside the action date is the fix; it is not built
   yet because it would be blank for every backfilled row.
@@ -258,8 +314,8 @@ cp .env_example .env   # fill in the values
 Run manually:
 
 ```bash
-.venv/bin/python pipeline.py --days 7    # ingest the past week into Raw Events
-.venv/bin/python dedupe.py --days 7      # cluster that window into Events
+.venv/bin/python -m tracker.state.pipeline --days 7    # ingest the past week into Raw Events
+.venv/bin/python -m tracker.state.dedupe --days 7      # cluster that window into Events
 ```
 
 Useful flags: `pipeline.py CO KS --dry-run --limit 20` (specific states, no writes, capped LLM calls) for tuning sessions; `--days 31` for backfills (bounded by feed retention — most feeds can't reach back more than a few weeks even with pagination).
@@ -274,7 +330,7 @@ npm run dev              # http://localhost:3000
 
 ## Weekly email digest
 
-`digest.py` composes one email covering both halves of the tracker and sends it via Resend,
+`tracker/digest.py` composes one email covering both halves of the tracker and sends it via Resend,
 after the dedupe steps have rebuilt the clean tables:
 
 ```
@@ -301,9 +357,9 @@ Three structural decisions worth knowing before editing:
   the rest on the meta line ("also incentives").
 
 ```bash
-.venv/bin/python digest.py --days 7 --dry-run              # per-section counts, no send
-.venv/bin/python digest.py --days 7 --html-out /tmp/d.html # preview file, no send
-.venv/bin/python digest.py --days 7                        # compose and send
+.venv/bin/python -m tracker.digest --days 7 --dry-run              # per-section counts, no send
+.venv/bin/python -m tracker.digest --days 7 --html-out /tmp/d.html # preview file, no send
+.venv/bin/python -m tracker.digest --days 7                        # compose and send
 ```
 
 `--html-out` deliberately does **not** send — writing a preview is a look-before-you-send
@@ -325,9 +381,9 @@ Pass `--send` alongside it to do both.
 
 ## Sources
 
-Three layers, each doing a different job (see `SPEC.md` §4). The registry lives in `sources.py` and is a **living artifact** — feeds were RSS-verified on 2026-06-09; prune dead ones and add new outlets as found. The competency keyword lists at the top of `pipeline.py` (civil-service, procedure, digital, incentives) are the other living artifact: misses come from missing keywords, not missing outlets.
+Three layers, each doing a different job (see `docs/SPEC.md` §4). The registry lives in `tracker/state/sources.py` and is a **living artifact** — feeds were RSS-verified on 2026-06-09; prune dead ones and add new outlets as found. The competency keyword lists at the top of `tracker/state/pipeline.py` (civil-service, procedure, digital, incentives) are the other living artifact: misses come from missing keywords, not missing outlets.
 
-The web view's **Sources & methodology** tab renders a snapshot of this registry. After editing `sources.py`, regenerate it with `python sources.py --json > web/app/methodology/sources.json`.
+The web view's **Sources & methodology** tab renders a snapshot of this registry. After editing `tracker/state/sources.py`, regenerate it with `python -m tracker.state.sources --json > web/app/methodology/sources.json`.
 
 <!-- SOURCES:BEGIN (generated from sources.py) -->
 
@@ -446,20 +502,20 @@ Complementary coverage per state; the only layer covering the 11 states with no 
 - **Feed retention:** ~95 of 171 feeds hold less than 7 days of history. WordPress feeds are paginated backwards automatically; non-WordPress short feeds (public radio, Arc-platform papers, ~44 feeds) ignore pagination and would lose items between weekly runs — which is why the ingest runs daily (dedupe stays weekly).
 - **Indiana** has only one verified complementary outlet (most Indiana papers are Gannett, which removed RSS).
 - **StateScoop** retains only ~10 items (~a week of their publishing volume).
-- `phase0.py` is the original single-feed prototype (Google News query approach) — superseded, kept for reference. The Google News index layer is the planned Phase 1 completeness guarantee.
-- **`dedupe.py` windows on the wrong field.** `Raw Events` has no ingestion timestamp, so the window filters on `date` — which the Haiku gate fills with *the date of the government action*, not the publish date. An article ingested today about an action six weeks ago is written with a six-week-old date, falls outside Monday's 7-day window, and never clusters into `Events`. Fixing it needs an `ingested_at` field on `Raw Events` plus a backfill. The congressional pipeline has that field from the start and windows on it, so it doesn't inherit the bug.
+- `tools/phase0.py` is the original single-feed prototype (Google News query approach) — superseded, kept for reference. The Google News index layer is the planned Phase 1 completeness guarantee.
+- **`tracker/state/dedupe.py` windows on the wrong field.** `Raw Events` has no ingestion timestamp, so the window filters on `date` — which the Haiku gate fills with *the date of the government action*, not the publish date. An article ingested today about an action six weeks ago is written with a six-week-old date, falls outside Monday's 7-day window, and never clusters into `Events`. Fixing it needs an `ingested_at` field on `Raw Events` plus a backfill. The congressional pipeline has that field from the start and windows on it, so it doesn't inherit the bug.
 - **GAO moved to the federal tracker on 2026-08-20.** It had dominated this feed (21 of 41 events in one window) and, because the trade press covers its reports heavily, the same reports were arriving on the federal tab too — 5 of 6 GAO-actor federal events restated a `Congress Events` row — with nothing deduplicating the two copies. GAO now lives in the federal tracker's `oversight` lane, where a report and the coverage of it cluster into one event. CBO stays here. The 21 GAO rows in `Congress Raw` / `Congress Events` were deleted and re-ingested federally rather than translated: the schemas differ, and re-ingesting is what let them cluster with the coverage.
 - **Congressional press volume is recess-sensitive.** In the August 2026 backfill, 11 of 29 press sources returned zero items for the window; every one was verified quiet (newest item predated the window), not broken. Always check the `--dry-run` funnel before assuming a scraper failed.
 
 ## Data model
 
-One row per event in `Events`: `Name`, `Notes`, `date`, `state`, `competency` (multi — zero or more of civil-service/procedure/digital/incentives; empty = fits none), `relevance` (1–3, blank when no competency), `topic_tags` (multi — descriptive themes, independent of competency; see `rubric.md`), `activity_type` (bill-introduced/bill-passed/veto/EO/rulemaking/appointment/reorg/RFP-procurement/budget/program-launch/audit-report), `actor_type` (governor/legislature/state agency/statewide official/board-commission/court/university system), `gov_actor`, `why_it_matters`, `source_urls`, `source_outlets`, `article_count`, `Status`. (The previous `pillars`/`significance` model is preserved in the `old_Events` table.)
+One row per event in `Events`: `Name`, `Notes`, `date`, `state`, `competency` (multi — zero or more of civil-service/procedure/digital/incentives; empty = fits none), `relevance` (1–3, blank when no competency), `topic_tags` (multi — descriptive themes, independent of competency; see `rubrics/rubric.md`), `activity_type` (bill-introduced/bill-passed/veto/EO/rulemaking/appointment/reorg/RFP-procurement/budget/program-launch/audit-report), `actor_type` (governor/legislature/state agency/statewide official/board-commission/court/university system), `gov_actor`, `why_it_matters`, `source_urls`, `source_outlets`, `article_count`, `Status`. (The previous `pillars`/`significance` model is preserved in the `old_Events` table.)
 
 `Federal Events` mirrors that shape for the executive branch, with the classification fields
 unchanged (`competency`, `relevance`, `topic_tags`) and the descriptive fields re-pointed:
 `lane` (executive-action / oversight / news / rulemaking), `branch` (executive / congress / judiciary /
 multi), `agency` (multi), `instrument_type`, `instrument_id`, `verification` (official /
 reported / draft-leaked), `document_url`, plus the same `review_status` / `reviewer_notes`
-pair the congressional tables carry. `federal_schema.py` is the single declaration; it imports
-the competency and topic-tag vocabularies from `congress_schema.py` so a tag means the same
+pair the congressional tables carry. `tracker/federal/schema.py` is the single declaration; it imports
+the competency and topic-tag vocabularies from `tracker/congress/schema.py` so a tag means the same
 thing on every tab.

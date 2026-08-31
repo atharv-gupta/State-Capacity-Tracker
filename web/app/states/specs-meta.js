@@ -1,5 +1,5 @@
 // Shared metadata for the State Specs views (landing map/table + profile cards).
-// Mirrors the schema in static-state-specs.md §2. Keep field keys in sync with
+// Mirrors the schema in docs/specs/static-state-specs.md §2. Keep field keys in sync with
 // the Airtable field names and /api/state-specs.
 
 // The four buckets, each with its provenance pair (source URL + as-of date) and
