@@ -37,6 +37,197 @@ Dates are the date of the work, not of the write-up.
 
 ## Unreleased
 
+### State dedupe runs daily — 2026-09-02
+
+The clean `Events` table refreshed only on Mondays, so the dashboard was stale
+by up to six days — one of the two documented reasons the tracker "looked
+empty" mid-week. It now clusters every day, immediately after its own ingest,
+the pairing congress and federal already used.
+
+The cadence change is three lines of `weekly.yml`. It was gated on two fixes
+that had to land first, and **the order was the point**: run daily against the
+old delete-and-rewrite code and every event in the trailing week would have
+been deleted and re-created with a fresh record id *every day*, multiplying the
+damage rather than fixing the staleness.
+
+- **`Raw Events` gained `ingested_at`, and the dedupe windows on it** instead of
+  the LLM-extracted action `date`. The gate backdates `date` to the government
+  action, so an article scraped today about a six-week-old action carried a
+  six-week-old date and fell outside every future window — it never clustered at
+  all. Measured on the 428-row table: **56 rows (13%) had an ingest lag over 7
+  days** and were structurally unreachable; widening the current 7-day window
+  recovered 7 rows (24 → 31). Rows predating the field fall back to `date`.
+- **`Events` is upserted on a stable `event_id`** instead of being deleted and
+  rewritten. Writes go through `shared.airtable.upsert` with
+  `preserve=REVIEW_FIELDS`, and the table gained `review_status` /
+  `reviewer_notes` — a human verdict on a state event previously had nowhere
+  durable to live.
+- **An event is written once and then only accretes sources.** `event_id` is
+  minted at first sighting and never changes. Later runs match a cluster to an
+  existing event by **source-URL overlap**, not by re-hashing its URL set: the
+  set grows as more outlets cover the same action, so a content hash would
+  change and mint a duplicate. A matched event gets its provenance updated
+  (`source_urls`, `source_outlets`, `source_type`, `article_count`) and every
+  `FROZEN_FIELDS` value left as first written — `headline`, `Notes`,
+  `why_it_matters`, `date`, `competency`, `relevance`, `topic_tags`, actor
+  fields. Nothing is deleted: under first-writer-wins nothing is superseded by
+  re-clustering, so `state/dedupe.py` no longer prunes.
+- **The steady state is free.** A state whose every windowed article already
+  belongs to an event is skipped before any LLM call. Verified end to end:
+  run 1 → 29 new events, 29 classify calls; run 2 over the same window → 20 of
+  20 states skipped, "Nothing new to cluster", zero model calls and zero
+  writes; then with one article artificially marked unseen, it re-attached to
+  its existing event with **all 12 frozen fields byte-identical**, same record
+  id, same `event_id`.
+- **`--reclassify`** regenerates the frozen fields for events already in the
+  table, for a `rubrics/rubric.md` edit. Verified to change no `event_id` and no
+  record id (29/29 stable) while re-writing `headline` on 16 of 29 and
+  `why_it_matters` on 18 of 29.
+- **Migration:** `tools/backfill_state_ingested_at.py`, run once, three steps in
+  order. It fills `ingested_at` from each row's Airtable `createdTime` — which
+  *is* the moment the pipeline wrote the row — rewrites the old `uuid4`
+  event_ids into hashes so the first upsert updates rows rather than
+  duplicating them, and collapses any rows left sharing an id (keeping one that
+  carries a human verdict over one that doesn't, then the most recent). Ran
+  against 428 raw and 343 clean rows; idempotent on re-run.
+- **One fossil duplicate collapsed.** Exactly one pair shared a URL set: the
+  same single NH veto article, written twice, dated 07-11 and 07-13 a week
+  apart. That's the old path's signature — it cleared clean rows whose `date`
+  fell in the window, so a row the clusterer re-dated *out* of the window
+  survived the clear and got a twin. Neither `upsert` nor `prune_orphans` can
+  collapse such a pair alone: they share an id, so the upsert index keeps one
+  and the prune skips both. Hence step 3 of the migration.
+
+Two things this deliberately did **not** change:
+
+- **Candidate dedupe is still Mondays-only.** `candidates/dedupe.py` already
+  windows on `ingested_at` but is still delete-and-rewrite, so daily would churn
+  every row in its window every day. It wants the same upsert first.
+- **Freezing the text is deliberate, and it has a cost.** An event first seen
+  through one thin article keeps that article's headline, summary and
+  competency even after five more outlets cover it. That bites hardest on
+  `competency`: the default web view hides competency-empty events, so an event
+  classified `none` on thin early evidence stays hidden even once later coverage
+  makes the capacity angle obvious. `--reclassify` is the escape hatch.
+
+  Attribution for *why* freezing was needed — measured on two consecutive runs
+  of the pre-freeze code, split by whether the state called the clustering model:
+
+  | | events | `headline` changed | `why_it_matters` changed |
+  |---|---|---|---|
+  | states with >1 article (`cluster_state` ran) | 17 | 16/17 | 17/17 |
+  | states with 1 article (LLM bypassed) | 11 | 0/11 | 0/11 |
+
+  The drift was entirely the clustering call, not the classifier — a
+  single-article event already copies its raw row verbatim. So caching the
+  classify call alone would not have fixed it; the synthesis had to freeze too.
+
+**A one-time catch-up recovered the rows the old bug had stranded.** After the
+switch, 19 raw rows were found that had never reached `Events` at all —
+ingested between 2026-06-23 and 2026-08-19 and dropped by the old `date`
+window. A single `--days 72` run swept them in: **15 new events created, 8
+existing events gained a source, 82 known events kept their stored
+classification and cost no model call.** `Raw Events` now has zero unpromoted
+rows, and `Events` went from 349 to 364.
+
+That run also surfaced **5 groups of pre-existing duplicate events** — the same
+government action written separately at different procedural stages, which the
+old delete-and-rewrite path produced across weekly windows. The clusterer now
+recognises each group as one event, but merging them would mean choosing whose
+frozen text survives, so they are reported rather than merged. They need a
+human call:
+
+| state | event_ids | what it is |
+|---|---|---|
+| IL | `be021d9d…`, `199a55c9…` | Dept of Early Childhood launch, written twice |
+| IL | `faaf4c6f…`, `4d664955…` | Pritzker AI-regulation signing |
+| NC | `9d2c564d…`, `97edf5a8…` | the $34B budget: passed, then signed |
+| VA | `8fda1904…`, `1671dfa1…` | SCC / Dominion data-centre rate action |
+| VA | `88eb1e46…`, `fa8bcc32…`, `8cacc227…` | the $205B biennial budget, in three stages |
+
+**Stragglers fixed, and the reported duplicates collapsed — 2026-09-03.**
+
+- **Two windows, not one.** `--days` is now only the *trigger* window (which
+  states have something unseen); the new `--context-days` (default 30) is the
+  wider *clustering* window a triggered state is clustered against. A late
+  article therefore meets siblings that have aged out of `--days` and attaches
+  to their event instead of duplicating it. A/B on a real pair ingested six days
+  apart: at `--context-days 16` the late article produced a **new** event; at
+  `--context-days 30` it reported `+src` against the existing one, kept the
+  stored text and cost no classify call. The daily workflow run inherits the
+  30-day default. Quiet states are still skipped, so the wider context is free.
+- **The 5 reported duplicate groups were collapsed into their latest stage**
+  with the new `tools/collapse_state_events.py`, removing 6 rows. The survivor
+  is the row with the greatest `date` — a bill is agreed, then passed, then
+  signed, and the signing is the one worth keeping. The losers' sources are
+  merged into the survivor *before* deletion, which matters: an orphaned source
+  URL belongs to no event, so the next run would see it as unseen and re-create
+  the row just removed. Verified afterwards that `Raw Events` still has zero
+  unpromoted rows. Reviewer annotations are carried across rather than dropped.
+  One judgment call is flagged in that tool's output — see below.
+
+**Collapsing nests later rows under the FIRST iteration — 2026-09-03.** The
+first pass of this tool kept the *latest stage* row and, briefly, re-synthesized
+its text from all the merged sources. Both were wrong, and the second was
+wronger: re-deriving text whenever coverage accumulates is exactly the churn the
+freeze exists to prevent, and it produced an Illinois headline the user
+(rightly) rejected.
+
+The rule is now the same one the daily dedupe follows: **the earliest `date`
+survives** (ties broken by whichever saw more sources), its text and competency
+are kept untouched, and the later rows' sources nest under it. A later article
+about an action already recorded is not a new judgment about it.
+
+- The cost, stated plainly: the surviving headline describes the stage the
+  action was at when FIRST seen. A budget first recorded as "the Assembly passed
+  X" keeps that framing after the governor signs it. That is the intended trade
+  — an event resurfacing week after week as coverage trickles in is worse than a
+  slightly stale verb.
+- `--resynthesize` remains as an explicit opt-out for the case where a first
+  pass is genuinely wrong rather than merely early. It is not the default.
+- `dedupe.synthesize_one` / `MERGE_PROMPT` back that flag. They read the
+  ORIGINAL raw articles rather than the clean rows, and never downgrade a
+  classified event to `none` — the classifier is not deterministic and the
+  default web view hides competency-empty rows.
+
+**The five groups collapsed earlier used the old latest-stage rule**, so in each
+one the *later* row survived and the first was deleted. Re-running under the new
+rule cannot undo that: the earlier rows are gone from `Events`. Their record ids
+are listed below so they can be restored from Airtable's trash if wanted, after
+which re-collapsing would keep the restored row.
+
+| group | deleted (the first iteration) | record id |
+|---|---|---|
+| IL Early Childhood | `199a55c9…` 07-01 | `rec9l2E7TRJvFeAUA` |
+| IL AI | `faaf4c6f…` 07-06 | `recrHvF2mG9zzWryo` |
+| NC budget | `97edf5a8…` 06-30 | `rec04gEvfAdGASuXH` |
+| VA SCC | `8fda1904…` 07-15 | `reclu9xo4ejjMZyk6` |
+| VA budget | `fa8bcc32…` 06-22 | `recoJ7KS2ulEQA8zH` |
+| VA budget | `8cacc227…` 06-19 | `recabVBuXmTw3l83p` |
+
+The daily dedupe now also attaches an ambiguous cluster to whichever existing
+event came first, rather than to whichever shares the most sources.
+
+The migration script gained a guard at the same time. Step 2 mints an
+`event_id` from a row's sources, and once events started accreting sources the
+stored id legitimately diverged from `event_id_for(current urls)` — so a second
+run would have rewritten the ids of 8 live events and split them from their own
+history. It now only ever touches a legacy `uuid4` or a blank, and reports how
+many it left alone.
+
+Two gaps left open on purpose:
+
+- Rows whose `date` the gate got *wrong* now promote instead of being silently
+  dropped. One in the first window reads `2025-01-01` against an ingest date of
+  2026-08-28 — a 604-day lag, almost certainly hallucinated. The web view sorts
+  newest-first on `date`, so it lands at the bottom of the feed rather than
+  nowhere at all.
+- A straggler arriving more than `--days` after its siblings still mints a
+  second row, because they have aged out of the window and it shares no URL with
+  anything stored. Within-window stragglers attach correctly. Healing the late
+  case needs a periodic `--days 21` pass; not scheduled. One live instance, a
+  Maine labor agreement held as two rows dated 08-21 and 08-25.
+
 ### Digest: real recipients, and one message per person — 2026-08-31
 
 `updates.recodingamerica.org` is verified, so the digest now sends from

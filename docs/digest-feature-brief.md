@@ -5,6 +5,10 @@
 > receives their own message with their own unsubscribe link — see the "Weekly email
 > digest" section of the README. The §0 constraints below (send only from
 > `onboarding@resend.dev`, only to the account address) no longer apply.
+>
+> Also stale below: §1 and §9 describe `dedupe.py` as a Monday-only step. **The state
+> dedupe has run daily since 2026-09-02**; the digest is still Mondays-only and still
+> runs last, so its position in the workflow is unchanged.
 
 # Feature brief: weekly email digest (`digest.py`)
 

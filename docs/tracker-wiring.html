@@ -1,0 +1,2224 @@
+<title>Capacity Tracker Wiring</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600&display=swap">
+<style>
+  :root {
+    --paper:      #f2f5f8;
+    --card:       #ffffff;
+    --card-alt:   #fafbfc;
+    --ink:        #101823;
+    --ink-soft:   #33404f;
+    --muted:      #5f6d7e;
+    --faint:      #93a0af;
+    --rule:       #dde4ec;
+    --rule-hard:  #c3cdd9;
+    --accent:     #8c3a2f;
+    --accent-bg:  #f6ebe8;
+    --civil:      #059669;
+    --procedure:  #d97706;
+    --digital:    #2563eb;
+    --incentives: #7c3aed;
+    --shadow:     0 1px 2px rgba(16,24,35,.05), 0 12px 34px rgba(16,24,35,.13);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:      #0d1218;
+      --card:       #151c25;
+      --card-alt:   #1a222c;
+      --ink:        #e7edf4;
+      --ink-soft:   #c2ccd8;
+      --muted:      #8fa0b2;
+      --faint:      #6c7d90;
+      --rule:       #26303c;
+      --rule-hard:  #384554;
+      --accent:     #dd8272;
+      --accent-bg:  #2a1a17;
+      --civil:      #34d399;
+      --procedure:  #fbbf24;
+      --digital:    #60a5fa;
+      --incentives: #a78bfa;
+      --shadow:     0 1px 2px rgba(0,0,0,.4), 0 14px 38px rgba(0,0,0,.55);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:      #0d1218;
+    --card:       #151c25;
+    --card-alt:   #1a222c;
+    --ink:        #e7edf4;
+    --ink-soft:   #c2ccd8;
+    --muted:      #8fa0b2;
+    --faint:      #6c7d90;
+    --rule:       #26303c;
+    --rule-hard:  #384554;
+    --accent:     #dd8272;
+    --accent-bg:  #2a1a17;
+    --civil:      #34d399;
+    --procedure:  #fbbf24;
+    --digital:    #60a5fa;
+    --incentives: #a78bfa;
+    --shadow:     0 1px 2px rgba(0,0,0,.4), 0 14px 38px rgba(0,0,0,.55);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 34px 22px 96px; }
+
+  /* ---------- shared type roles ---------- */
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 10.5px; font-weight: 500; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--accent);
+  }
+  .mono {
+    font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  h1, h2, h3 { font-family: "IBM Plex Serif", Georgia, "Times New Roman", serif; margin: 0; text-wrap: balance; }
+
+  /* ---------- masthead ---------- */
+  header.mast { border-bottom: 2px solid var(--ink); padding-bottom: 16px; }
+  header.mast h1 { font-size: 34px; font-weight: 600; letter-spacing: -.015em; line-height: 1.1; }
+  header.mast .lede { max-width: 62ch; color: var(--ink-soft); font-size: 15px; margin: 10px 0 0; }
+  .mastmeta {
+    display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 16px;
+    font-size: 11.5px; color: var(--muted);
+  }
+  .mastmeta b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- section headers ---------- */
+  section { margin-top: 52px; }
+  .sechead { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
+  .sechead h2 { font-size: 21px; font-weight: 600; letter-spacing: -.01em; }
+  .sechead .eyebrow { margin-bottom: 2px; }
+  .secnote { color: var(--muted); font-size: 13px; max-width: 76ch; margin: 0 0 20px; }
+
+  /* ---------- stage rail ---------- */
+  .rail {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+    gap: 1px; background: var(--rule); border: 1px solid var(--rule);
+    border-radius: 3px; overflow: hidden;
+  }
+  .rail > div { background: var(--card); padding: 12px 13px 13px; }
+  .rail .step {
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 10px;
+    letter-spacing: .1em; color: var(--faint); text-transform: uppercase;
+  }
+  .rail .what { font-weight: 600; font-size: 13px; margin-top: 3px; }
+  .rail .who { color: var(--muted); font-size: 11.5px; margin-top: 4px; line-height: 1.45; }
+
+  /* ---------- matrix ---------- */
+  .scroller { overflow-x: auto; padding-bottom: 6px; }
+  .matrix {
+    display: grid;
+    grid-template-columns: 132px repeat(5, minmax(196px, 1fr));
+    min-width: 1120px;
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+  }
+  .matrix > * { background: var(--card); padding: 10px 11px 11px; }
+
+  .colhead { background: var(--card-alt); padding: 13px 11px 12px; }
+  .colhead .idx {
+    font-family: "IBM Plex Mono", monospace; font-size: 10px; color: var(--accent);
+    letter-spacing: .12em;
+  }
+  .colhead h3 { font-size: 15px; font-weight: 600; margin-top: 2px; line-height: 1.2; }
+  .colhead p { margin: 4px 0 0; font-size: 11.5px; color: var(--muted); line-height: 1.45; }
+  .corner { background: var(--card-alt); }
+  .corner span { font-size: 11px; color: var(--faint); line-height: 1.4; display: block; }
+
+  .rowlab {
+    background: var(--card-alt);
+    font-family: "IBM Plex Mono", monospace; font-size: 10.5px;
+    letter-spacing: .05em; text-transform: uppercase; color: var(--ink-soft);
+    line-height: 1.4; padding-top: 12px;
+  }
+  .rowlab em { display: block; font-style: normal; letter-spacing: 0; text-transform: none;
+    font-family: "IBM Plex Sans", sans-serif; font-size: 10.5px; color: var(--faint); margin-top: 3px; }
+
+  .cell { font-size: 12.5px; line-height: 1.5; }
+  .cell .hd { font-weight: 600; color: var(--ink); }
+  .cell .sub { color: var(--muted); font-size: 11.5px; margin-top: 3px; }
+  .cell .none { color: var(--faint); font-style: italic; }
+
+  /* ---------- the hover target ---------- */
+  .probe { cursor: pointer; padding-right: 30px; position: relative; }
+  .probe .detail { display: none; }
+  .probe .tab {
+    position: absolute; top: 9px; right: 8px;
+    width: 17px; height: 17px; border-radius: 3px;
+    border: 1px solid var(--rule-hard); background: var(--card-alt);
+    color: var(--muted);
+    display: flex; align-items: center; justify-content: center;
+    font-family: "IBM Plex Mono", monospace; font-size: 11px; line-height: 1;
+    font-weight: 500;
+  }
+  .probe .hd { border-bottom: 1px dashed var(--rule-hard); display: inline-block; }
+  .probe:hover, .probe:focus-visible { background: var(--card-alt); }
+  .probe:hover .tab, .probe:focus-visible .tab {
+    border-color: var(--accent); background: var(--accent); color: #fff;
+  }
+  .probe:hover .hd, .probe:focus-visible .hd { border-bottom-color: var(--accent); }
+  .probe:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .probe.pinned { background: var(--accent-bg); }
+  .probe.pinned .tab { border-color: var(--accent); background: var(--accent); color: #fff; }
+  .probe.pinned .hd { border-bottom-color: var(--accent); }
+
+  /* ---------- popover ---------- */
+  #pop {
+    position: fixed; z-index: 90; width: 372px; max-width: calc(100vw - 24px);
+    background: var(--card); border: 1px solid var(--rule-hard);
+    border-top: 3px solid var(--accent);
+    border-radius: 3px; box-shadow: var(--shadow);
+    padding: 14px 15px 15px; font-size: 12.5px; line-height: 1.55;
+    pointer-events: none;   /* never steal the hover that opened it */
+  }
+  #pop.pinned { pointer-events: auto; }
+  #pop[hidden] { display: none; }
+  #pop .ptitle { font-family: "IBM Plex Serif", Georgia, serif; font-weight: 600; font-size: 15px; line-height: 1.25; }
+  #pop .pkicker {
+    font-family: "IBM Plex Mono", monospace; font-size: 9.5px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 4px;
+  }
+  #pop .pbody { color: var(--ink-soft); margin: 8px 0 0; }
+  #pop .pbody p { margin: 0 0 8px; }
+  #pop .pbody p:last-child { margin-bottom: 0; }
+  #pop dl { margin: 10px 0 0; display: grid; gap: 9px; }
+  #pop dt {
+    font-family: "IBM Plex Mono", monospace; font-size: 9.5px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  #pop dd { margin: 3px 0 0; color: var(--ink-soft); }
+  #pop dd.keep { border-left: 2px solid var(--ink); padding-left: 9px; }
+  #pop dd.drop { border-left: 2px solid var(--rule-hard); padding-left: 9px; color: var(--muted); }
+  #pop code, .icode {
+    font-family: "IBM Plex Mono", monospace; font-size: .92em;
+    background: var(--card-alt); border: 1px solid var(--rule);
+    border-radius: 2px; padding: 0 3px;
+  }
+  #pop .pfoot {
+    margin-top: 12px; padding-top: 9px; border-top: 1px solid var(--rule);
+    font-family: "IBM Plex Mono", monospace; font-size: 10px; letter-spacing: .04em;
+    color: var(--faint); display: flex; justify-content: space-between; gap: 10px;
+  }
+
+  /* ---------- chips ---------- */
+  .tag {
+    display: inline-block;
+    font-family: "IBM Plex Mono", monospace; font-size: 9.5px; letter-spacing: .04em;
+    padding: 1px 5px; border-radius: 2px;
+    background: var(--card-alt); border: 1px solid var(--rule); color: var(--muted);
+  }
+  .warn { color: var(--accent); font-weight: 600; }
+
+  /* ---------- tables ---------- */
+  table.out { width: 100%; border-collapse: collapse; min-width: 940px; font-size: 12.5px; }
+  table.out th, table.out td { text-align: left; vertical-align: top; padding: 9px 11px; border-bottom: 1px solid var(--rule); }
+  table.out thead th {
+    background: var(--card-alt); border-bottom: 2px solid var(--rule-hard);
+    font-family: "IBM Plex Mono", monospace; font-size: 10px; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--ink-soft); font-weight: 500;
+  }
+  table.out thead th span { display: block; text-transform: none; letter-spacing: 0;
+    font-family: "IBM Plex Sans", sans-serif; font-size: 10.5px; color: var(--faint); margin-top: 2px; }
+  table.out tbody tr { background: var(--card); }
+  table.out tbody tr:nth-child(even) { background: var(--card-alt); }
+  table.out th[scope="row"] { font-weight: 600; color: var(--ink); width: 152px; }
+  table.out th[scope="row"] em { display: block; font-style: normal; font-weight: 400;
+    font-family: "IBM Plex Mono", monospace; font-size: 10.5px; color: var(--faint); margin-top: 2px; }
+  table.out td { color: var(--ink-soft); }
+  table.out td.off { color: var(--faint); }
+  table.out .lead { color: var(--ink); font-weight: 600; }
+
+  /* ---------- panels ---------- */
+  .panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(288px, 1fr)); gap: 16px; }
+  .panel {
+    background: var(--card); border: 1px solid var(--rule); border-radius: 3px;
+    padding: 16px 17px 17px;
+  }
+  .panel h3 { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
+  .panel .ph { font-size: 11.5px; color: var(--muted); margin: 0 0 11px; }
+  .panel ul { margin: 0; padding-left: 17px; }
+  .panel li { margin-bottom: 7px; color: var(--ink-soft); font-size: 12.5px; }
+  .panel li:last-child { margin-bottom: 0; }
+  .panel li b { color: var(--ink); }
+  .panel.flag { border-left: 3px solid var(--accent); }
+
+  .banlist { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 9px; }
+  .ban {
+    font-family: "IBM Plex Mono", monospace; font-size: 10px;
+    padding: 1px 5px; border-radius: 2px; color: var(--muted);
+    background: var(--card-alt); border: 1px solid var(--rule);
+    text-decoration: line-through; text-decoration-color: var(--accent);
+  }
+
+  /* ---------- alignment list ---------- */
+  .fixlist { display: grid; gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 3px; }
+  .fix {
+    background: var(--card); padding: 15px 17px 16px;
+    display: grid; grid-template-columns: 30px 1fr 168px; gap: 0 15px; align-items: start;
+  }
+  .fix .num {
+    font-family: "IBM Plex Mono", monospace; font-size: 15px; font-weight: 500;
+    color: var(--accent); line-height: 1.35; font-variant-numeric: tabular-nums;
+  }
+  .fix h4 { font-family: "IBM Plex Serif", Georgia, serif; font-size: 15px; font-weight: 600; margin: 0; line-height: 1.3; }
+  .fix .now { margin: 6px 0 0; font-size: 12.5px; color: var(--ink-soft); }
+  .fix .now b { color: var(--ink); }
+  .fix .do {
+    margin: 7px 0 0; font-size: 12.5px; color: var(--ink-soft);
+    border-left: 2px solid var(--accent); padding-left: 10px;
+  }
+  .fix .do b { color: var(--ink); }
+  .fix .side { font-size: 11px; color: var(--muted); line-height: 1.5; }
+  .fix .side div { margin-bottom: 5px; }
+  .fix .side .k {
+    font-family: "IBM Plex Mono", monospace; font-size: 9.5px; letter-spacing: .09em;
+    text-transform: uppercase; color: var(--faint); display: block;
+  }
+  .fix.done { background: var(--card-alt); }
+  .fix.done .num { color: var(--civil); }
+  .fix.done h4 { color: var(--muted); }
+  .fix.done h4 s { text-decoration-color: var(--faint); }
+  .fix .shipped {
+    display: inline-block; margin-left: 7px; vertical-align: 1px;
+    font-family: "IBM Plex Mono", monospace; font-size: 9px; letter-spacing: .1em;
+    text-transform: uppercase; font-weight: 500; color: var(--civil);
+    border: 1px solid var(--civil); border-radius: 2px; padding: 1px 4px;
+  }
+  .fix.done .do { border-left-color: var(--civil); }
+  .tier {
+    background: var(--card-alt); padding: 11px 17px 12px;
+    display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap;
+  }
+  .tier .tl {
+    font-family: "IBM Plex Mono", monospace; font-size: 10px; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--accent); font-weight: 500;
+  }
+  .tier .td { font-size: 12px; color: var(--muted); }
+  @media (max-width: 860px) {
+    .fix { grid-template-columns: 26px 1fr; }
+    .fix .side { grid-column: 2; margin-top: 10px; padding-top: 9px; border-top: 1px solid var(--rule); }
+  }
+
+  footer {
+    margin-top: 56px; padding-top: 16px; border-top: 1px solid var(--rule);
+    font-size: 11.5px; color: var(--faint); display: flex; flex-wrap: wrap; gap: 6px 20px;
+  }
+
+  .hint {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-family: "IBM Plex Mono", monospace; font-size: 10.5px; letter-spacing: .04em;
+    color: var(--muted); background: var(--card); border: 1px solid var(--rule);
+    border-radius: 2px; padding: 4px 9px;
+  }
+  .hint b { color: var(--accent); font-weight: 500; }
+  .hint .tabmini {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 15px; height: 15px; border-radius: 3px;
+    background: var(--accent); color: #fff; font-size: 10px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    #pop.fresh { animation: rise .12s ease-out; }
+    @keyframes rise { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+  }
+  @media (max-width: 720px) {
+    header.mast h1 { font-size: 27px; }
+    .wrap { padding: 26px 14px 72px; }
+  }
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <div class="eyebrow">Recoding America · Government Capacity Tracker</div>
+  <h1>Capacity Tracker Wiring</h1>
+  <p class="lede">Five streams feed in. Each has its own gates. All of them narrow down to the same
+  four competencies, then come out in two places. Every gate below opens on hover and tells you what
+  it screens for, in the prompt's own words.</p>
+  <div class="mastmeta">
+    <span><b>Ingest</b> daily, 13:00 UTC</span>
+    <span><b>Cluster</b> daily on state, congress and federal · Mondays on candidates</span>
+    <span><b>Digest</b> Mondays</span>
+    <span><b>Gates</b> claude-haiku-4-5</span>
+    <span><b>Synthesis + rubric</b> claude-sonnet-4-6</span>
+  </div>
+</header>
+
+<section>
+  <div class="sechead">
+    <div class="eyebrow">01</div>
+    <h2>The shape every stream shares</h2>
+  </div>
+  <p class="secnote">What each row of the table below means. Two steps cut the volume down before any
+  model runs. Two cheap gates then decide whether an article counts as an event at all. Only after
+  that does the expensive pass assign a competency.</p>
+  <div class="rail">
+    <div><div class="step">Stage 1</div><div class="what">Fetch</div><div class="who">Feeds, APIs and scrapes, limited to the last N days.</div></div>
+    <div><div class="step">Stage 2</div><div class="what">Pre-screen</div><div class="who">Regex on title and body. No model call yet, so it costs almost nothing.</div></div>
+    <div><div class="step">Stage 3</div><div class="what">Gate 1</div><div class="who">Is there a real action here? Haiku, one call per article.</div></div>
+    <div><div class="step">Stage 4</div><div class="what">Gate 2</div><div class="who">Does the action reach the government's own machinery?</div></div>
+    <div><div class="step">Stage 5</div><div class="what">Raw row</div><div class="who">One row per surviving article, holding the gate's own guesses.</div></div>
+    <div><div class="step">Stage 6</div><div class="what">Cluster</div><div class="who">Many write-ups of one action collapse into one event. Sonnet.</div></div>
+    <div><div class="step">Stage 7</div><div class="what">Classify</div><div class="who">Every event is read against the rubric: competency, relevance, tags.</div></div>
+    <div><div class="step">Stage 8</div><div class="what">Surface</div><div class="who">The clean table feeds the web tab and the Monday email.</div></div>
+  </div>
+</section>
+
+<section>
+  <div class="sechead">
+    <div class="eyebrow">02</div>
+    <h2>Five streams, side by side</h2>
+    <span class="hint"><span class="tabmini">+</span> <b>hover</b> to open · <b>click</b> to keep it open</span>
+  </div>
+  <p class="secnote">Read down a column to follow one stream start to finish. Read across a row to
+  compare the same step in all five. The two Congress paths get separate columns because the API path
+  has no raw layer and no gates at all — one record already <em>is</em> one hearing or one bill.</p>
+
+  <div class="scroller">
+  <div class="matrix">
+
+    <div class="corner"><span>Step ↓<br>Stream →</span></div>
+
+    <div class="colhead">
+      <div class="idx">STREAM 1</div>
+      <h3>State</h3>
+      <p>What the 50 state governments do to their own capacity.</p>
+    </div>
+    <div class="colhead">
+      <div class="idx">STREAM 2</div>
+      <h3>Congress&nbsp;·&nbsp;press</h3>
+      <p>The seven committees that shape how Washington runs itself, plus both whips and CBO.</p>
+    </div>
+    <div class="colhead">
+      <div class="idx">STREAM 3</div>
+      <h3>Congress&nbsp;·&nbsp;API</h3>
+      <p>Hearings and bills straight from Congress.gov. Nothing to cluster.</p>
+    </div>
+    <div class="colhead">
+      <div class="idx">STREAM 4</div>
+      <h3>Federal exec</h3>
+      <p>What the executive branch issues about itself, split into four lanes.</p>
+    </div>
+    <div class="colhead">
+      <div class="idx">STREAM 5</div>
+      <h3>Governors ’26</h3>
+      <p>The one stream with the filter reversed: campaign coverage is the point.</p>
+    </div>
+
+    <!-- ROW: inputs -->
+    <div class="rowlab">Inputs<em>what gets fetched</em></div>
+
+    <div class="cell probe" tabindex="0">
+      <span class="tab">+</span>
+      <div class="hd">171 RSS feeds</div>
+      <div class="sub">39 States Newsroom · 131 state papers and outlets · 1 trade press</div>
+      <div class="detail">
+        <div class="pkicker">Stream 1 · inputs</div>
+        <div class="ptitle">Three layers, one registry</div>
+        <div class="pbody">
+          <p><b>Layer 1 — the spine.</b> One nonprofit statehouse newsroom per state, 39 states, all
+          at <code>/feed/localFeed</code>.</p>
+          <p><b>Layer 2 — breadth.</b> 131 newspapers, public radio stations and politics outlets.
+          This is the only layer covering the 11 states with no States Newsroom outlet: CA, CT, DE,
+          HI, IL, MA, MS, NY, TX, VT, WY.</p>
+          <p><b>Layer 3 — trade.</b> StateScoop only. The classifier works out which state acted.</p>
+        </div>
+        <dl>
+          <dt>Feeds forget fast</dt>
+          <dd>About 95 of the 171 hold less than 7 days. WordPress feeds get paged backwards up to 30
+          pages, but roughly 44 non-WordPress feeds ignore paging completely. That is why ingest runs
+          <b>daily</b> even though clustering is weekly.</dd>
+          <dt>Keep it current</dt>
+          <dd>The registry is <code>tracker/state/sources.py</code>, RSS-verified 2026-06-09. The
+          methodology tab shows a generated snapshot of it.</dd>
+        </dl>
+        <div class="pfoot"><span>tracker/state/sources.py</span><span>171 feeds</span></div>
+      </div>
+    </div>
+
+    <div class="cell probe" tabindex="0">
+      <span class="tab">+</span>
+      <div class="hd">28 press sources</div>
+      <div class="sub">3 WordPress REST APIs · 13 RSS · 12 HTML scrapes</div>
+      <div class="detail">
+        <div class="pkicker">Stream 2 · inputs</div>
+        <div class="ptitle">Seven committees, three ways of fetching</div>
+        <div class="pbody">
+          <p>Senate HSGAC, Senate Rules, Senate Appropriations, House Oversight, House
+          Administration, House Rules and House Appropriations — plus both whips and CBO.</p>
+          <p>HSGAC and Padilla have WordPress REST APIs, which give clean endpoints, full article
+          bodies and date filtering on the server. Thirteen sources have working RSS. Twelve need
+          HTML scraping. Nothing needs JavaScript, so there is no headless browser anywhere.</p>
+        </div>
+        <dl>
+          <dt>Quiet is not broken</dt>
+          <dd>Volume here drops during recess. In one August backfill, 11 of 29 press sources returned
+          nothing — and every one turned out to be genuinely quiet. Read the <code>--dry-run</code>
+          funnel first: it prints fetched → in-window → pre-screened → passed for each source.</dd>
+        </dl>
+        <div class="pfoot"><span>tracker/congress/sources.py</span><span>28 sources</span></div>
+      </div>
+    </div>
+
+    <div class="cell probe" tabindex="0">
+      <span class="tab">+</span>
+      <div class="hd">2 Congress.gov endpoints</div>
+      <div class="sub"><span class="icode">committee-meeting</span> · <span class="icode">committee/*/bills</span></div>
+      <div class="detail">
+        <div class="pkicker">Stream 3 · inputs</div>
+        <div class="ptitle">Records, not coverage</div>
+        <div class="pbody">
+          <p>One API record already <em>is</em> one hearing or one bill, and it has a stable ID. So
+          this path skips the raw layer, the clustering step and both gates. Fetch, classify,
+          upsert.</p>
+          <p>Hearings bring witnesses, materials, bill references and status. Bills use the
+          committee's <em>own</em> action date rather than the bill's latest floor action, so a bill
+          referred last year but marked up this week still lands inside the window.</p>
+        </div>
+        <dl>
+          <dt>Why upsert instead of rewrite</dt>
+          <dd>Both tables match on a stable ID, which is what lets a reviewer's
+          <code>review_status</code> and <code>reviewer_notes</code> survive every nightly run.</dd>
+          <dt>Crosscheck</dt>
+          <dd><code>--crosscheck</code> compares HSGAC's own CMS against Congress.gov by hearing
+          date. Last run, the API had everything the CMS had, plus one hearing it didn't.</dd>
+        </dl>
+        <div class="pfoot"><span>tracker/congress/api_sync.py</span><span>needs CONGRESS_API_KEY</span></div>
+      </div>
+    </div>
+
+    <div class="cell probe" tabindex="0">
+      <span class="tab">+</span>
+      <div class="hd">4 lanes</div>
+      <div class="sub">news 8 outlets · executive-action 4 listings · oversight GAO · rulemaking 26 FR queries</div>
+      <div class="detail">
+        <div class="pkicker">Stream 4 · inputs</div>
+        <div class="ptitle">The lane comes from the source, never from the model</div>
+        <div class="pbody">
+          <p>A FedScoop story about an OMB memo is news <em>about</em> an executive action. If the
+          model picked the lane, trade-press coverage could pass itself off as the original document.
+          So the source decides.</p>
+          <p>When a cluster spans lanes, the most direct source wins:
+          <code>executive-action 4 › rulemaking 3 › oversight 2 › news 1</code>. The document beats
+          coverage of it, and it also beats a finding about it. If OPM issues guidance in response to
+          a GAO report, the event is the guidance.</p>
+        </div>
+        <dl>
+          <dt>How the Federal Register is narrowed</dt>
+          <dd>The full Register runs about 1,637 documents per 21 days, nearly all of it ordinary
+          regulatory business. So there are 26 targeted queries instead: full coverage of the 7
+          agencies whose subject matter <em>is</em> how government runs (OPM, OMB, GSA, MSPB, FLRA,
+          OGE, NARA), every presidential document, and an 18-phrase sweep across all agencies. That
+          fetched 212 documents and kept 18 in the first window.</dd>
+          <dt>Why oversight gets its own lane</dt>
+          <dd>GAO is a legislative-branch auditor, so filing its reports as executive actions
+          mislabels them. And at roughly 24 reports per 21 days, GAO outweighs everything else on the
+          tab, so it needs to be collapsible. Agency IGs do <em>not</em> come through here: an IG
+          audit reported by FedScoop arrives via the news lane, because the lane records how directly
+          you are hearing it.</dd>
+        </dl>
+        <div class="pfoot"><span>tracker/federal/sources.py</span><span>39 fetch targets</span></div>
+      </div>
+    </div>
+
+    <div class="cell probe" tabindex="0">
+      <span class="tab">+</span>
+      <div class="hd">1 Google News query per candidate</div>
+      <div class="sub">120 candidates across 36 races; withdrawn and defeated are skipped</div>
+      <div class="detail">
+        <div class="pkicker">Stream 5 · inputs</div>
+        <div class="ptitle">A headline is not an article</div>
+        <div class="pbody">
+          <p>On a Google News <em>search</em> feed, the RSS description is just the title plus the
+          outlet name — about 85 characters — and the link is a redirect token, not the publisher's
+          URL. So the pipeline decodes the token and fetches the real article before any gate runs.</p>
+          <p>Until 2026-08-31 it didn't, and the gates were judging headlines. One week produced five
+          kept items nationwide and zero from any competitive race.</p>
+        </div>
+        <dl>
+          <dt>Names</dt>
+          <dd>The roster stores legal names; the press uses shorter ones. Queries OR in the
+          initial-stripped and first+last versions — "Daniel J. McKee" returns about a third of what
+          "Dan McKee" does. Nicknames can't be worked out automatically and need the per-candidate
+          <code>news_query</code> override.</dd>
+          <dt>The cap limits a run, it doesn't choose</dt>
+          <dd>Entries are date-filtered and sorted <em>before</em>
+          <code>PER_CANDIDATE_CAP = 100</code> applies. Google returns results ranked by relevance
+          with jumbled dates, so the old approach of slicing the raw list dropped 30% of the week —
+          and mostly from the highest-profile candidates, who are the ones that return a full 100.</dd>
+        </dl>
+        <div class="pfoot"><span>tracker/candidates/pipeline.py</span><span>roster in Gov Candidates</span></div>
+      </div>
+    </div>
+
+    <!-- ROW: pre-screen -->
+    <div class="rowlab">Pre-screen<em>regex, no model</em></div>
+
+    <div class="cell probe" tabindex="0">
+      <span class="tab">+</span>
+      <div class="hd">118 keyword patterns</div>
+      <div class="sub">Must hit at least 1 of four competency lists</div>
+      <div class="detail">
+        <div class="pkicker">Stream 1 · pre-screen</div>
+        <div class="ptitle">The cheapest filter, and the riskiest</div>
+        <div class="pbody">
+          <p>Four regex lists, matched against title plus summary, case-insensitive, on word
+          boundaries. An article that hits none of them never reaches a model.</p>
+        </div>
+        <dl>
+          <dt>List sizes</dt>
+          <dd class="keep">civil-service 27 · procedure 22 · digital 32 · incentives 37</dd>
+          <dt>What it looks for</dt>
+          <dd class="keep">Vocabulary, not outlets: <code>civil service</code>,
+          <code>hiring freeze</code>, <code>collective bargaining</code>, <code>red tape</code>,
+          <code>occupational licens*</code>, <code>rulemaking</code>, <code>legacy system*</code>,
+          <code>chief information officer</code>, <code>performance-based funding</code>,
+          <code>transparency dashboard</code>, <code>sunset provision*</code>.</dd>
+          <dt>Where misses come from</dt>
+          <dd class="drop">Words missing here, not outlets missing from the registry. The spec calls
+          these lists the highest-leverage and highest-risk part of the pipeline, and asks that they
+          be reviewed and kept up to date.</dd>
+        </dl>
+        <div class="pfoot"><span>PILLAR_KEYWORDS</span><span>title + summary</span></div>
+      </div>
+    </div>
+
+    <div class="cell probe" tabindex="0">
+      <span class="tab">+</span>
+      <div class="hd">157 keyword patterns</div>
+      <div class="sub">Same idea, federal vocabulary</div>
+      <div class="detail">
+        <div class="pkicker">Stream 2 · pre-screen</div>
+        <div class="ptitle">The language of federal operations</div>
+        <div class="pbody">
+          <p>Same job as the state lists, different words. Matched against title plus body.</p>
+        </div>
+        <dl>
+          <dt>List sizes</dt>
+          <dd class="keep">civil-service 41 · procedure 37 · digital 40 · incentives 39</dd>
+          <dt>Typical terms</dt>
+          <dd class="keep"><code>schedule f</code>, <code>reduction in force</code>,
+          <code>deferred resignation</code>, <code>OIRA</code>, <code>paperwork reduction</code>,
+          <code>closed rule</code>, <code>germaneness</code>, <code>FITARA</code>,
+          <code>FedRAMP</code>, <code>improper payment*</code>, <code>high-risk list</code>,
+          <code>unauthorized appropriation*</code>.</dd>
+          <dt>One term kept on purpose</dt>
+          <dd class="drop">The bare <code>GAO</code> token stays, even though the GAO feed itself
+          moved to the federal tracker. Committee letters <em>to</em> GAO, and releases citing a GAO
+          finding, are congressional events, and this is what catches them.</dd>
+        </dl>
+        <div class="pfoot"><span>PILLAR_KEYWORDS</span><span>title + body</span></div>
+      </div>
+    </div>
+
+    <div class="cell probe" tabindex="0">
+      <span class="tab">+</span>
+      <div class="hd">Bills only: policyArea</div>
+      <div class="sub">Hearings aren't pre-screened at all</div>
+      <div class="detail">
+        <div class="pkicker">Stream 3 · pre-screen</div>
+        <div class="ptitle">Congress.gov's own labels do the cheap work</div>
+        <div class="pbody">
+          <p>A bill whose <code>policyArea</code> falls outside five areas skips the model entirely —
+          the same job the regex lists do elsewhere. The set is kept broad on purpose, because the
+          rubric does the real filtering.</p>
+        </div>
+        <dl>
+          <dt>Areas kept</dt>
+          <dd class="keep">Government Operations and Politics · Science, Technology, Communications ·
+          Economics and Public Finance · Labor and Employment · Congress</dd>
+          <dt>Hearings</dt>
+          <dd class="drop">No pre-screen. Volume is low, and a dull agenda line can hide a
+          governmentwide subject, so every meeting record gets classified.</dd>
+        </dl>
+        <div class="pfoot"><span>CAPACITY_POLICY_AREAS</span><span>bills only</span></div>
+      </div>
+    </div>
+
+    <div class="cell probe" tabindex="0">
+      <span class="tab">+</span>
+      <div class="hd">News lane only</div>
+      <div class="sub">217 patterns, plus 46 <em>machinery anchors</em> for broad outlets</div>
+      <div class="detail">
+        <div class="pkicker">Stream 4 · pre-screen</div>
+        <div class="ptitle">Where the pre-screen applies, and where it deliberately doesn't</div>
+        <div class="pbody">
+          <p><b>news</b> — pre-screened, using the congressional lists plus 60 federal-only terms, 217
+          patterns in total.</p>
+          <p><b>executive-action</b> — <em>not</em> pre-screened. About ten items a window, and the
+          whole point of the lane is that a dull agency headline can hide a governmentwide
+          document.</p>
+          <p><b>rulemaking</b> — not pre-screened. The 26 Federal Register queries <em>are</em> the
+          pre-screen.</p>
+          <p><b>oversight</b> — not pre-screened. One feed, about 24 reports per 21 days.</p>
+        </div>
+        <dl>
+          <dt>The anchor rule</dt>
+          <dd class="keep">Outlets marked <code>broad</code> in the registry — The Hill, roughly 100
+          posts a day across every beat — must <em>also</em> hit one of 46 anchors naming an
+          institution or a document: <code>OPM</code>, <code>OIRA</code>, <code>MSPB</code>,
+          <code>schedule f</code>, <code>federal register</code>, <code>login.gov</code>. The capacity
+          words on their own match half of general political coverage, on terms like "oversight",
+          "accountability" and "AI".</dd>
+          <dt>What that bought</dt>
+          <dd class="keep">In the first 21-day window it took The Hill from 1,706 posts down to 13
+          candidates and 5 events, while FedScoop kept 20 of 45.</dd>
+        </dl>
+        <div class="pfoot"><span>ANCHOR_PATTERN</span><span>1 of 4 lanes screened</span></div>
+      </div>
+    </div>
+
+    <div class="cell probe" tabindex="0">
+      <span class="tab">+</span>
+      <div class="hd">None — fetch the article instead</div>
+      <div class="sub">Decode the redirect, keep up to 6,000 chars, flag failures <span class="icode">headline-only</span></div>
+      <div class="detail">
+        <div class="pkicker">Stream 5 · pre-screen</div>
+        <div class="ptitle">Fetching real text instead of filtering keywords</div>
+        <div class="pbody">
+          <p>There is no keyword pre-screen here, because the query is already candidate-scoped. The
+          expensive step before the gate is getting real text to judge.</p>
+          <p>Six workers, a 20-second timeout, one second between requests to the same host, 6,000
+          characters kept. Under 400 characters counts as a failed fetch, not a short story.</p>
+        </div>
+        <dl>
+          <dt>headline-only</dt>
+          <dd class="keep">Some publishers block any crawler. Those rows get flagged, and the prompt
+          is told to judge the headline on its own merits rather than reject it for having no article
+          text. "Appears to be a stub" is explicitly not a valid reason in that case.</dd>
+        </dl>
+        <div class="pfoot"><span>enrich_bodies()</span><span>BODY_CHARS 6000</span></div>
+      </div>
+    </div>
+
+    <!-- ROW: gate 1 -->
+    <div class="rowlab">Gate 1<em>is it an action?</em></div>
+
+    <div class="cell probe" tabindex="0">
+      <span class="tab">+</span>
+      <div class="hd">Who acted</div>
+      <div class="sub">A state-level actor, acting officially</div>
+      <div class="detail">
+        <div class="pkicker">Stream 1 · gate 1 · haiku</div>
+        <div class="ptitle">Was this an action by a state-level government actor?</div>
+        <div class="pbody">
+          <p>State legislature, governor, state agency or office, state board or commission, acting
+          in their official capacity. If you can't tell <em>which</em> state government acted, the
+          gate fails.</p>
+        </div>
+        <dl>
+          <dt>Passes</dt>
+          <dd class="keep">A bill introduced or passed · veto · executive order · rulemaking ·
+          appointment · agency reorg · RFP or procurement · budget move · program launch · official
+          audit or report. A story about a contract award passes, because the award itself is the
+          government action. A state <em>responding to</em> a federal action passes too — the state's
+          response is the event.</dd>
+          <dt>Fails</dt>
+          <dd class="drop">Federal-only actions · city or county actions · think-tank reports ·
+          advocacy · lawsuits by private parties · campaign coverage and promises · elections ·
+          punditry · opinion.</dd>
+        </dl>
+        <div class="pfoot"><span>SYSTEM_PROMPT · GATE 1</span><span>claude-haiku-4-5</span></div>
+      </div>
+    </div>
+
+    <div class="cell probe" tabindex="0">
+      <span class="tab">+</span>
+      <div class="hd">Is there an action?</div>
+      <div class="sub">Framing alone fails. This is the gate that does the work here.</div>
+      <div class="detail">
+        <div class="pkicker">Stream 2 · gate 1 · haiku</div>
+        <div class="ptitle">These feeds are mostly partisan messaging</div>
+        <div class="pbody">
+          <p>A release reacting to the other party is not an event. Filtering that out before the
+          expensive Sonnet pass is most of the job on this stream.</p>
+          <p>A press release <em>about</em> a real action passes — the action is the event, even if
+          the framing is partisan. A release that is <em>only</em> framing fails.</p>
+        </div>
+        <dl>
+          <dt>Passes</dt>
+          <dd class="keep">A hearing scheduled or held · a markup · a bill introduced, reported,
+          passed or enacted · an oversight letter or document demand · a subpoena · a report released,
+          GAO and CBO included · a nomination advanced or blocked · an appropriations decision · a
+          committee rule adopted · an investigation opened.</dd>
+          <dt>Fails</dt>
+          <dd class="drop">Reaction and response statements · praise or criticism of the other party ·
+          floor speeches with no action behind them · "X slams Y" · ICYMI roundups · reprinted op-eds ·
+          newsletters · district events · home-district grant announcements · ceremonial items ·
+          campaign content · news about the member's own office staff.</dd>
+          <dt>The exception that had to be spelled out</dt>
+          <dd class="keep">A GAO or CBO report passes Gate 1 <em>by being published</em> — these
+          agencies act by reporting. The prompt tells the model not to decide a research product isn't
+          an action, and not to wait for Congress to respond to it. A routine manual revision or data
+          refresh with no findings still fails: nothing was examined.</dd>
+        </dl>
+        <div class="pfoot"><span>SYSTEM_PROMPT · GATE 1</span><span>claude-haiku-4-5</span></div>
+      </div>
+    </div>
+
+    <div class="cell">
+      <div class="hd none">No gate</div>
+      <div class="sub">One record is one hearing or one bill. The rubric filters instead.</div>
+    </div>
+
+    <div class="cell probe" tabindex="0">
+      <span class="tab">+</span>
+      <div class="hd">Name the document</div>
+      <div class="sub">Can you point to a concrete thing?</div>
+      <div class="detail">
+        <div class="pkicker">Stream 4 · gate 1 · haiku</div>
+        <div class="ptitle">Executive-branch press offices produce a lot of language and comparatively few actions</div>
+        <div class="pbody">
+          <p>And the language is written to be quoted. So the gate that matters here isn't about who
+          acted — it's whether you can <b>name the thing</b>. An item gets in only if there's a
+          concrete document or action to point at.</p>
+        </div>
+        <dl>
+          <dt>Things you can name</dt>
+          <dd class="keep">A numbered OMB memo or circular · agency guidance, a policy letter, a
+          directive or a delegation · a proposed or final rule · a Federal Register notice with legal
+          effect · an executive order or presidential memo · a workforce action actually taken (RIF,
+          hiring authority, reclassification, pay determination, bargaining order) · a procurement
+          action · a system launched or shut down · a reorganization · a report with findings · a
+          court order making an agency act.</dd>
+          <dt>Fails</dt>
+          <dd class="drop">ICYMI · interviews · podcasts · transcripts · op-eds · statements
+          responding to statements · anniversaries and awards · an official simply arriving or
+          leaving · restatements of existing policy · promises to be more efficient with no mechanism ·
+          explainers · vendor business news · routine paperwork renewals · standard meeting notices ·
+          Privacy Act reprints · technical corrections.</dd>
+          <dt>Kept and labelled, not dropped</dt>
+          <dd class="keep">Trade-press reporting on a draft or unannounced action passes as long as
+          the action is specific. It gets recorded as <code>reported</code> or
+          <code>draft-leaked</code> rather than <code>official</code>. A draft memo described before
+          it's signed is often the earliest real signal.</dd>
+          <dt>Then rewrite it plainly</dt>
+          <dd class="keep">Everything that passes gets rewritten with the promotional and partisan
+          adjectives stripped out — "historic", "commonsense", "radical", "restoring", "war on" are
+          not facts. Each row carries the original document so the framing can be checked against
+          it.</dd>
+        </dl>
+        <div class="pfoot"><span>SYSTEM_PROMPT · GATE 1</span><span>claude-haiku-4-5</span></div>
+      </div>
+    </div>
+
+    <div class="cell probe" tabindex="0">
+      <span class="tab">+</span>
+      <div class="hd">Is it about governing?</div>
+      <div class="sub">Substance about how they'd govern, not the horse race</div>
+      <div class="detail">
+        <div class="pkicker">Stream 5 · gate 1 · haiku</div>
+        <div class="ptitle">The main tracker throws out campaign coverage; this one requires it</div>
+        <div class="pbody">
+          <p>The filter is reversed, but it's still a filter. The item has to be substantively about
+          the named candidate's governing agenda, record or plans.</p>
+        </div>
+        <dl>
+          <dt>Passes</dt>
+          <dd class="keep">Policy plans, platform planks and issue positions · candidate press
+          releases and official statements with policy content · speeches, debate answers, interviews
+          and op-eds with policy substance · what the candidate does in a current office, since a
+          sitting AG, governor, mayor or legislator acting shows how they'd govern · concrete
+          commitments, like a promised day-one executive order.</dd>
+          <dt>Fails</dt>
+          <dd class="drop">Pure horse race — polls · fundraising · endorsements with no policy
+          content · attack coverage about the opponent · ads · staffing and process · event logistics ·
+          punditry about who will win · items that mention the candidate only in passing · items about
+          a different person.</dd>
+          <dt>headline-only rows</dt>
+          <dd class="keep">A headline naming a concrete governing action — "orders a pause on data
+          center approvals", "pledges to replace agency heads" — passes Gate 1 on its own.</dd>
+        </dl>
+        <div class="pfoot"><span>SYSTEM_PROMPT · GATE 1</span><span>claude-haiku-4-5</span></div>
+      </div>
+    </div>
+
+    <!-- ROW: gate 2 -->
+    <div class="rowlab">Gate 2<em>does it reach the machinery?</em></div>
+
+    <div class="cell probe" tabindex="0">
+      <span class="tab">+</span>
+      <div class="hd">Competency — state</div>
+      <div class="sub">Rough on purpose; the real call comes later</div>
+      <div class="detail">
+        <div class="pkicker">Stream 1 · gate 2 · haiku</div>
+        <div class="ptitle">Does it touch one of the four capacities?</div>
+        <div class="pbody">
+          <p>Deliberately rough. The gate's <code>pillars</code> guess gets stored on the raw row but
+          isn't the final answer — the Sonnet rubric pass decides that per event. Where the two
+          disagree is where the second model overruled the first.</p>
+        </div>
+        <dl>
+          <dt>The four</dt>
+          <dd class="keep"><b>procedure</b> — cutting procedure and simplifying regulation.<br>
+          <b>digital</b> — digital and tech transformation.<br>
+          <b>civil-service</b> — civil service and workforce reform.<br>
+          <b>incentives</b> — the learning loop: funding tied to outcomes, oversight reform, program
+          evaluation, accountability dashboards, test-and-learn pilots, following up on laws already
+          passed.</dd>
+          <dt>Not incentives</dt>
+          <dd class="drop">A routine compliance audit, or a big new mandate.</dd>
+          <dt>"none" is never a pass</dt>
+          <dd class="drop"><code>none</code> only gets assigned later, per event, at the dedupe stage.
+          A raw row exists because it hit at least one capacity.</dd>
+        </dl>
+        <div class="pfoot"><span>SYSTEM_PROMPT · GATE 2</span><span>writes pillars[]</span></div>
+      </div>
+    </div>
+
+    <div class="cell probe" tabindex="0">
+      <span class="tab">+</span>
+      <div class="hd">Competency — federal</div>
+      <div class="sub">Plus legislative-branch procedure</div>
+      <div class="detail">
+        <div class="pkicker">Stream 2 · gate 2 · haiku</div>
+        <div class="ptitle">The same four, pointed at Washington</div>
+        <div class="pbody">
+          <p>Chamber rules and floor process count as <code>procedure</code> here. That exception
+          exists only on this stream. Election systems — voter rolls, election security, the EAC —
+          count as <code>digital</code>.</p>
+        </div>
+        <dl>
+          <dt>What the prompt says outright</dt>
+          <dd class="keep">Most items FAIL. That is expected and correct. Do not stretch.</dd>
+          <dd class="drop">A funding level, increase or cut is <em>not</em> a competency on its own.
+          Appropriations only count when the funding <b>model</b> changes — flexibility, multi-year or
+          no-year authority, funding tied to outcomes, restructured accounts.</dd>
+          <dd class="drop">Regulating an industry isn't <code>procedure</code>. Regulating private
+          technology isn't <code>digital</code>. Judge the action underneath, not how the headline
+          frames it.</dd>
+          <dd class="drop">Oversight that's only about a scandal, a personality or a party fight —
+          with no look at whether a program works — isn't <code>incentives</code>.</dd>
+        </dl>
+        <div class="pfoot"><span>SYSTEM_PROMPT · GATE 2</span><span>claude-haiku-4-5</span></div>
+      </div>
+    </div>
+
+    <div class="cell">
+      <div class="hd none">No gate</div>
+      <div class="sub">Competency and relevance get assigned in one Sonnet pass, below.</div>
+    </div>
+
+    <div class="cell probe" tabindex="0">
+      <span class="tab">+</span>
+      <div class="hd">Competency — executive</div>
+      <div class="sub">Has to reach the government's <em>own</em> machinery</div>
+      <div class="detail">
+        <div class="pkicker">Stream 4 · gate 2 · haiku</div>
+        <div class="ptitle">The line this prompt draws hardest</div>
+        <div class="pbody">
+          <p>An OMB memo about how agencies use AI is <code>digital</code>. A rule about private AI
+          developers fails. Same four competencies, and the same warning that most items fail.</p>
+        </div>
+        <dl>
+          <dt>Sharper here</dt>
+          <dd class="drop">One official being hired or fired isn't <code>civil-service</code>. The
+          workforce <b>system</b> changing is.</dd>
+          <dd class="drop">A funding level, cut, rescission or CR isn't a competency on its own.</dd>
+          <dd class="keep"><code>incentives</code> here means the federal learning loop: IG and GAO
+          findings <em>and whether agencies act on them</em>, program evaluation, performance plans and
+          measures, payment integrity, funding tied to outcomes, working-capital fund mechanics.</dd>
+          <dt>Also decided at this gate</dt>
+          <dd class="keep">The row's <code>branch</code>, <code>agency[]</code>,
+          <code>instrument_type</code>, <code>instrument_id</code>, <code>verification</code> and
+          <code>document_url</code>. For a GAO or IG report, <code>branch</code> is the branch the
+          report <em>looks at</em>, not the branch the auditor works in.</dd>
+        </dl>
+        <div class="pfoot"><span>SYSTEM_PROMPT · GATE 2</span><span>claude-haiku-4-5</span></div>
+      </div>
+    </div>
+
+    <div class="cell probe" tabindex="0">
+      <span class="tab">+</span>
+      <div class="hd">Competency — candidate</div>
+      <div class="sub">A plan counts the same as a law</div>
+      <div class="detail">
+        <div class="pkicker">Stream 5 · gate 2 · haiku</div>
+        <div class="ptitle">Most campaign coverage fails here, and that's correct</div>
+        <div class="pbody">
+          <p>A real governing-agenda item that touches none of the four — a healthcare plan, a tax
+          plan, a general crime platform — fails Gate 2. Direction doesn't matter: a plan that would
+          <em>damage</em> a competency is still a strong example of it.</p>
+        </div>
+        <dl>
+          <dt>The clarification that won back real coverage</dt>
+          <dd class="keep">A state changing how <em>it</em> approves, permits, licenses, sites or
+          subsidises something is changing its own process, so it counts — even though the thing being
+          approved is private. "Pause state approvals of data centres", "tie a tax abatement to
+          performance benchmarks", "speed up permitting" are <code>procedure</code> and/or
+          <code>incentives</code>, not out-of-scope economic policy. Only a rule aimed purely at
+          private behaviour is out of scope.</dd>
+          <dt>Relevance gets scored here too</dt>
+          <dd class="keep">A kept item always has at least one competency and a 1–3 score. It then
+          gets <em>re-scored</em> against the full rubric in the Monday pass, which is why the gate is
+          told to lean toward keeping only when a competency is really there.</dd>
+        </dl>
+        <div class="pfoot"><span>SYSTEM_PROMPT · GATE 2</span><span>claude-haiku-4-5</span></div>
+      </div>
+    </div>
+
+    <!-- ROW: raw table -->
+    <div class="rowlab">Raw layer<em>one row per article</em></div>
+
+    <div class="cell">
+      <div class="hd mono">Raw Events</div>
+      <div class="sub">Carries the gate's own <span class="icode">why_it_matters</span> <span class="warn">→</span></div>
+    </div>
+    <div class="cell">
+      <div class="hd mono">Congress Raw</div>
+      <div class="sub">Has <span class="icode">ingested_at</span> from the start</div>
+    </div>
+    <div class="cell">
+      <div class="hd none">No raw layer</div>
+      <div class="sub">Fetch → classify → upsert, in one pass</div>
+    </div>
+    <div class="cell">
+      <div class="hd mono">Federal Raw</div>
+      <div class="sub">All four lanes land in one table</div>
+    </div>
+    <div class="cell">
+      <div class="hd mono">Candidate Developments</div>
+      <div class="sub">Carries the gate's own <span class="icode">why_it_matters</span> <span class="warn">→</span></div>
+    </div>
+
+    <!-- ROW: cluster -->
+    <div class="rowlab">Cluster<em>sonnet</em></div>
+
+    <div class="cell probe" tabindex="0">
+      <span class="tab">+</span>
+      <div class="hd">Grouped by state</div>
+      <div class="sub">A state with one row skips the call entirely</div>
+      <div class="detail">
+        <div class="pkicker">Stream 1 · cluster · sonnet</div>
+        <div class="ptitle">Grouping and writing only — no judgment</div>
+        <div class="pbody">
+          <p>The prompt is explicit that this step must <em>not</em> decide which capacity an event
+          touches or how important it is. That's a separate call.</p>
+        </div>
+        <dl>
+          <dt>Rules</dt>
+          <dd class="keep">Two rows are the same event only if they describe the same action
+          underneath — same bill, same appointment, same layoff, same contract — not just the same
+          topic. The same bill at different stages within one week is <b>one</b> event at its latest
+          stage, with the progression noted. Every input row has to appear in exactly one event, and a
+          row that matches nothing becomes its own single-row event.</dd>
+          <dt>The shortcut with a side effect</dt>
+          <dd class="drop">When a state has only one row in the window, the clustering call gets
+          skipped and the raw fields pass straight through — <em>including the Haiku gate's
+          <code>why_it_matters</code></em>. About 86% of state events take this path, so most
+          published lines were written by the cheap gate off the raw article, not by the Sonnet
+          prompt.</dd>
+          <dt>Safety net</dt>
+          <dd class="keep">If the model drops a row from its own output, that row gets added back as
+          its own event instead of being lost.</dd>
+        </dl>
+        <div class="pfoot"><span>tracker/state/dedupe.py</span><span>claude-sonnet-4-6</span></div>
+      </div>
+    </div>
+
+    <div class="cell probe" tabindex="0">
+      <span class="tab">+</span>
+      <div class="hd">Grouped by chamber</div>
+      <div class="sub">GAO and CBO group on their own</div>
+      <div class="detail">
+        <div class="pkicker">Stream 2 · cluster · sonnet</div>
+        <div class="ptitle">The chamber is the real boundary</div>
+        <div class="pbody">
+          <p>Members sit on several committees, so grouping by committee would split one action across
+          groups. GAO and CBO group separately — they don't co-sign anything.</p>
+        </div>
+        <dl>
+          <dt>Single-row groups skip the model</dt>
+          <dd class="keep">That's most of the volume here. The event carries the raw row's headline and
+          notes through — but <code>why_it_matters</code> is set to <b>empty</b>, because this
+          stream's gate never wrote one.</dd>
+          <dt>Stable ids</dt>
+          <dd class="keep">The event id is a hash of the sorted member URLs, so the same set of
+          sources lands on the same row every run and a reviewer's notes survive the upsert.</dd>
+        </dl>
+        <div class="pfoot"><span>tracker/congress/dedupe.py</span><span>claude-sonnet-4-6</span></div>
+      </div>
+    </div>
+
+    <div class="cell">
+      <div class="hd none">Not clustered</div>
+      <div class="sub">A stable Congress.gov ID makes clustering unnecessary</div>
+    </div>
+
+    <div class="cell probe" tabindex="0">
+      <span class="tab">+</span>
+      <div class="hd">Grouped by subject agency</div>
+      <div class="sub">Sorted key; reporters aren't subjects</div>
+      <div class="detail">
+        <div class="pkicker">Stream 4 · cluster · sonnet</div>
+        <div class="ptitle">Grouped by the alphabetically first subject agency</div>
+        <div class="pbody">
+          <p>GAO, <code>governmentwide</code>, <code>courts</code> and <code>other</code> count as
+          reporters rather than subjects, and only get used when there's nothing more specific.</p>
+          <p>Sorting is what makes the key independent of order. Two outlets covering one GAO report
+          on FEMA returned <code>["gao","fema"]</code> and <code>["fema","gao"]</code>, landed in
+          different groups, and survived as duplicate events until the key was sorted.</p>
+        </div>
+        <dl>
+          <dt>Known limit</dt>
+          <dd class="drop">Rows whose agency lists don't overlap at all still can't cluster
+          together.</dd>
+          <dt>Which lane wins</dt>
+          <dd class="keep">A cluster takes the lane of its most direct source, not its newest. A
+          Federal Register rule plus a Federal News Network story files under
+          <code>rulemaking</code>; that same rule plus OPM's own release files under
+          <code>executive-action</code>.</dd>
+          <dt>Single-row groups</dt>
+          <dd class="drop">Skip the call, and <code>why_it_matters</code> is left empty — same as the
+          congressional stream.</dd>
+        </dl>
+        <div class="pfoot"><span>tracker/federal/dedupe.py</span><span>claude-sonnet-4-6</span></div>
+      </div>
+    </div>
+
+    <div class="cell probe" tabindex="0">
+      <span class="tab">+</span>
+      <div class="hd">Grouped by candidate</div>
+      <div class="sub">Single-row developments carry raw fields through</div>
+      <div class="detail">
+        <div class="pkicker">Stream 5 · cluster · sonnet</div>
+        <div class="ptitle">One candidate's week, collapsed</div>
+        <div class="pbody">
+          <p>Same shape as the state stream: cluster within a candidate, then re-classify every
+          development against the rubric.</p>
+        </div>
+        <dl>
+          <dt>The same shortcut</dt>
+          <dd class="drop">A raw row that clusters with nothing becomes its own development and
+          carries its raw fields straight through, <code>why_it_matters</code> included. About 67% of
+          published developments take this path.</dd>
+          <dt>The window that must not move</dt>
+          <dd class="keep">Dedupe uses <code>ingested_at</code>, not <code>date</code>.
+          <code>date</code> is the publication date, so windowing on it strands anything ingested
+          late — permanently, because the clean table gets rebuilt per window. The rebuild floor comes
+          from the selected rows, so everything the clear step deletes also gets rebuilt.</dd>
+          <dt>Length enforced in code</dt>
+          <dd class="keep">This call writes several lines in one response and goes over the 30-word
+          cap about a quarter of the time, so any long line gets one short rewrite call. The original
+          is kept if the rewrite fails or comes back longer.</dd>
+        </dl>
+        <div class="pfoot"><span>tracker/candidates/dedupe.py</span><span>claude-sonnet-4-6</span></div>
+      </div>
+    </div>
+
+    <!-- ROW: classify -->
+    <div class="rowlab">Rubric pass<em>sonnet, cached prompt</em></div>
+
+    <div class="cell probe" tabindex="0">
+      <span class="tab">+</span>
+      <div class="hd mono">rubric.md</div>
+      <div class="sub">Every event, including single-article ones</div>
+      <div class="detail">
+        <div class="pkicker">All streams · classify · sonnet</div>
+        <div class="ptitle">The one call that actually decides</div>
+        <div class="pbody">
+          <p>The rubric goes in as a cached system prompt — it's identical on every call, so it
+          caches — with the event in the user message. It returns three things and nothing else.</p>
+        </div>
+        <dl>
+          <dt>competencies[]</dt>
+          <dd class="keep">Zero or more. <b>Most events match none, and that's expected.</b> Usually
+          it's exactly one. Two only when the action really is substantially about both: legislative
+          oversight of a failing benefits system is <code>digital</code> (the system) and
+          <code>incentives</code> (the oversight). A second competency has to stand on its own.</dd>
+          <dt>Principle 1 — capacity, not subject matter</dt>
+          <dd class="keep">Is the government changing how it builds and runs itself, or regulating the
+          world outside it? Only the first is a competency. A law <em>about</em> an industry, or a
+          contract <em>about</em> a technology, is usually <code>none</code> even when it hits our
+          keywords.</dd>
+          <dt>Principle 2 — direction doesn't matter</dt>
+          <dd class="keep">An action that <em>damages</em> a competency is still an example of it,
+          often a strong one. A state outsourcing its IT and hollowing out internal capacity is a
+          clear <code>digital</code> event and scores 3.</dd>
+          <dt>relevance 1–3</dt>
+          <dd class="keep"><b>3</b> a clear central example · <b>2</b> definitely an instance but
+          partial or indirect · <b>1</b> loosely related, right at the edge · <b>blank</b> fits none.
+          When torn between a 1 and <code>none</code>, choose <code>none</code>.</dd>
+          <dt>topic_tags</dt>
+          <dd class="keep">26 descriptive tags on a separate axis: 19 capacity tags plus 7 sector tags
+          (<code>data-center</code>, <code>tax-incentives</code>, <code>energy-utility</code>,
+          <code>health-human-services</code>, <code>higher-ed</code>, <code>k12-education</code>,
+          <code>child-welfare</code>). Sector tags land on <code>none</code> events on purpose — that's
+          how you watch a theme that isn't a competency.</dd>
+        </dl>
+        <div class="pfoot"><span>rubrics/rubric.md</span><span>claude-sonnet-4-6</span></div>
+      </div>
+    </div>
+
+    <div class="cell probe" tabindex="0">
+      <span class="tab">+</span>
+      <div class="hd mono">congress-adaptation<span style="color:var(--faint)"> + rubric</span></div>
+      <div class="sub">Added in front, not edited — the state rubric is untouched</div>
+      <div class="detail">
+        <div class="pkicker">Stream 2 &amp; 3 · classify · sonnet</div>
+        <div class="ptitle">Same four competencies, pointed at Washington</div>
+        <div class="pbody">
+          <p>Wherever the rubric says "state government", read "the federal government". Both
+          principles and the relevance scale carry over unchanged. The adaptation goes
+          <em>in front of</em> <code>rubrics/rubric.md</code> rather than forking it, so a fix to the
+          shared definitions reaches every tracker.</p>
+        </div>
+        <dl>
+          <dt>Congress-only exceptions</dt>
+          <dd class="keep">Legislative-branch procedure — chamber rules, floor process, germaneness,
+          committee jurisdiction — counts as <code>procedure</code>. Election systems count as
+          <code>digital</code>.</dd>
+          <dt>Stream 3 adds a summarizer</dt>
+          <dd class="keep">Hearings and bills get <code>short_title</code> and <code>summary</code>
+          written in the same call. The prompt insists on a real title for a markup — "the agenda text
+          you were given is not one" — and asks for the committee's action and its main subject, or
+          the through-line rather than a list of every bill.</dd>
+        </dl>
+        <div class="pfoot"><span>rubrics/congress-adaptation.md</span><span>+ rubrics/rubric.md</span></div>
+      </div>
+    </div>
+
+    <div class="cell probe" tabindex="0">
+      <span class="tab">+</span>
+      <div class="hd mono">congress-adaptation<span style="color:var(--faint)"> + rubric</span></div>
+      <div class="sub">Plus <span class="icode">short_title</span> and <span class="icode">summary</span> in the same call</div>
+      <div class="detail">
+        <div class="pkicker">Stream 3 · classify · sonnet</div>
+        <div class="ptitle">One call does the writing and the scoring</div>
+        <div class="pbody">
+          <p>With no gate and no clustering, this single call is the whole judgment for a hearing or a
+          bill. It writes the title, the summary and the <code>why_it_matters</code>, then assigns
+          competencies, relevance and tags.</p>
+        </div>
+        <dl>
+          <dt>Title discipline</dt>
+          <dd class="keep">6–12 words naming what the thing actually is. For a hearing or markup, the
+          agenda text is explicitly rejected as a title — name the committee's action and its subject
+          ("HSGAC markup of federal workforce and rulemaking bills"). For a bill, its own short title
+          is usually already right.</dd>
+          <dt>Bill selection happens later</dt>
+          <dd class="keep">The digest prints a bill only if the committee action was
+          <code>marked-up</code> or <code>reported</code>, with relevance 2 or higher and a competency
+          assigned. <code>referred</code> is excluded — it happens to hundreds of bills and isn't
+          news.</dd>
+        </dl>
+        <div class="pfoot"><span>CLASSIFY_SYSTEM</span><span>claude-sonnet-4-6</span></div>
+      </div>
+    </div>
+
+    <div class="cell probe" tabindex="0">
+      <span class="tab">+</span>
+      <div class="hd mono">federal-adaptation<span style="color:var(--faint)"> + rubric</span></div>
+      <div class="sub">Same pattern; neither other rubric is touched</div>
+      <div class="detail">
+        <div class="pkicker">Stream 4 · classify · sonnet</div>
+        <div class="ptitle">Read "the federal executive branch" for "state government"</div>
+        <div class="pbody">
+          <p>The four competencies stay the same in substance. Only the level and branch of government
+          moves. Principles 1 and 2 carry over completely unchanged.</p>
+        </div>
+        <dl>
+          <dt>What each becomes</dt>
+          <dd class="keep"><b>civil-service</b> Schedule F, RIF and reorganization authority, OPM
+          governmentwide guidance, SES reform, the GS system and locality pay, probationary periods,
+          removal procedure, MSPB and FLRA activity, telework directives, deferred resignation.<br>
+          <b>procedure</b> paperwork reduction and information collections, OMB circulars A-11, A-123
+          and A-130, OIRA review, the rulemaking process itself, NEPA, grant administration, the FAR
+          as process.<br>
+          <b>digital</b> the Technology Modernization Fund, FedRAMP, FITARA, CIO authority, agency AI
+          use and governance, cybersecurity of federal systems, benefits and claims systems,
+          Login.gov, cloud migration, government as a smart buyer.<br>
+          <b>incentives</b> IG and GAO findings <em>and whether agencies act on them</em>, the
+          Evidence Act, performance plans, payment integrity, working-capital and franchise-fund
+          mechanics.</dd>
+          <dt>Said outright</dt>
+          <dd class="drop">Impact on states is <b>not</b> a criterion. An action that stays entirely
+          inside the federal government still counts.</dd>
+        </dl>
+        <div class="pfoot"><span>rubrics/federal-adaptation.md</span><span>+ rubrics/rubric.md</span></div>
+      </div>
+    </div>
+
+    <div class="cell probe" tabindex="0">
+      <span class="tab">+</span>
+      <div class="hd mono">candidate adaptation<span style="color:var(--faint)"> + rubric</span></div>
+      <div class="sub">A pledge scores like a law would</div>
+      <div class="detail">
+        <div class="pkicker">Stream 5 · classify · sonnet</div>
+        <div class="ptitle">One change, stated in four sentences</div>
+        <div class="pbody">
+          <p>What a candidate <em>says or plans</em> counts the same as something enacted. A promised
+          day-one regulatory-reform EO is a <code>procedure</code> example. A pledged IT consolidation
+          is a <code>digital</code> example.</p>
+          <p>Both principles carry over unchanged. A tax plan or a healthcare plan with no bearing on
+          how the state builds and runs itself is <code>none</code> — the common, correct answer.</p>
+        </div>
+        <dl>
+          <dt>Why it goes in front instead of forking</dt>
+          <dd class="keep">The adaptation sits ahead of an unchanged <code>rubrics/rubric.md</code>, so
+          the cached part of the prompt stays identical across every tracker's calls.</dd>
+        </dl>
+        <div class="pfoot"><span>CANDIDATE_ADAPTATION</span><span>+ rubrics/rubric.md</span></div>
+      </div>
+    </div>
+
+    <!-- ROW: clean table -->
+    <div class="rowlab">Clean layer<em>one row per event</em></div>
+
+    <div class="cell">
+      <div class="hd mono">Events</div>
+      <div class="sub">Window rebuilt each Monday; history outside it is never touched</div>
+    </div>
+    <div class="cell">
+      <div class="hd mono">Congress Events</div>
+      <div class="sub">Upserted daily; reviewer notes kept</div>
+    </div>
+    <div class="cell">
+      <div class="hd mono">Congress Hearings</div>
+      <div class="sub">and <span class="icode">Congress Bills</span> — both upserted daily</div>
+    </div>
+    <div class="cell">
+      <div class="hd mono">Federal Events</div>
+      <div class="sub">Upserted daily; reviewer notes kept</div>
+    </div>
+    <div class="cell">
+      <div class="hd mono">Candidate Events</div>
+      <div class="sub">Window rebuilt each Monday</div>
+    </div>
+
+    <!-- ROW: web -->
+    <div class="rowlab">Website<em>reads Airtable server-side</em></div>
+
+    <div class="cell">
+      <div class="hd mono">/ · /states/[postal]</div>
+      <div class="sub">US map shaded by count, five filters, event list beneath</div>
+    </div>
+    <div class="cell">
+      <div class="hd mono">/congress</div>
+      <div class="sub">Committee activity, by competency</div>
+    </div>
+    <div class="cell">
+      <div class="hd mono">/congress</div>
+      <div class="sub">Hearings calendar and bills, same tab</div>
+    </div>
+    <div class="cell">
+      <div class="hd mono">/federal</div>
+      <div class="sub">Four lanes, agency chips, document ids</div>
+    </div>
+    <div class="cell">
+      <div class="hd mono">/candidates</div>
+      <div class="sub">Races, candidate cards, developments</div>
+    </div>
+
+    <!-- ROW: email -->
+    <div class="rowlab">Monday email<em>one send, two halves</em></div>
+
+    <div class="cell probe" tabindex="0">
+      <span class="tab">+</span>
+      <div class="hd">STATE · four competency sections</div>
+      <div class="sub">Cap 5 each · empty sections still print</div>
+      <div class="detail">
+        <div class="pkicker">Digest · state half</div>
+        <div class="ptitle">All four competencies, every week, even when empty</div>
+        <div class="pbody">
+          <p>That rhythm is the tracker's spine and readers learn it, so an empty
+          <code>incentives</code> section prints a "nothing notable" line rather than
+          disappearing.</p>
+        </div>
+        <dl>
+          <dt>How items get picked</dt>
+          <dd class="keep">Within a competency: relevance-3 items first, then relevance-2, each group
+          ordered by most-covered then newest. The cap applies to the <em>whole</em> list, not just
+          the top-up. It used to take every 3 and cap only the 2s, which let one federal competency
+          print nine items against a cap of five.</dd>
+          <dt>Repeats across sections</dt>
+          <dd class="keep">A state event with two competencies prints in <b>both</b> sections. State
+          volume is high and overlap is uncommon, so repeating the occasional double is better than
+          hiding it. The federal half does the opposite.</dd>
+        </dl>
+        <div class="pfoot"><span>select_by_competency()</span><span>cap 5</span></div>
+      </div>
+    </div>
+
+    <div class="cell probe" tabindex="0">
+      <span class="tab">+</span>
+      <div class="hd">FEDERAL › Congress</div>
+      <div class="sub">Cap 4 · empty sections dropped · no repeats across sections</div>
+      <div class="detail">
+        <div class="pkicker">Digest · federal half</div>
+        <div class="ptitle">Why the federal half behaves differently</div>
+        <div class="pbody">
+          <p>Two branch groups times four competencies is eight subsections. Eight "nothing notable"
+          lines is a wall of nothing, so empty ones get dropped here.</p>
+          <p>And on the federal side, <code>incentives</code> means almost the same thing as "a
+          watchdog published something". Without deduping, the Incentives subsection restated most of
+          Digital and Civil service — 22 slots for 15 events in the first week.</p>
+        </div>
+        <dl>
+          <dt>So</dt>
+          <dd class="keep">A federal item prints under the <em>first</em> competency it matches and
+          carries the rest on its meta line as "also incentives". Nothing is lost and nothing
+          repeats.</dd>
+        </dl>
+        <div class="pfoot"><span>FEDERAL_DEDUPE_ACROSS_SECTIONS</span><span>cap 4</span></div>
+      </div>
+    </div>
+
+    <div class="cell probe" tabindex="0">
+      <span class="tab">+</span>
+      <div class="hd">On the calendar</div>
+      <div class="sub">8 upcoming · 4 recently held · then 5 bills</div>
+      <div class="detail">
+        <div class="pkicker">Digest · federal half</div>
+        <div class="ptitle">The one thing in the email that goes stale</div>
+        <div class="pbody">
+          <p>Upcoming hearings ignore the "last N days" window completely — a hearing next Tuesday
+          would fail that test — and the calendar sits ahead of everything else in the FEDERAL half,
+          in its own tinted panel.</p>
+          <p>It's also why all three congressional steps run <b>daily</b>, including the classify
+          step — it was the first stream to do so. A Monday-only classify would surface a Wednesday
+          hearing notice after the hearing had already happened. The state side joined it on
+          2026-09-02; only the candidate dedupe is still Mondays-only.</p>
+        </div>
+        <dl>
+          <dt>One deliberate flip</dt>
+          <dd class="keep">A calendar entry leads with the <b>agenda</b> and only falls back to
+          <code>why_it_matters</code> — the opposite of every other section. That line gets written
+          before anyone has heard the testimony, and it reads as the classifier thinking out loud.</dd>
+        </dl>
+        <div class="pfoot"><span>load_hearings()</span><span>8 upcoming / 4 recent</span></div>
+      </div>
+    </div>
+
+    <div class="cell">
+      <div class="hd">FEDERAL › Agencies</div>
+      <div class="sub">Cap 4 · same no-repeat rule as Congress</div>
+    </div>
+
+    <div class="cell probe" tabindex="0">
+      <span class="tab">+</span>
+      <div class="hd">STATE › Governors ’26</div>
+      <div class="sub">Cap 5 · competitive races only</div>
+      <div class="detail">
+        <div class="pkicker">Digest · state half</div>
+        <div class="ptitle">Toss-up and Lean races only</div>
+        <div class="pbody">
+          <p>The old rule ran two tiers and printed up to thirteen items, which made the 2026 races
+          the longest thing in an email whose whole state section is four competencies.</p>
+          <p>A safe race isn't news about the election even when the candidate says something
+          interesting, and an open seat in a safe state is still a safe state — <code>race_type ==
+          "open"</code> no longer qualifies on its own. Of 36 races, 10 are Toss-up or Lean.</p>
+        </div>
+        <dl>
+          <dt>Also required</dt>
+          <dd class="keep">Relevance 2 or higher, a competency assigned, and a candidate who isn't
+          <code>defeated</code> or <code>withdrawn</code> — after a primary their platform isn't news,
+          and the roster keeps the losers on purpose.</dd>
+          <dt>The link always shows</dt>
+          <dd class="keep">Not only when there's overflow. The section shows a deliberately narrow
+          slice, so the way to the rest shouldn't appear and disappear.</dd>
+        </dl>
+        <div class="pfoot"><span>select_governors()</span><span>GOVERNORS_CAP 5</span></div>
+      </div>
+    </div>
+
+  </div>
+  </div>
+</section>
+
+<section>
+  <div class="sechead">
+    <div class="eyebrow">03</div>
+    <h2>Where the words come out</h2>
+  </div>
+  <p class="secnote">The same clean rows, rendered five different ways. The thing worth knowing:
+  <code class="icode">why_it_matters</code> gets written on every stream but <em>shown</em> on almost
+  none of the web tabs. It's mostly an email field.</p>
+
+  <div class="scroller">
+  <table class="out">
+    <thead>
+      <tr>
+        <th scope="col">Field</th>
+        <th scope="col">State map<span>/ and /states</span></th>
+        <th scope="col">Congress tab<span>/congress</span></th>
+        <th scope="col">Federal tab<span>/federal</span></th>
+        <th scope="col">Governors tab<span>/candidates</span></th>
+        <th scope="col">Monday email<span>every section</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th scope="row">Title<em>the clickable line</em></th>
+        <td><span class="lead">Name</span>, with the <code class="icode">XX —</code> state prefix stripped off. 5–10 words, sentence case, no state name.</td>
+        <td><span class="lead">short_title</span>, 6–12 words. Falls back to <code class="icode">headline</code> on older rows.</td>
+        <td><span class="lead">short_title</span>, plainly worded — the promotional adjectives came off at the gate.</td>
+        <td><span class="lead">headline</span> — one plain sentence in the model's own words.</td>
+        <td>Whichever of the three the section's loader supplies, linked to the first source URL.</td>
+      </tr>
+      <tr>
+        <th scope="row">Description<em>the body text</em></th>
+        <td><span class="lead">Notes</span> — 1–2 plain sentences, always visible under the title.</td>
+        <td><span class="lead">headline + summary</span>, inside the expander.</td>
+        <td><span class="lead">headline + summary</span>, inside the expander.</td>
+        <td class="off">Not shown. <code class="icode">summary</code> is stored, but the tab renders headlines only.</td>
+        <td><span class="lead">why_it_matters</span>, or the first 2 sentences of <code class="icode">Notes</code>/<code class="icode">summary</code> if it's empty.</td>
+      </tr>
+      <tr>
+        <th scope="row">why_it_matters<em>≤30 words, one sentence</em></th>
+        <td class="off">Not shown anywhere on the state view.</td>
+        <td>In the expander, on its own line — but only on multi-source clusters.</td>
+        <td>In the expander — same: single-source events have none.</td>
+        <td class="off">Not shown.</td>
+        <td><span class="lead">This is the summary line of every item.</span> The field exists mainly for here.</td>
+      </tr>
+      <tr>
+        <th scope="row">Competency<em>chips</em></th>
+        <td>Coloured chips, and the main filter.</td>
+        <td>Coloured chips on the meta row.</td>
+        <td>Coloured chips on the meta row.</td>
+        <td>Mini chips on the meta row, and the filter.</td>
+        <td>The section header's colour and underline, plus a 3px stripe on each item.</td>
+      </tr>
+      <tr>
+        <th scope="row">Relevance<em>1–3</em></th>
+        <td>Dots — <span class="mono">●●●</span> — with a tooltip.</td>
+        <td>Dots.</td>
+        <td>Dots.</td>
+        <td class="off">Not rendered.</td>
+        <td class="off">Never printed. It only decides <em>which</em> items print, and in what order.</td>
+      </tr>
+      <tr>
+        <th scope="row">Topic tags<em>26 values</em></th>
+        <td>Clickable chips that set the tag filter.</td>
+        <td>Chips in the expander.</td>
+        <td>Chips in the expander.</td>
+        <td class="off">Not rendered.</td>
+        <td class="off">Not printed — the email has no filter to attach them to.</td>
+      </tr>
+      <tr>
+        <th scope="row">Meta line<em>the small grey row</em></th>
+        <td><code class="icode">activity_type</code> and <code class="icode">actor_type</code> chips, then <code class="icode">gov_actor</code>.</td>
+        <td>Committee · <code class="icode">party_source</code> (majority/minority only) · <code class="icode">activity_type</code>.</td>
+        <td>Up to 2 agency chips · branch (when not executive) · <code class="icode">instrument_type</code> · <code class="icode">instrument_id</code> · verification (when not official).</td>
+        <td>Date · state · candidate.</td>
+        <td>One dot-joined line, built per section — plus "also incentives" on deduped federal items.</td>
+      </tr>
+      <tr>
+        <th scope="row">Sources</th>
+        <td>Every URL, labelled by outlet, plus "<span class="mono">N</span> articles merged".</td>
+        <td>One "Read the source →" link.</td>
+        <td>One <code class="icode">.gov</code> document plus one press write-up, split on host.</td>
+        <td>First URL only, on the headline.</td>
+        <td>Up to 3 labelled links — and on the federal side, the same one-of-each rule as the tab.</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <div class="sechead">
+    <div class="eyebrow">04</div>
+    <h2>The one line the whole email hangs on</h2>
+  </div>
+  <p class="secnote"><code class="icode">tracker/shared/wim.py</code> — two rule blocks over one shared
+  base, worked out from a blind A/B against 60 real events plus a second round on the 20 hardest.
+  Re-run the comparison before editing; the workbooks in <code class="icode">review/</code> are the
+  fixture.</p>
+
+  <div class="panels">
+    <div class="panel">
+      <h3>RULES</h3>
+      <p class="ph">Enacted actions — state, congress, federal</p>
+      <ul>
+        <li>Name something concrete from <b>this</b> event — the agency, the document, the dollar
+        figure, the deadline, the named program — and give a consequence the title and summary don't
+        already state. <b>A line that would fit fifty other events is a failed line.</b></li>
+        <li>Don't restate the competency. The reader can see the chip.</li>
+        <li>Routine housekeeping tempts you into inflating it. Say the smallest true thing: who now
+        has to do what, what it replaces, who's affected.</li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <h3>CANDIDATE_RULES</h3>
+      <p class="ph">Governors ’26 — the mirror image</p>
+      <ul>
+        <li>A blind round using the general rules <b>lost 8 of 10</b> candidate rows: it stripped out
+        exactly what a candidate reader wants. So here you <em>may</em> name what kind of governing
+        action this is, and link it to the record, the office, or the cycle.</li>
+        <li>But that fix overcorrected. <b>The substance is the subject, not the campaign</b> — none of
+        the 4 winners made the campaign the subject; 3 of 6 losers did. The race can appear only as a
+        trailing clause. If the line still stands with that clause deleted, it's built right.</li>
+      </ul>
+      <div class="banlist">
+        <span class="ban">first concrete</span>
+        <span class="ban">a record to run on</span>
+        <span class="ban">positioning their campaign</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Shared base</h3>
+      <p class="ph">The five failures that actually happen</p>
+      <ul>
+        <li><b>Stop at what's known.</b> No speculation tacked on the end. If an em dash is followed by
+        "whether", cut from the dash — the line is usually already finished.</li>
+        <li><b>Don't guess at intent.</b> Say what they did and what it does, never what they're
+        betting on.</li>
+        <li><b>Everything has to come from the material.</b> No figure, headcount, duration or "X other
+        states also…" that isn't in front of you. An unverifiable statistic on a public tracker is
+        worse than a plain sentence.</li>
+        <li><b>Keep the register flat.</b> Report, don't characterise.</li>
+        <li><b>30 words or fewer, one sentence.</b> Most good lines are 20–25. Never open with "This",
+        "The move", "The measure". Never return empty.</li>
+      </ul>
+      <div class="banlist">
+        <span class="ban">capacity</span><span class="ban">machinery</span>
+        <span class="ban">underscores</span><span class="ban">highlights</span>
+        <span class="ban">signals</span><span class="ban">speaks to</span>
+        <span class="ban">rare</span><span class="ban">chronic</span>
+        <span class="ban">textbook</span><span class="ban">remains to be seen</span>
+        <span class="ban">the real test is whether</span>
+      </div>
+    </div>
+
+    <div class="panel flag">
+      <h3>Who actually writes it</h3>
+      <p class="ph">Not always who you'd expect</p>
+      <ul>
+        <li><b>State — 86%</b> of published events are single-article, skip the Sonnet cluster call,
+        and publish the <em>Haiku gate's</em> line word for word off the raw row.</li>
+        <li><b>Governors ’26 — 67%</b> the same way.</li>
+        <li><b>Congress and federal</b> — the gates never write one at all. A single-source event gets
+        <code class="icode">""</code>, and the digest quietly falls back to the first two sentences of
+        the summary. Only clustered events carry a real line.</li>
+        <li><b>Hearings and bills</b> — written by the one Sonnet call that does everything on that
+        path.</li>
+        <li>So editing <code class="icode">wim.py</code> changes the raw-layer gate prompts as much as
+        the dedupe ones. All five import from it.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="sechead">
+    <div class="eyebrow">05</div>
+    <h2>Traps that are still live</h2>
+  </div>
+  <p class="secnote">Known, written down, and not yet fixed — the things most likely to make a stream
+  look broken when it isn't.</p>
+  <div class="panels">
+    <div class="panel flag">
+      <h3>A wrong extracted date is now visible, not dropped</h3>
+      <p class="ph">tracker/state/pipeline.py · the gate</p>
+      <ul>
+        <li>Closed 2026-09-02: <code class="icode">Raw Events</code> now carries
+        <code class="icode">ingested_at</code> and the dedupe windows on it, so a back-dated row
+        promotes instead of falling outside every window. <b>13% of the 428-row table (56 rows) had an
+        ingest lag over 7 days</b> and had been structurally unreachable.</li>
+        <li>The side effect: rows whose <code class="icode">date</code> the gate got <em>wrong</em>
+        now promote too. One in the first window reads <code class="icode">2025-01-01</code> against
+        an ingest date of 2026-08-28 — a 604-day lag, almost certainly hallucinated.</li>
+        <li>The web view sorts newest-first on <code class="icode">date</code>, so such a row lands at
+        the bottom of the feed rather than nowhere. Sanity-checking <code class="icode">date</code>
+        against <code class="icode">ingested_at</code> in the gate would catch it.</li>
+      </ul>
+    </div>
+    <div class="panel flag">
+      <h3>A straggler article still duplicates an event</h3>
+      <p class="ph">state + congress + federal dedupe</p>
+      <ul>
+<li>Closed 2026-09-03 by splitting the one window in two.
+        <code class="icode">--days</code> is now only the <b>trigger</b> window — which states have an
+        article we have not seen. <code class="icode">--context-days</code> (default 30) is the wider
+        <b>clustering</b> window a triggered state is clustered against.</li>
+        <li>A late article therefore meets the siblings it belongs with, even though they aged out of
+        <code class="icode">--days</code>, and attaches to their event instead of minting a second
+        row for it. A/B on a real pair ingested six days apart: at
+        <code class="icode">--context-days 16</code> it produced a <b>new</b> event; at 30 it reported
+        <code class="icode">+src</code> against the existing one and cost no classify call.</li>
+        <li>Quiet states are still skipped before any call, so the wider context is free. Beyond
+        <code class="icode">--context-days</code> a straggler still duplicates — widen the flag for a
+        deeper catch-up.</li>
+      </ul>
+    </div>
+    <div class="panel flag">
+      <h3>Quiet is not broken</h3>
+      <p class="ph">Every stream</p>
+      <ul>
+        <li>Read the <code class="icode">--dry-run</code> funnel before suspecting a scraper. It prints
+        fetched → in-window → pre-screened → passed, per source.</li>
+        <li>Member offices really do go weeks without posting, especially in recess. 11 of 29
+        congressional press sources returned nothing in one August window; all 11 checked out as
+        genuinely quiet.</li>
+      </ul>
+    </div>
+    <div class="panel flag">
+      <h3>Federal items are dated by the action</h3>
+      <p class="ph">tracker/federal/dedupe.py</p>
+      <ul>
+        <li>A story published this week about guidance issued in May is dated May, and falls outside a
+        30-day view. The table keeps it, because dedupe uses
+        <code class="icode">ingested_at</code> — but the default UI window hides it.</li>
+        <li>Storing the publication date alongside the action date is the fix. It isn't built because
+        it would be blank on every backfilled row.</li>
+      </ul>
+    </div>
+    <div class="panel flag">
+      <h3>Nothing dedupes federal against congress</h3>
+      <p class="ph">Cross-stream</p>
+      <ul>
+        <li>Moving GAO to the federal tracker removed the case that was actually producing duplicates,
+        but a committee press release about an executive-branch action can still land on both tabs.
+        Neither pipeline stops it.</li>
+        <li>Related: <code class="icode">instrument_type</code> is shaped by press vocabulary, not
+        legislative — a story about a bill introduction can come back as
+        <code class="icode">regulation-proposed</code>. <code class="icode">branch</code> is the
+        reliable signal for congressional items.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="sechead">
+    <div class="eyebrow">06</div>
+    <h2>One stream that isn't wired in</h2>
+  </div>
+  <div class="panel">
+    <h3><span class="mono">Ecosystem Writing</span></h3>
+    <p class="ph">tracker/ecosystem/pipeline.py — exploratory</p>
+    <ul>
+      <li>Curated Recoding America partner feeds: think tanks and nonprofits. Every source is worth
+      skimming, so there's <b>no keyword pre-screen</b>. And an essay appears once on its own feed, so
+      there's <b>no dedupe stage</b> either — checking URLs against the table is the whole dedupe
+      story.</li>
+      <li>One gate-and-enrich call per surviving entry, into the
+      <code class="icode">Ecosystem Writing</code> table.</li>
+      <li><b>It feeds neither surface.</b> No web route reads it, and the digest's five loaders don't
+      include it. If you were counting streams and got six, this is the sixth.</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <div class="sechead">
+    <div class="eyebrow">07</div>
+    <h2>Where to create alignment</h2>
+  </div>
+  <p class="secnote">A clear pattern runs through all of this: nearly every good idea arrived with the
+  Congress and Federal work, and none of it was carried back to the state and candidate code that
+  came first. Fifteen places to fix that, ordered by leverage. Every "do this" below already exists
+  somewhere in the repo — this is copying, not designing.</p>
+
+  <div class="fixlist">
+
+    <div class="tier">
+      <span class="tl">Tier 1</span>
+      <span class="td">Do these in order. Each one unlocks the next, and together they close the
+      oldest live bug. <b>All three shipped for the state stream on 2026-09-02, in this order.</b>
+      Candidates still needs #2 before it can have #3.</span>
+    </div>
+
+    <div class="fix done">
+      <div class="num">1</div>
+      <div>
+        <h4><s>Add <span class="mono">ingested_at</span> to Raw Events, and window on it</s>
+        <span class="shipped">shipped</span></h4>
+        <p class="now">Done 2026-09-02. <code class="icode">Raw Events</code> carries
+        <code class="icode">ingested_at</code>, <code class="icode">state/pipeline.py</code> writes it
+        once per run, and the dedupe windows on it with a fallback to <code class="icode">date</code>
+        for rows written before the field existed.</p>
+        <p class="do"><b>Result:</b> <code class="icode">tools/backfill_state_ingested_at.py</code>
+        filled all 428 existing rows from their Airtable <code class="icode">createdTime</code>, which
+        <em>is</em> the ingest moment. <b>56 rows (13%) had a lag over 7 days</b> and had been
+        unreachable by every future window; the current 7-day window went from 24 rows to 31.</p>
+      </div>
+      <div class="side">
+        <div><span class="k">Touched</span> state/pipeline.py · state/dedupe.py</div>
+        <div><span class="k">Migration</span> tools/backfill_state_ingested_at.py — 3 steps, idempotent</div>
+        <div><span class="k">Still open for</span> nothing — candidates already had it</div>
+      </div>
+    </div>
+
+    <div class="fix done">
+      <div class="num">2</div>
+      <div>
+        <h4><s>Upsert the state clean table instead of rebuilding it</s>
+        <span class="shipped">state only</span></h4>
+        <p class="now">Congress and federal upsert on an <code class="icode">event_id</code> and
+        pass <code class="icode">preserve=REVIEW_FIELDS</code>. State and candidates delete the window
+        and rewrite it, which is why <code class="icode">Events</code> and
+        <code class="icode">Candidate Events</code> have no <code class="icode">review_status</code> or
+        <code class="icode">reviewer_notes</code> at all — a human verdict on a state event has
+        nowhere durable to live.</p>
+        <p class="do"><b>Result:</b> the state side went further than congress. An event is
+        written ONCE and then only accretes sources: <code class="icode">event_id</code> is minted at
+        first sighting and never changes, and later runs match a cluster to an existing event by
+        <b>source-URL overlap</b> rather than by re-hashing its URL set — the set <em>grows</em> as
+        more outlets cover the same action, so a content hash would change and mint a duplicate.
+        Everything in <code class="icode">FROZEN_FIELDS</code> is left as first written; only
+        provenance updates. Nothing is deleted, so the state path has no
+        <code class="icode">prune_orphans</code> at all. <b>Verified: a second run over an unchanged
+        window makes zero model calls and zero writes; an article marked unseen re-attached with all
+        12 frozen fields byte-identical and the same record id.</b>
+        <b>Candidates is still delete-and-rewrite</b>, which is why its dedupe stayed on Mondays.</p>
+      </div>
+      <div class="side">
+        <div><span class="k">Touched</span> state/dedupe.py · shared/airtable.py</div>
+        <div><span class="k">Went beyond</span> congress/dedupe.py:113</div>
+        <div><span class="k">Still open for</span> candidates/dedupe.py</div>
+      </div>
+    </div>
+
+    <div class="fix done">
+      <div class="num">3</div>
+      <div>
+        <h4><s>Run state dedupe daily, like the federal side</s>
+        <span class="shipped">state only</span></h4>
+        <p class="now">Done 2026-09-02, and only after #1 and #2 — the ordering was the point. A daily
+        run against a delete-and-rewrite table would have re-created every event in the trailing week
+        with a fresh record id <em>every day</em>, multiplying the damage rather than fixing the
+        staleness.</p>
+        <p class="do"><b>Result:</b> state ingest and cluster now sit adjacent and unconditional in
+        <code class="icode">weekly.yml</code>, the pairing congress and federal already used. The
+        dashboard is no longer stale by up to six days. <b>The drift daily exposed, and its fix:</b>
+        re-deriving each event every run made it reword itself under readers — over two consecutive
+        runs, <code class="icode">headline</code> moved on 16 of the 17 events whose state had more
+        than one article that day and <code class="icode">why_it_matters</code> on 17 of 17, while
+        single-article events (which bypass the clustering model entirely) moved on 0 of 11. So the
+        drift was the <em>clustering</em> call, not the classifier. The synthesis and the
+        classification are now both frozen at first write, and
+        <code class="icode">--reclassify</code> regenerates them for a rubric edit without touching
+        any id. <b>Candidates still needs #2 first.</b></p>
+      </div>
+      <div class="side">
+        <div><span class="k">Touched</span> .github/workflows/weekly.yml</div>
+        <div><span class="k">Needed</span> #1, #2 — in that order</div>
+        <div><span class="k">Still open for</span> candidates/dedupe.py</div>
+      </div>
+    </div>
+
+    <div class="tier">
+      <span class="tl">Tier 2 · one implementation instead of N</span>
+      <span class="td">Pure consolidation. Nothing about behaviour changes, except where a copy is
+      quietly worse than the original.</span>
+    </div>
+
+    <div class="fix">
+      <div class="num">4</div>
+      <div>
+        <h4>One JSON parser, not seven</h4>
+        <p class="now">There are <b>7</b> copies of <code class="icode">parse_json_response</code>. Six
+        take the naive first-<code class="icode">{</code>-to-last-<code class="icode">}</code> slice.
+        The seventh, in <code class="icode">congress/llm.py</code>, uses
+        <code class="icode">raw_decode</code> — and its own docstring says the naive version breaks
+        when the model emits two objects back to back.</p>
+        <p class="do"><b>Do:</b> move the <code class="icode">raw_decode</code> version to
+        <code class="icode">shared/llm.py</code> and delete the other six. Note which callers are
+        exposed: <code class="icode">state/dedupe.py</code> and
+        <code class="icode">candidates/dedupe.py</code> are the <em>clustering</em> calls, which emit
+        many objects — the exact case the good parser was written for.</p>
+      </div>
+      <div class="side">
+        <div><span class="k">Copies</span> state/pipeline · state/dedupe · candidates/pipeline · candidates/dedupe · candidates/platforms · ecosystem/pipeline</div>
+        <div><span class="k">Keep</span> congress/llm.py:30</div>
+      </div>
+    </div>
+
+    <div class="fix">
+      <div class="num">5</div>
+      <div>
+        <h4>Finish the <span class="mono">ensure_table</span> consolidation</h4>
+        <p class="now"><code class="icode">shared/airtable.py</code> was written for exactly this, and
+        its docstring still says "the older scripts are left alone". There are <b>6</b>
+        implementations: the shared one, plus hand-rolled copies in
+        <code class="icode">state/pipeline</code>, <code class="icode">candidates/pipeline</code>,
+        <code class="icode">candidates/seed</code>, <code class="icode">ecosystem/pipeline</code>, and
+        two <code class="icode">ensure_clean_table</code> variants in the two dedupe modules.</p>
+        <p class="do"><b>Do:</b> point all six at <code class="icode">shared.airtable.ensure_table</code>.
+        The shared version takes the field list as an argument, so nothing needs to change but the
+        call.</p>
+      </div>
+      <div class="side">
+        <div><span class="k">Delete</span> 5 copies</div>
+        <div><span class="k">Keep</span> shared/airtable.py:14</div>
+      </div>
+    </div>
+
+    <div class="fix">
+      <div class="num">6</div>
+      <div>
+        <h4>One LLM call wrapper and one concurrency helper</h4>
+        <p class="now">Congress and federal share <code class="icode">llm.call()</code> and
+        <code class="icode">map_concurrent()</code>. State, candidates and ecosystem each hand-roll
+        <code class="icode">client.messages.create</code> with their own cache-control block, their own
+        <code class="icode">ThreadPoolExecutor</code>, and their own error-collection list.</p>
+        <p class="do"><b>Do:</b> promote both helpers to <code class="icode">shared/llm.py</code>. The
+        three hand-rolled streams get ordered results and "one bad item can't sink the batch" for
+        free, and prompt caching stops being configured in five places.</p>
+      </div>
+      <div class="side">
+        <div><span class="k">Copy from</span> congress/llm.py:50, :64</div>
+        <div><span class="k">Pairs with</span> #4</div>
+      </div>
+    </div>
+
+    <div class="fix">
+      <div class="num">7</div>
+      <div>
+        <h4>Model ids in one module</h4>
+        <p class="now">Congress and federal read <code class="icode">MODEL_GATE</code> and
+        <code class="icode">MODEL_CLASSIFY</code> from a constant. State and candidates have
+        <code class="icode">"claude-haiku-4-5"</code> and <code class="icode">"claude-sonnet-4-6"</code>
+        as literals in four files.</p>
+        <p class="do"><b>Do:</b> one <code class="icode">shared/llm.py</code> constant, five importers.
+        A model upgrade becomes one line instead of a grep.</p>
+      </div>
+      <div class="side">
+        <div><span class="k">Literals in</span> state/pipeline · state/dedupe · candidates/pipeline · candidates/dedupe</div>
+      </div>
+    </div>
+
+    <div class="fix">
+      <div class="num">8</div>
+      <div>
+        <h4>Make the web tabs use the shared competency module</h4>
+        <p class="now"><code class="icode">web/app/lib/competencies.js</code> exists to end this
+        duplication, and its docstring notes "the congress tab is the first consumer". Congress and
+        federal import it. The <b>state map</b> and the <b>candidates tab</b> still define their own
+        <code class="icode">COMPETENCIES</code> and their own <code class="icode">cutoffFor</code>, and
+        <code class="icode">methodology/page.js</code> hardcodes the palette twice more.</p>
+        <p class="do"><b>Do:</b> import from <code class="icode">lib/competencies</code> in
+        <code class="icode">page.js</code>, <code class="icode">candidates/page.js</code> and
+        <code class="icode">methodology/page.js</code>. Five copies of the four hex values go to
+        one.</p>
+      </div>
+      <div class="side">
+        <div><span class="k">Touches</span> page.js:11,53 · candidates/page.js:27,43 · methodology/page.js:16,75</div>
+      </div>
+    </div>
+
+    <div class="tier">
+      <span class="tl">Tier 3 · give the older streams what the newer ones already have</span>
+      <span class="td">Not cleanup — real capability the state and candidate streams are missing.</span>
+    </div>
+
+    <div class="fix">
+      <div class="num">9</div>
+      <div>
+        <h4>Borrow the <span class="mono">broad</span> + anchor pre-screen for state feeds</h4>
+        <p class="now">Only the federal stream has it, and it's the single highest-yield idea in the
+        repo: it took The Hill from 1,706 posts to 5 events. But state Layer 2 is full of the same kind
+        of source — whole-paper Arc feeds like AL.com, MLive, NJ.com, MassLive, PennLive and The
+        Oregonian — where the state lists' broadest terms (<code class="icode">AI</code>,
+        <code class="icode">oversight</code>, <code class="icode">accountability</code>,
+        <code class="icode">transparency</code>, <code class="icode">modernization</code>) are close to
+        no-ops.</p>
+        <p class="do"><b>Do:</b> add a <code class="icode">broad</code> flag to
+        <code class="icode">state/sources.py</code> and a state-level anchor list of institutions and
+        instruments — a state agency name, a bill number, a department, an office. This is the best
+        cost-per-event change available and it needs no schema migration.</p>
+      </div>
+      <div class="side">
+        <div><span class="k">Copy from</span> federal/pipeline.py:125 (ANCHOR_WORDS)</div>
+        <div><span class="k">Highest leverage</span> in Tier 3</div>
+      </div>
+    </div>
+
+    <div class="fix">
+      <div class="num">10</div>
+      <div>
+        <h4>Print a per-source funnel on state's dry run</h4>
+        <p class="now">Congress, federal and candidates all print a per-source table:
+        <code class="icode">fetched | window | screen | pass</code>. State prints running totals only —
+        across <b>171 feeds</b>. That's the one stream where a per-feed table matters most, and it's
+        the one that doesn't have it.</p>
+        <p class="do"><b>Do:</b> lift the <code class="icode">funnel</code> dict and its print block
+        straight out of <code class="icode">congress/pipeline.py</code>. This is the tool for telling a
+        dead feed from a quiet state, which is exactly the question the 171-feed registry keeps
+        raising.</p>
+      </div>
+      <div class="side">
+        <div><span class="k">Copy from</span> congress/pipeline.py:296, :341</div>
+        <div><span class="k">Touches</span> state/pipeline.py:474</div>
+      </div>
+    </div>
+
+    <div class="fix">
+      <div class="num">11</div>
+      <div>
+        <h4>Extend the reviewer package past federal and congress</h4>
+        <p class="now"><code class="icode">export/review.py</code> takes
+        <code class="icode">--tracker {federal, congress, both}</code>, and
+        <code class="icode">export/docs.py</code> builds exactly two walkthroughs. So the <b>state
+        tracker has no reviewer workbook and no walkthrough</b> — even though it's the oldest stream and
+        the one whose keyword lists the spec calls the highest-risk component in the pipeline.
+        Candidates has neither either.</p>
+        <p class="do"><b>Do:</b> add <code class="icode">state</code> and
+        <code class="icode">candidates</code> to both generators. The prompts-and-enums appendices are
+        already read out of the live modules at build time, so a state walkthrough is mostly wiring,
+        not writing.</p>
+      </div>
+      <div class="side">
+        <div><span class="k">Touches</span> export/review.py:628 · export/docs.py:1002</div>
+        <div><span class="k">Pairs with</span> #2 (verdicts need somewhere to land)</div>
+      </div>
+    </div>
+
+    <div class="fix">
+      <div class="num">12</div>
+      <div>
+        <h4>Pick one rule for who writes <span class="mono">why_it_matters</span></h4>
+        <p class="now">Two incompatible conventions. State and candidate gates write the line, and
+        single-source events publish the <em>gate's</em> version — 86% and 67% of what ships. Congress
+        and federal gates don't write it, single-source events store
+        <code class="icode">""</code>, and the digest silently falls back to the summary. So the same
+        <code class="icode">wim.py</code> spec is doing two different jobs, and most published lines
+        never went through the prompt the blind A/B was calibrated on.</p>
+        <p class="do"><b>Do:</b> take it out of all four gate prompts, and add one cheap pass over
+        single-source events at the dedupe stage. Then every published line comes from the same prompt
+        at the same step, and the A/B fixture actually describes what ships.</p>
+      </div>
+      <div class="side">
+        <div><span class="k">Touches</span> all 4 gate prompts · all 4 dedupe single-row paths</div>
+        <div><span class="k">Then</span> re-run the review/ fixture</div>
+      </div>
+    </div>
+
+    <div class="fix">
+      <div class="num">13</div>
+      <div>
+        <h4>Store <span class="mono">short_title</span> on state and candidate rows</h4>
+        <p class="now">Congress and federal keep a clean <code class="icode">short_title</code>
+        separate from the display <code class="icode">Name</code>. State stores
+        <code class="icode">"XX — title"</code>, and <b>three</b> consumers strip the prefix with the
+        same regex: <code class="icode">page.js:346</code>,
+        <code class="icode">states/[postal]/page.js:126</code>, and
+        <code class="icode">digest.py:274</code>.</p>
+        <p class="do"><b>Do:</b> add the field, write it at build time, and delete three regexes. Any
+        new consumer then gets a usable title without knowing the prefix convention exists.</p>
+      </div>
+      <div class="side">
+        <div><span class="k">Copy from</span> congress/dedupe.py:191</div>
+      </div>
+    </div>
+
+    <div class="fix">
+      <div class="num">14</div>
+      <div>
+        <h4>Move the candidate adaptation into <span class="mono">rubrics/</span></h4>
+        <p class="now">Three adaptations live as editable files in
+        <code class="icode">rubrics/</code>. The fourth,
+        <code class="icode">CANDIDATE_ADAPTATION</code>, is a string literal inside
+        <code class="icode">candidates/dedupe.py</code> — so the one directory the README describes as
+        human-editable and loaded at runtime is missing a quarter of the prompt surface.</p>
+        <p class="do"><b>Do:</b> move it to
+        <code class="icode">rubrics/candidates-adaptation.md</code> and load it the way the other three
+        load. Then one <code class="icode">compose(adaptation)</code> helper replaces four
+        near-identical concatenations.</p>
+      </div>
+      <div class="side">
+        <div><span class="k">Touches</span> candidates/dedupe.py:64 · rubrics/</div>
+      </div>
+    </div>
+
+    <div class="fix">
+      <div class="num">15</div>
+      <div>
+        <h4>One event-item component across the web tabs</h4>
+        <p class="now"><code class="icode">/congress</code>'s
+        <code class="icode">ActivityItem</code> and <code class="icode">/federal</code>'s
+        <code class="icode">ActionItem</code> are near-identical expanders with the same
+        <code class="icode">hasMore</code> logic. <code class="icode">/candidates</code> has no
+        expander at all, and shows no relevance, no topic tags, no
+        <code class="icode">summary</code> and no
+        <code class="icode">why_it_matters</code> — despite storing all four.</p>
+        <p class="do"><b>Do:</b> extract one item component with a slot for the meta row, and give the
+        candidates tab the same expander. That's four stored fields currently rendered nowhere,
+        recovered without touching the pipeline.</p>
+      </div>
+      <div class="side">
+        <div><span class="k">Touches</span> congress/page.js:242 · federal/page.js:243 · candidates/page.js:112</div>
+      </div>
+    </div>
+
+    <div class="tier">
+      <span class="tl">Leave these alone</span>
+      <span class="td">Differences that look like drift but were deliberate, with a documented
+      reason. Aligning them would undo a fix.</span>
+    </div>
+
+    <div class="fix">
+      <div class="num">—</div>
+      <div>
+        <h4>Four splits worth keeping</h4>
+        <p class="now"><b>State prints all four competencies even when empty; federal drops empty
+        ones.</b> The state rhythm is the spine readers learn; the federal half would print eight
+        "nothing notable" lines.<br>
+        <b>State repeats a two-competency event across sections; federal prints it once with "also
+        X".</b> On the federal side <code class="icode">incentives</code> overlaps almost completely
+        with the other two.<br>
+        <b>The federal lane comes from the source, not the model.</b> The whole point is that
+        provenance can't be inferred from content.<br>
+        <b>State regex wraps the whole alternation in <code class="icode">\b(?:…)\b</code>; congress
+        and federal deliberately don't.</b> Their entries carry their own anchors, and an outer
+        <code class="icode">\b</code> fights them.</p>
+      </div>
+      <div class="side">
+        <div><span class="k">Documented in</span> digest.py:104 · federal/sources.py · congress/pipeline.py:124</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <span>Recoding America · Government Capacity Tracker</span>
+  <span>Sources of truth: <span class="mono">rubrics/</span> · <span class="mono">tracker/shared/wim.py</span> · <span class="mono">tracker/digest.py</span> · <span class="mono">web/app/</span></span>
+  <span>Reflects <span class="mono">digest-candidates-trim</span> @ <span class="mono">0379420</span></span>
+</footer>
+
+</div>
+
+<div id="pop" role="tooltip" hidden></div>
+
+<script>
+(function () {
+  var pop = document.getElementById("pop");
+  var SHOW_DELAY = 70;    // long enough that sweeping across the grid opens nothing
+  var HIDE_DELAY = 160;   // long enough to cross the 1px gap between two cells
+  var pinned = null;
+  var current = null;
+  var showTimer = null;
+  var hideTimer = null;
+
+  function clearTimers() {
+    clearTimeout(showTimer); showTimer = null;
+    clearTimeout(hideTimer); hideTimer = null;
+  }
+
+  /* Place below the cell when there is room, otherwise above. The popover is
+     pointer-events:none unless pinned, so it can never take the hover that
+     opened it — that feedback loop was the flicker. */
+  function place(cell) {
+    var r = cell.getBoundingClientRect();
+    var w = pop.offsetWidth;
+    var h = pop.offsetHeight;
+    var gap = 10;
+    var pad = 12;
+
+    var left = r.left;
+    if (left + w > window.innerWidth - pad) left = r.right - w;
+    if (left < pad) left = pad;
+
+    var top = r.bottom + gap;
+    if (top + h > window.innerHeight - pad) {
+      var above = r.top - h - gap;
+      top = above >= pad ? above : Math.max(pad, window.innerHeight - h - pad);
+    }
+
+    pop.style.left = Math.round(left) + "px";
+    pop.style.top = Math.round(top) + "px";
+  }
+
+  function render(cell) {
+    var detail = cell.querySelector(".detail");
+    if (!detail) return;
+    var wasHidden = pop.hidden;
+    if (current === cell && !wasHidden) return;
+    current = cell;
+    pop.innerHTML = detail.innerHTML;
+    pop.classList.toggle("fresh", wasHidden);
+    pop.hidden = false;
+    /* Measure off-screen first so offsetWidth/Height are real. */
+    pop.style.left = "-9999px";
+    pop.style.top = "0px";
+    place(cell);
+  }
+
+  function close() {
+    pop.hidden = true;
+    pop.classList.remove("fresh");
+    current = null;
+  }
+
+  function unpin() {
+    if (pinned) pinned.classList.remove("pinned");
+    pinned = null;
+    pop.classList.remove("pinned");
+  }
+
+  document.querySelectorAll(".probe").forEach(function (cell) {
+    cell.addEventListener("mouseenter", function () {
+      if (pinned) return;
+      clearTimers();
+      showTimer = setTimeout(function () { render(cell); }, SHOW_DELAY);
+    });
+
+    cell.addEventListener("mouseleave", function () {
+      if (pinned) return;
+      clearTimers();
+      hideTimer = setTimeout(close, HIDE_DELAY);
+    });
+
+    cell.addEventListener("focus", function () {
+      if (pinned) return;
+      clearTimers();
+      render(cell);
+    });
+
+    cell.addEventListener("blur", function () {
+      if (pinned) return;
+      clearTimers();
+      close();
+    });
+
+    cell.addEventListener("click", function (e) {
+      e.stopPropagation();
+      clearTimers();
+      if (pinned === cell) { unpin(); close(); return; }
+      unpin();
+      pinned = cell;
+      cell.classList.add("pinned");
+      pop.classList.add("pinned");
+      render(cell);
+    });
+
+    cell.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); cell.click(); }
+    });
+  });
+
+  document.addEventListener("click", function () { clearTimers(); unpin(); close(); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") {
+      clearTimers();
+      var wasPinned = pinned;
+      unpin();
+      close();
+      if (wasPinned) wasPinned.focus();
+    }
+  });
+  window.addEventListener("resize", function () { if (current) place(current); });
+  document.querySelectorAll(".scroller").forEach(function (s) {
+    s.addEventListener("scroll", function () { if (current) place(current); }, { passive: true });
+  });
+})();
+</script>
