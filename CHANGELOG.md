@@ -37,6 +37,49 @@ Dates are the date of the work, not of the write-up.
 
 ## Unreleased
 
+### Candidate developments carry a short title — 2026-09-03
+
+The Governors '26 section of the digest read as the longest thing in the email
+even after the cap of five landed, because it had no title field to print. Every
+other stream carries a short title next to the sentence — `short_title` on
+Congress and Federal events, a titled `Name` on state events — and candidates
+carried only `headline`, which both writers prompt for as *"one plain sentence:
+what the candidate said/did"*. The digest printed that sentence as the bold card
+title. Measured across the 175 rows of `Candidate Events`:
+
+| Field printed as the card title | Median | Max | Over 15 words |
+|---|---|---|---|
+| `Candidate Events.headline` | **21 words** | 55 | 73% |
+| `Federal Events.short_title` | 9 words | 13 | 0% |
+| `Congress Events.short_title` | 9 words | 11 | 0% |
+| `Events.Name` (state) | 9 words | 15 | 0% |
+
+Nothing truncates in the renderer, so the median card ran ~44 words of text
+before its meta and link lines — roughly twice any other section's, five times
+over.
+
+- **The short title already existed and was being thrown away.** The cluster
+  prompt has always returned `name` — *"concise title of the development, 5-10
+  words, no candidate name, sentence case"* — and `build_clean_row` used it only
+  as an empty-`headline` fallback, so it never reached Airtable. It is now
+  stored as `short_title`.
+- **The raw gate is asked for one too.** 118 of 175 rows (67%) are
+  single-article and bypass the cluster call entirely — the same shape as the
+  `why_it_matters` split — so the clean-layer fix alone would have missed two
+  thirds of the table. `candidates/pipeline.py`
+  now asks for a 6-12 word `short_title` and `single_row_development` carries it
+  through.
+- **The digest reads `short_title or headline`**, the same fallback the congress
+  and federal sections use. Rows written before the field existed keep printing
+  the sentence rather than going blank; both tables auto-create the column on
+  their next run.
+- **Takes effect as rows are rewritten, not retroactively.** Clustered
+  developments get a short title on the next `candidates/dedupe.py` run whatever
+  their raw rows look like, since the cluster call mints `name` itself.
+  Single-article rows need a raw row scraped after this change, so the older
+  two thirds of the table keeps falling back until it ages out of the window.
+
+
 ### State dedupe runs daily — 2026-09-02
 
 The clean `Events` table refreshed only on Mondays, so the dashboard was stale

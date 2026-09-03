@@ -439,6 +439,7 @@ def load_candidate_devs(days: int, since: str | None) -> list[dict]:
             "relevance": as_int(f.get("relevance")),
             "competency": f.get("competency") or [],
             "article_count": as_int(f.get("article_count"), 1),
+            "short_title": (f.get("short_title") or "").strip(),
             "headline": (f.get("headline") or "").strip(),
             "summary": (f.get("summary") or "").strip(),
             "why_it_matters": (f.get("why_it_matters") or "").strip(),
@@ -498,7 +499,12 @@ def select_governors(devs: list[dict], roster: dict) -> tuple[list[dict], int]:
         summary = d["why_it_matters"] or first_sentences(d["summary"], 2)
         if names:
             summary = summary
-        d["item"] = item(d["headline"], summary, " · ".join(bits), d["relevance"],
+        # short_title or headline, the same fallback the congress and federal
+        # sections use. `headline` is a full sentence by contract — printing it
+        # as the card title is what made this section run twice as long per item
+        # as any other. Rows written before short_title existed still fall back.
+        d["item"] = item(d["short_title"] or d["headline"], summary,
+                         " · ".join(bits), d["relevance"],
                          links, d["date"])
         d["item"]["outlet_note"] = outlet_summary(names)
         if is_competitive(r.get("race_rating", "")) and d["relevance"] >= 2:

@@ -42,6 +42,10 @@ export async function GET() {
       state: f.state || "",
       date: f.date || "",
       dev_type: f.dev_type || "",
+      // Short row title (6-12 words); `headline` is the full sentence shown
+      // once expanded. Falls back to the headline for rows written before the
+      // field existed — the same shape as the congress route.
+      short_title: f.short_title || f.headline || "",
       headline: f.headline || "",
       summary: f.summary || "",
       why_it_matters: f.why_it_matters || "",
