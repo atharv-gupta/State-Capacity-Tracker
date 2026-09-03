@@ -232,10 +232,15 @@ export default function Candidates() {
   const [candidates, setCandidates] = useState(null);
   const [devs, setDevs] = useState([]);
   const [error, setError] = useState(null);
-  const [ratingF, setRatingF] = useState("all"); // all | competitive | open
+  // Competitive by default: a settled race is one whose winner is already
+  // known, and what a safe-seat candidate says about procurement is not what
+  // this page is for. `ratingClass` calls anything that is not a Toss-up or a
+  // Lean "settled", so this shows the races still in play. The All pill is
+  // right there for the full 36.
+  const [ratingF, setRatingF] = useState("competitive"); // all | competitive | open
   const [partyF, setPartyF] = useState("all");
   const [signalF, setSignalF] = useState("all");
-  const [windowF, setWindowF] = useState("30"); // 7 | 30 | 90 | all
+  const [windowF, setWindowF] = useState("7"); // 7 | 30 | 90 | all
   // Developments matching none of the four competencies are hidden by default,
   // as on the state map. Without this escape hatch they were unreachable —
   // more than half the feed was invisible with no way to see it.
