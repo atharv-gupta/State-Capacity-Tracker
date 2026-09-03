@@ -37,6 +37,34 @@ Dates are the date of the work, not of the write-up.
 
 ## Unreleased
 
+### Digest: a reply and an unsubscribe that reach a person — 2026-09-03
+
+Found while checking the digest before its first send to more than one person.
+`DIGEST_FROM` is a Resend *sending identity*, not a mailbox: it does not
+necessarily receive mail. The unsubscribe mailto defaulted to that same
+address, and no `Reply-To` was set at all, so both an unsubscribe request and a
+"can you add me?" reply had a good chance of going nowhere — invisibly, since
+the link looks live either way.
+
+- **`UNSUBSCRIBE_MAILTO` now carries a real inbox** and `DIGEST_REPLY_TO` is a
+  new env var for the reply address, defaulting to the unsubscribe address
+  because the same person handles both. The Resend payload gained `reply_to`.
+- **Both read `os.environ.get(key) or default`, not `get(key, default)`.** An
+  Actions secret that is not set resolves to an empty string rather than a
+  missing key, and an empty value renders `mailto:?subject=…` — a dead
+  unsubscribe that still looks like a link.
+- **Wired into `weekly.yml`** so the Monday run matches a manual send; `.env` is
+  gitignored and covers only the local path. The secrets have to exist or the
+  fallback returns the scheduled digest to the non-receiving address.
+- The unsubscribe subject names the address to remove
+  (`Unsubscribe anna@example.org`), which is usable because each recipient
+  already gets their own message. Unsubscribes are still honoured by flipping
+  `status` off `active`, never by deleting the row.
+
+Not changed: `TRACKER_URL`. It feeds 3 of the email's 68 links — two "see the
+full tracker" pointers and the Governors '26 overflow line — and all three
+resolve. The other 65 go to source articles.
+
 ### Review export: one tab for a reviewer — 2026-09-03
 
 `export_review.py --single-tab` flattens the deduped layers onto one shared

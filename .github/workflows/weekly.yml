@@ -113,3 +113,10 @@ jobs:
           AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           DIGEST_FROM: ${{ secrets.DIGEST_FROM }}
+          # DIGEST_FROM is a Resend sending identity and does not receive mail,
+          # so these carry the address that unsubscribe requests and replies
+          # actually reach. If the secret is unset it resolves to an empty
+          # string and digest.py falls back to its own default — which is the
+          # non-receiving sending address, i.e. a dead unsubscribe. Set them.
+          UNSUBSCRIBE_MAILTO: ${{ secrets.UNSUBSCRIBE_MAILTO }}
+          DIGEST_REPLY_TO: ${{ secrets.DIGEST_REPLY_TO }}
