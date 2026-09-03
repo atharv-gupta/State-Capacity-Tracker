@@ -111,6 +111,7 @@ REQUIRED_FIELDS = [
     {"name": "date", "type": "date", "options": {"dateFormat": {"name": "iso"}}},
     {"name": "dev_type", "type": "singleSelect",
      "options": {"choices": [{"name": d} for d in DEV_TYPE_CHOICES]}},
+    {"name": "short_title", "type": "singleLineText"},
     {"name": "headline", "type": "multilineText"},
     {"name": "summary", "type": "multilineText"},
     {"name": "why_it_matters", "type": "multilineText"},
@@ -201,6 +202,7 @@ MUST be non-empty (an empty list means the item failed gate 2 -> keep=false):
 {
   "keep": true,
   "dev_type": "one of: policy-plan | press-release | speech-quote | interview | news-coverage | official-action | other",
+  "short_title": "6-12 word title naming what this is, sentence case, no candidate name (the digest and the web row show this, not the headline)",
   "headline": "one plain sentence, your own words: what the candidate said/did",
   "summary": "2-3 sentences of substance",
   "why_it_matters": "one line, MAX 30 WORDS, written to the why_it_matters rules below",
@@ -508,6 +510,11 @@ def build_row(item, verdict, ingested_at):
     comps = [c for c in comps if c in COMPETENCY_CHOICES]
     dev_type = verdict.get("dev_type") or ""
     headline = (verdict.get("headline") or item["title"]).strip()
+    # `headline` is a sentence by contract, so it cannot be a title. Every other
+    # tracker carries a separate short_title and the digest reads that; without
+    # one here the email printed 21-word titles. Falling back to the sentence
+    # keeps a row usable when the model omits the field.
+    short_title = (verdict.get("short_title") or "").strip() or headline
     surname = item["candidate"].split()[-1]
     row = {
         "Name": f"{item['state']} — {surname}: {headline}"[:255],
@@ -515,6 +522,7 @@ def build_row(item, verdict, ingested_at):
         "state": item["state"],
         "date": item["published"],
         "dev_type": dev_type if dev_type in DEV_TYPE_CHOICES else "other",
+        "short_title": short_title[:120],
         "headline": headline,
         "summary": (verdict.get("summary") or "").strip(),
         "why_it_matters": (verdict.get("why_it_matters") or "").strip(),

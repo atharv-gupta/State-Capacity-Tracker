@@ -242,8 +242,11 @@ function SourceLinks({ e }) {
 
 function ActionItem({ e }) {
   const [open, setOpen] = useState(false);
+  // Keyed to what the body can actually show. `headline` is no longer rendered
+  // here, so it must not open an otherwise empty drawer; the meta, tag and
+  // source rows must still be reachable on a row carrying neither prose field.
   const hasMore = Boolean(
-    e.summary || e.why_it_matters || (e.headline && e.headline !== e.short_title)
+    e.why_it_matters || e.summary || e.actor || e.status || (e.topic_tags || []).length
   );
   return (
     <li className="devitem">
@@ -289,11 +292,27 @@ function ActionItem({ e }) {
 
       {open ? (
         <div className="itembody">
-          {e.headline && e.headline !== e.short_title ? (
-            <p className="itemsummary">{e.headline}</p>
+          {/* One prose block, and it is the why. The old stack restated one
+              event three times — `headline` as a full sentence, `summary`
+              opening on the same facts in identical grey type 2px below it,
+              then the why — 74 words on a typical news row. The title carries
+              what happened; this line carries why a reader should care, which
+              is the one thing the title cannot.
+
+              `summary` is the fallback, not a second block: 21% of rows have
+              no why_it_matters, because dedupe's single_row_event hardcodes it
+              empty and any raw row alone in its agency group that window skips
+              the cluster call that would write it. Those rows would otherwise
+              expand to a drawer with no prose in it at all.
+
+              Styled as `.itemsummary`, not `.whymatters`: the blue rail exists
+              to separate the why from a summary above it, and with nothing
+              above it here it would just nest a rail inside `.itembody`'s own.
+              `headline` is still on the API payload — the digest and the
+              review export read it. This is a view decision, not a data one. */}
+          {e.why_it_matters || e.summary ? (
+            <p className="itemsummary">{e.why_it_matters || e.summary}</p>
           ) : null}
-          {e.summary ? <p className="itemsummary">{e.summary}</p> : null}
-          {e.why_it_matters ? <p className="whymatters">{e.why_it_matters}</p> : null}
           {e.actor || e.status ? (
             <p className="itemmeta">
               {e.actor}
@@ -325,7 +344,7 @@ export default function Federal() {
   const [showOther, setShowOther] = useState(false);
   const [agencyF, setAgencyF] = useState("all");
   const [branchF, setBranchF] = useState("all");
-  const [windowF, setWindowF] = useState("30");
+  const [windowF, setWindowF] = useState("7");
   const [officialOnly, setOfficialOnly] = useState(false);
   // Collapsible lanes start closed; two of the four are high-volume.
   const [openLanes, setOpenLanes] = useState(() => new Set());
@@ -398,7 +417,7 @@ export default function Federal() {
     agencyF !== "all" ||
     branchF !== "all" ||
     officialOnly ||
-    windowF !== "30";
+    windowF !== "7";
 
   const clearAll = () => {
     setCompFilter(new Set(DEFAULT_COMPETENCIES));
@@ -406,7 +425,7 @@ export default function Federal() {
     setAgencyF("all");
     setBranchF("all");
     setOfficialOnly(false);
-    setWindowF("30");
+    setWindowF("7");
   };
 
   const loading = events === null;

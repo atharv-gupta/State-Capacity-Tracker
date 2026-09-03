@@ -2,7 +2,7 @@ import "./globals.css";
 
 export const metadata = {
   title: "State Capacity Tracker",
-  description: "What state governments are actually doing, in Recoding America's capacities",
+  description: "What governments are doing in the world of state capacity",
 };
 
 export default function RootLayout({ children }) {

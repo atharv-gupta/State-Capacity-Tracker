@@ -241,10 +241,12 @@ function Bill({ b }) {
 
 function ActivityItem({ e }) {
   const [open, setOpen] = useState(false);
-  // Rows written before short_title existed fall back to the headline, which
-  // is a full sentence — no point offering an expander that repeats it.
+  // Keyed to what the body can actually show. `headline` is no longer rendered
+  // here (see the body), so it must not open an otherwise empty drawer; the
+  // tag and source rows must still be reachable on a row carrying neither
+  // prose field.
   const hasMore = Boolean(
-    e.summary || e.why_it_matters || (e.headline && e.headline !== e.short_title)
+    e.why_it_matters || e.summary || (e.topic_tags || []).length
   );
   return (
     <li className="devitem">
@@ -279,11 +281,19 @@ function ActivityItem({ e }) {
 
       {open ? (
         <div className="itembody">
-          {e.headline && e.headline !== e.short_title ? (
-            <p className="itemsummary">{e.headline}</p>
+          {/* One prose block, the why, with `summary` as its fallback rather
+              than as a second block — the same cut the Federal tab's
+              ActionItem takes, for the same reason: `headline` was a full
+              sentence restating the title, `summary` opened on the same facts
+              in identical type directly below it, and the why said it a third
+              time. `.itemsummary` rather than `.whymatters` because the blue
+              rail only earns its keep when there is a summary above it to
+              separate from. Hearings and bills keep both blocks: their first
+              block is an agenda or a bill summary, which is not a restatement
+              of the title. `headline` stays on the payload. */}
+          {e.why_it_matters || e.summary ? (
+            <p className="itemsummary">{e.why_it_matters || e.summary}</p>
           ) : null}
-          {e.summary ? <p className="itemsummary">{e.summary}</p> : null}
-          {e.why_it_matters ? <p className="whymatters">{e.why_it_matters}</p> : null}
           {e.topic_tags.length ? (
             <div className="tagrow">
               {e.topic_tags.map((t) => (
@@ -314,7 +324,7 @@ export default function Congress() {
   const [showOther, setShowOther] = useState(false);
   const [committeeF, setCommitteeF] = useState("all");
   const [chamberF, setChamberF] = useState("all");
-  const [windowF, setWindowF] = useState("30");
+  const [windowF, setWindowF] = useState("7");
   const [watchdogOpen, setWatchdogOpen] = useState(false);
 
   useEffect(() => {
@@ -381,14 +391,14 @@ export default function Congress() {
     compFilter.size === DEFAULT_COMPETENCIES.length &&
     DEFAULT_COMPETENCIES.every((k) => compFilter.has(k));
   const hasFilters =
-    !compIsDefault || showOther || committeeF !== "all" || chamberF !== "all" || windowF !== "30";
+    !compIsDefault || showOther || committeeF !== "all" || chamberF !== "all" || windowF !== "7";
 
   const clearAll = () => {
     setCompFilter(new Set(DEFAULT_COMPETENCIES));
     setShowOther(false);
     setCommitteeF("all");
     setChamberF("all");
-    setWindowF("30");
+    setWindowF("7");
   };
 
   const loading = events === null || hearings === null || bills === null;

@@ -104,6 +104,7 @@ CLEAN_FIELDS = [
     {"name": "date", "type": "date", "options": {"dateFormat": {"name": "iso"}}},
     {"name": "dev_type", "type": "singleSelect",
      "options": {"choices": [{"name": d} for d in DEV_TYPE_CHOICES]}},
+    {"name": "short_title", "type": "singleLineText"},
     {"name": "headline", "type": "multilineText"},
     {"name": "summary", "type": "multilineText"},
     {"name": "why_it_matters", "type": "multilineText"},
@@ -250,12 +251,18 @@ def build_clean_row(candidate, state, ev, members, deduped_at):
             outlets.append(o)
 
     headline = (ev.get("headline") or ev.get("name") or "").strip()
+    # The cluster prompt has always returned a 5-10 word `name` alongside the
+    # sentence-long `headline`, and this function used to keep only the latter —
+    # so the digest had nothing but the sentence to use as a title. Store both,
+    # the same split congress and federal carry.
+    short_title = (ev.get("name") or "").strip() or headline
     surname = candidate.split()[-1] if candidate else ""
     row = {
         "Name": f"{state} — {surname}: {headline}"[:255],
         "event_id": str(uuid.uuid4()),
         "candidate": candidate,
         "state": state,
+        "short_title": short_title[:120],
         "headline": headline,
         "summary": (ev.get("summary") or "").strip(),
         "why_it_matters": (ev.get("why_it_matters") or "").strip(),
@@ -329,7 +336,9 @@ def single_row_development(rid, f):
     its raw fields straight through (the clustering call is skipped)."""
     return {
         "member_ids": [rid],
-        "name": (f.get("headline") or "").strip(),
+        # Prefer the raw row's short title; rows ingested before that field
+        # existed have none, and fall back to the sentence as they did before.
+        "name": (f.get("short_title") or f.get("headline") or "").strip(),
         "headline": (f.get("headline") or "").strip(),
         "summary": (f.get("summary") or "").strip(),
         "why_it_matters": (f.get("why_it_matters") or "").strip(),

@@ -24,7 +24,7 @@ import os
 import re
 import sys
 import uuid
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 import feedparser
 from anthropic import Anthropic
@@ -170,6 +170,14 @@ REQUIRED_FIELDS = [
      "options": {"choices": [{"name": s} for s in SOURCE_TYPES]}},
     {"name": "actor_type", "type": "singleSelect",
      "options": {"choices": [{"name": a} for a in ACTOR_TYPE_CHOICES]}},
+    # When WE scraped the row, as distinct from `date` (when the government
+    # acted). dedupe.py windows on this: an article ingested today about a
+    # six-week-old action has a six-week-old `date` and fell outside every
+    # future window, so it never clustered. Mirrors candidates/pipeline.py.
+    {"name": "ingested_at", "type": "dateTime",
+     "options": {"dateFormat": {"name": "iso"},
+                 "timeFormat": {"name": "24hour"},
+                 "timeZone": "utc"}},
 ]
 
 SYSTEM_PROMPT = """You classify news articles for the Recoding America State Capacity Tracker.
@@ -409,7 +417,7 @@ def existing_source_urls(table, name_map):
     return urls
 
 
-def build_row(article, verdict, pillars):
+def build_row(article, verdict, pillars, ingested_at):
     state = (verdict.get("state") or article["state"]).upper()[:2]
     short_name = (verdict.get("name") or verdict.get("headline") or article["title"]).strip()
     row = {
@@ -426,6 +434,7 @@ def build_row(article, verdict, pillars):
         "status": verdict.get("status") or "",
         "source_type": article["source_type"],
         "date": article["published"],
+        "ingested_at": ingested_at,
     }
 
     date_val = verdict.get("date") or ""
@@ -533,9 +542,10 @@ def main():
 
     written = 0
     if not args.dry_run and passed:
+        ingested_at = datetime.now(timezone.utc).isoformat()
         print(f"\nWriting {len(passed)} rows to '{RAW_TABLE}'...")
         for a, verdict, pillars in passed:
-            row = build_row(a, verdict, pillars)
+            row = build_row(a, verdict, pillars, ingested_at)
             row = {name_map[k]: v for k, v in row.items() if k in name_map}
             try:
                 table.create(row, typecast=True)

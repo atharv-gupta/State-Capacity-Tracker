@@ -138,6 +138,31 @@ LANE_LABELS = {
     "news": "reported", "rulemaking": "rulemaking",
 }
 
+# Registry source names are built for the dry-run funnel, not for a reader:
+# "FR term — improper payments" is the full-text query that found the document
+# and "GAO reports" is the feed, neither of which is the publisher. The web tab
+# normalises these already (web/app/api/federal/route.js); the email was still
+# printing them raw as link labels. Only 'Federal Events' carries them —
+# checked 2026-09-03: 13 of its 20 distinct outlet strings, and none of
+# 'Congress Events'.
+FEDERAL_OUTLET_LABELS = {
+    "OPM press releases": "OPM",
+    "OMB memoranda": "OMB",
+    "OMB news": "OMB",
+    "GSA news releases": "GSA",
+    "GAO reports": "GAO",
+}
+
+
+def federal_outlet(name: str) -> str:
+    name = (name or "").strip()
+    if name in FEDERAL_OUTLET_LABELS:
+        return FEDERAL_OUTLET_LABELS[name]
+    # Every Federal Register query is named "FR agency — X" / "FR term — X".
+    if name.startswith("FR "):
+        return "Federal Register"
+    return name
+
 
 # --------------------------------------------------------------------------- #
 # Shared helpers
@@ -271,10 +296,19 @@ def load_state_events(days: int, since: str | None) -> list[dict]:
             continue
         urls = lines_of(f.get("source_urls"))
         outlets = commas_of(f.get("source_outlets"))
-        title = re.sub(r"^[A-Z]{2} — ", "", (f.get("Name") or "").strip())
+        # 'Name' is written as "MD — <event>". The state used to be stripped off
+        # here and shown only in the faint meta line below the headline, where
+        # it was too small to scan. It now leads the headline as "MD: <event>",
+        # and comes out of the meta line so it is not printed twice. The prefix
+        # on Name is the fallback for a row with no `state` field.
+        raw = (f.get("Name") or "").strip()
+        m = re.match(r"^([A-Z]{2}) — ", raw)
+        title = raw[m.end():] if m else raw
+        st = (f.get("state") or "").strip().upper() or (m.group(1) if m else "")
+        if st:
+            title = f"{st}: {title}"
         summary = (f.get("why_it_matters") or "").strip() or first_sentences(f.get("Notes"), 2)
-        meta = " · ".join(x for x in (f.get("state"), f.get("activity_type"),
-                                      f.get("gov_actor")) if x)
+        meta = " · ".join(x for x in (f.get("activity_type"), f.get("gov_actor")) if x)
         row = _row(f)
         row["item"] = item(title, summary, meta, row["relevance"],
                            paired_links(urls, outlets), d)
@@ -309,7 +343,7 @@ def load_federal_events(days: int, since: str | None) -> list[dict]:
         if not d or d < cutoff:
             continue
         urls = lines_of(f.get("source_urls"))
-        outlets = lines_of(f.get("source_outlets"))
+        outlets = [federal_outlet(o) for o in lines_of(f.get("source_outlets"))]
         summary = (f.get("why_it_matters") or "").strip() or first_sentences(f.get("summary"), 2)
         agencies = [AGENCY_LABELS.get(a, a) for a in (f.get("agency") or [])][:2]
         bits = [", ".join(agencies)] if agencies else []
@@ -439,6 +473,7 @@ def load_candidate_devs(days: int, since: str | None) -> list[dict]:
             "relevance": as_int(f.get("relevance")),
             "competency": f.get("competency") or [],
             "article_count": as_int(f.get("article_count"), 1),
+            "short_title": (f.get("short_title") or "").strip(),
             "headline": (f.get("headline") or "").strip(),
             "summary": (f.get("summary") or "").strip(),
             "why_it_matters": (f.get("why_it_matters") or "").strip(),
@@ -491,14 +526,24 @@ def select_governors(devs: list[dict], roster: dict) -> tuple[list[dict], int]:
         d["_rating"] = r.get("race_rating", "")
         d["_party"] = r.get("party", "")
         cand = d["candidate"] + (f" ({d['_party']})" if d["_party"] else "")
-        bits = [b for b in (d["state"], cand, d["_rating"]) if b]
+        # State leads the headline instead of the meta line — same move as the
+        # state section above, so both halves of STATE scan the same way.
+        bits = [b for b in (cand, d["_rating"]) if b]
         if d["article_count"] > 1:
             bits.append(f"{d['article_count']} sources")
         links, names = dev_sources(d)
         summary = d["why_it_matters"] or first_sentences(d["summary"], 2)
         if names:
             summary = summary
-        d["item"] = item(d["headline"], summary, " · ".join(bits), d["relevance"],
+        # short_title or headline, the same fallback the congress and federal
+        # sections use. `headline` is a full sentence by contract — printing it
+        # as the card title is what made this section run twice as long per item
+        # as any other. Rows written before short_title existed still fall back.
+        gov_title = d["short_title"] or d["headline"]
+        if d["state"]:
+            gov_title = f"{d['state']}: {gov_title}"
+        d["item"] = item(gov_title, summary,
+                         " · ".join(bits), d["relevance"],
                          links, d["date"])
         d["item"]["outlet_note"] = outlet_summary(names)
         if is_competitive(r.get("race_rating", "")) and d["relevance"] >= 2:
@@ -1066,8 +1111,8 @@ def print_dry_run(d: dict, cutoff: str, window_days: int) -> None:
     print(f"[Governors '26] {len(govs)} shown (competitive races only)"
           + (f", {more_govs} more not shown" if more_govs else ""))
     for dv in govs:
-        print(f"    {'●' * dv['relevance']:<3} {dv['state']:<3} "
-              f"{dv['candidate']:<20} {dv['_rating']:<9} {dv['item']['title'][:34]}")
+        print(f"    {'●' * dv['relevance']:<3} "
+              f"{dv['candidate']:<20} {dv['_rating']:<9} {dv['item']['title'][:38]}")
 
     print("\n" + "=" * 60)
     print(f"FEDERAL  ({fed['total']} events in window)")

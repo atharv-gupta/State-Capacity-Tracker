@@ -73,6 +73,67 @@ function PartyChip({ party }) {
   );
 }
 
+function TitleToggle({ open, onClick, children }) {
+  return (
+    <button className="itemtitle" onClick={onClick} aria-expanded={open}>
+      <span className="caret">{open ? "\u25be" : "\u25b8"}</span>
+      {children}
+    </button>
+  );
+}
+
+// One development, in the candidate card and in the main feed. The row is the
+// short title; `headline` is a full sentence by contract and was what this row
+// used to print, which is why these lists read as a wall of prose.
+function DevItem({ d, showWho }) {
+  const [open, setOpen] = useState(false);
+  // Keyed to what the body can actually show. `headline` is not rendered there
+  // — it restates short_title, the same cut the Federal and Congress tabs take
+  // — so it must not open an otherwise empty drawer.
+  const hasMore = Boolean(d.why_it_matters);
+  return (
+    <li className="devitem">
+      <div className="devmeta">
+        <time>{d.date}</time>
+        {showWho ? <span className="statechip">{d.state}</span> : null}
+        {showWho ? <span className="devcand">{d.candidate}</span> : null}
+        {(d.competency || []).map((x) => (
+          <span key={x} className="minichip">{x}</span>
+        ))}
+        {showWho && d.article_count > 1 ? (
+          <span className="devsources">· {d.article_count} sources</span>
+        ) : null}
+      </div>
+      {hasMore ? (
+        <TitleToggle open={open} onClick={() => setOpen(!open)}>
+          {d.short_title}
+        </TitleToggle>
+      ) : d.urls[0] ? (
+        <a className="devheadline" href={d.urls[0]} target="_blank" rel="noreferrer">
+          {d.short_title}
+        </a>
+      ) : (
+        <span className="devheadline">{d.short_title}</span>
+      )}
+      {open ? (
+        <div className="itembody">
+          {/* One prose block, and it is why_it_matters — the cut the Federal
+              and Congress tabs take, for the same reason. `headline` is a full
+              sentence restating the title and `summary` opens on the same
+              facts; the why is the one thing the title cannot carry. Both stay
+              on the API payload for the digest and the review export. */}
+          <p className="itemsummary">{d.why_it_matters}</p>
+          {d.urls[0] ? (
+            <a className="sourcelink" href={d.urls[0]} target="_blank" rel="noreferrer">
+              Read the source →
+            </a>
+          ) : null}
+        </div>
+      ) : null}
+    </li>
+  );
+}
+
 function CandidateRow({ c, devs }) {
   const [open, setOpen] = useState(false);
   const recent = devs.slice(0, 3);
@@ -111,21 +172,7 @@ function CandidateRow({ c, devs }) {
           {recent.length ? (
             <ul className="devlist">
               {recent.map((d) => (
-                <li key={d.id} className="devitem">
-                  <div className="devmeta">
-                    <time>{d.date}</time>
-                    {(d.competency || []).map((x) => (
-                      <span key={x} className="minichip">{x}</span>
-                    ))}
-                  </div>
-                  {d.urls[0] ? (
-                    <a className="devheadline" href={d.urls[0]} target="_blank" rel="noreferrer">
-                      {d.headline}
-                    </a>
-                  ) : (
-                    <span className="devheadline">{d.headline}</span>
-                  )}
-                </li>
+                <DevItem key={d.id} d={d} />
               ))}
             </ul>
           ) : null}
@@ -185,10 +232,15 @@ export default function Candidates() {
   const [candidates, setCandidates] = useState(null);
   const [devs, setDevs] = useState([]);
   const [error, setError] = useState(null);
-  const [ratingF, setRatingF] = useState("all"); // all | competitive | open
+  // Competitive by default: a settled race is one whose winner is already
+  // known, and what a safe-seat candidate says about procurement is not what
+  // this page is for. `ratingClass` calls anything that is not a Toss-up or a
+  // Lean "settled", so this shows the races still in play. The All pill is
+  // right there for the full 36.
+  const [ratingF, setRatingF] = useState("competitive"); // all | competitive | open
   const [partyF, setPartyF] = useState("all");
   const [signalF, setSignalF] = useState("all");
-  const [windowF, setWindowF] = useState("30"); // 7 | 30 | 90 | all
+  const [windowF, setWindowF] = useState("7"); // 7 | 30 | 90 | all
   // Developments matching none of the four competencies are hidden by default,
   // as on the state map. Without this escape hatch they were unreachable —
   // more than half the feed was invisible with no way to see it.
@@ -384,26 +436,7 @@ export default function Candidates() {
           </div>
           <ul className="devlist">
             {rafDevs.map((d) => (
-              <li key={d.id} className="devitem">
-                <div className="devmeta">
-                  <time>{d.date}</time>
-                  <span className="statechip">{d.state}</span>
-                  <span className="devcand">{d.candidate}</span>
-                  {(d.competency || []).map((x) => (
-                    <span key={x} className="minichip">{x}</span>
-                  ))}
-                  {d.article_count > 1 ? (
-                    <span className="devsources">· {d.article_count} sources</span>
-                  ) : null}
-                </div>
-                {d.urls[0] ? (
-                  <a className="devheadline" href={d.urls[0]} target="_blank" rel="noreferrer">
-                    {d.headline}
-                  </a>
-                ) : (
-                  <span className="devheadline">{d.headline}</span>
-                )}
-              </li>
+              <DevItem key={d.id} d={d} showWho />
             ))}
           </ul>
         </section>

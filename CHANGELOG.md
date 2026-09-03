@@ -37,6 +37,391 @@ Dates are the date of the work, not of the write-up.
 
 ## Unreleased
 
+### Review export: one tab for a reviewer — 2026-09-03
+
+`export_review.py --single-tab` flattens the deduped layers onto one shared
+column set. A reviewer asked to read a workbook should not have to learn which
+of four sheets a row lives on: the question being asked is identical for a
+committee letter, a hearing and a bill. Each column takes the first field a
+given row type actually carries — a bill has a `sponsor` where an action has an
+`actor`, a hearing's prose lives in `agenda_summary` rather than `summary` — and
+each spec gained a `kind` label so the flattened sheet can still say what a row
+is.
+
+The raw layers are deliberately excluded. They answer a different question ("did
+the gate drop something it shouldn't have?") against a different field
+(`pillars`, not `competency`), and mixing them in would put two incompatible
+classifications in one column.
+
+### Digest: the state leads the headline — 2026-09-03
+
+State events and Governors '26 items printed the state postal code in the faint
+12px meta line under the headline, where it was too small to scan — and the
+state loader was actively *stripping* the `MD — ` prefix that `Events.Name`
+already carries. The state now leads the headline instead:
+
+    MD: State university system agrees to negotiated pay raises
+    WI: Executive directive restricting county Flock surveillance camera use
+
+- **Removed from the meta line in both sections**, so it is not printed twice.
+  State events now read `budget · MD Governor's Office`; governors items read
+  `David Crowley (D) · Toss-up · 3 sources`.
+- **The `Name` prefix is the fallback** where a row has no `state` field, so a
+  legacy row still gets its code.
+- **The dry-run governors block** dropped its separate state column, which the
+  headline now carries.
+- Both renderers pick this up from `item["title"]`, so HTML and plain text moved
+  together.
+
+### Defaults: seven days, competitive seats, new banner line — 2026-09-03
+
+Three unrelated defaults, changed together.
+
+- **Seven days is the default window on every tab.** Congress, Federal and
+  Governors '26 opened on 30 days; the State Map already opened on Week. The
+  `hasFilters` tests and the Clear buttons on Congress and Federal were keyed to
+  the old default and moved with it, so "clear" still returns to what the page
+  loads with rather than silently leaving a filter on.
+- **Governors '26 opens on competitive seats.** `ratingF` defaults to
+  `competitive`, which `ratingClass` defines as anything that is not a Toss-up
+  or a Lean — 21 of the 87 live candidates, across 10 states. The All pill is
+  unchanged and one click away.
+- **The banner sub-line** is now "What governments are doing in the world of
+  state capacity", replacing "What state governments are actually doing, in
+  Recoding America's capacities". The same sentence is the document
+  `description` in `layout.js`, so it moved too — the tab title and the share
+  preview would otherwise contradict the banner.
+
+What the seven-day default actually shows, measured on 2026-09-03 against the
+live payloads, competency filter at its own default:
+
+| Feed | 7d | 30d | 90d |
+|---|---|---|---|
+| Federal events | 19 | 78 | 87 |
+| Congress activity | 2 | 13 | 18 |
+| Congress hearings | 1 | 3 | 8 |
+| Congress bills | 1 | 9 | 20 |
+| State events | 4 | 29 | 88 |
+| Candidate developments (competitive) | 8 | 18 | 26 |
+
+Federal and candidates read fine. **Congress opens nearly empty** — 2 activity
+rows, 1 hearing, 1 bill — because its cadence is committee-shaped and slower
+than a news feed's. Left at seven days as asked; if it reads as broken rather
+than as quiet, that tab is the one to reconsider.
+
+### One prose block per event on the Federal and Congress tabs — 2026-09-03
+
+An expanded federal news row printed the same event three times: `headline` as
+a full sentence (median 23 words), `summary` opening on the same facts in
+identical grey 12.5px type 2px below it (median 55 words), then
+`why_it_matters` (median 22). Six stacked blocks, a median of **104 words of
+prose**, and a `.whymatters` rail nested inside `.itembody`'s own rail. On the
+Pentagon/ChatGPT row all three blocks said "DoD approved ChatGPT for
+unclassified use after a security review"; only one clause in the whole 74
+words — "does not extend to classified military networks" — appeared once.
+
+The dropdown now renders one prose block: `why_it_matters`, falling back to
+`summary` where it is empty. The title already carries what happened; the why
+is the one thing it cannot carry. Styled `.itemsummary` rather than
+`.whymatters`, because the blue rail exists to separate the why from a summary
+above it and there is no longer one to separate from.
+
+- **The fallback is not cosmetic.** 29 of 137 `Federal Events` (21%) carry no
+  `why_it_matters`, and not as legacy data: `dedupe.single_row_event` hardcodes
+  it empty, so any raw row alone in its agency group that window skips the
+  cluster call that would have written one. Rulemaking is worst hit (13 of the
+  29) — a term sweep routinely pulls one document from an agency nothing else
+  covered. `Congress Events` has 1 of 33. Without the fallback those rows would
+  expand to a drawer holding no prose at all. Measured against the live
+  payloads afterwards: 108 federal rows show the why, 29 the summary, **0 show
+  nothing**; congress 32 / 1 / 0.
+- **Federal `ActionItem` and Congress `ActivityItem`** only. Hearings and bills
+  keep both blocks: their first block is an agenda or a bill summary, which is
+  not a restatement of the title.
+- **`hasMore` is keyed to what the body can actually show** — either prose
+  field, the actor/status line, or the tags. Keying it to the why alone would
+  have hidden the tag and source rows on a row that has no why.
+- **Nothing changed in the data.** `headline` and `summary` stay on the API
+  payload and in Airtable; the digest and the review export read them.
+
+The raw-layer fix — having the federal gate produce a `why_it_matters` the way
+the candidates pipeline now does, so single-row events get a real one instead
+of a summary — is still open, and is the better answer for those 29 rows.
+
+### Rulemaking titles no longer lead with the search phrase — 2026-09-03
+
+Nine rows on the Federal tab's Rulemaking & notices lane rendered as
+*"improper payments — Privacy Act matching program notice for Do Not Pay"* —
+a lowercase phrase, an em dash, and then the actual title. The phrase was the
+Federal Register full-text query that found the document, leaking out of the
+source name and into the reader's view.
+
+Three things had to line up for it, and each one is defensible alone:
+
+- `sources.fedreg_specs` names every term query `FR term — improper payments`
+  so the dry-run funnel reports yield per query, and leaves `agency` empty
+  because a term sweep is not agency-scoped.
+- `pipeline.build_row` labels a raw row `f"{agency or outlet} — {name}"`, and
+  with no agency and no `outlet` on the spec, `outlet` fell back to the spec's
+  whole name: `FR term — improper payments — Privacy Act matching…`.
+- `dedupe.single_row_event` recovers the title with `split(" — ", 1)[-1]`,
+  which peels off exactly one segment. It assumes the label holds no em dash.
+
+Only the 18 term queries were affected — the `FR agency —` and `FR type —`
+specs carry a real agency slug, so their label is a bare `mspb` or
+`white-house` and the strip lands where it should. Only single-article rows,
+too: a clustered event takes its name from the model, not from the raw `Name`.
+
+- **The term specs now declare `"outlet": "Federal Register"`**, which is both
+  true of every document they return and already what `/api/federal` displays
+  for a source named `FR *`. The label holds no delimiter, so the strip works.
+- **`source` is untouched**, so the funnel keeps per-query granularity and a
+  term that stops matching is still visible as its own row.
+- **`tools/strip_fr_term_prefixes.py`** backfills the 14 raw rows and 9 event
+  rows already written. The raw half is the half that matters: the dedupe
+  re-reads raw rows by `ingested_at` and upserts on `event_id`, so fixing only
+  the clean table would have let the next run write the phrase back.
+- **The digest had the same leak on a second surface**, found while sending a
+  test copy: it labelled federal links with the raw `source_outlets` string, so
+  three links read "FR term — improper payments" and three more "GAO reports".
+  `digest.py` now normalises them through `federal_outlet()` — the same map the
+  web route has had. Only 'Federal Events' carries registry-shaped outlet names
+  (13 of its 20 distinct strings); 'Congress Events' has none, so the congress
+  loader is left alone.
+
+### Candidate developments carry a short title — 2026-09-03
+
+The Governors '26 section of the digest read as the longest thing in the email
+even after the cap of five landed, because it had no title field to print. Every
+other stream carries a short title next to the sentence — `short_title` on
+Congress and Federal events, a titled `Name` on state events — and candidates
+carried only `headline`, which both writers prompt for as *"one plain sentence:
+what the candidate said/did"*. The digest printed that sentence as the bold card
+title. Measured across the 175 rows of `Candidate Events`:
+
+| Field printed as the card title | Median | Max | Over 15 words |
+|---|---|---|---|
+| `Candidate Events.headline` | **21 words** | 55 | 73% |
+| `Federal Events.short_title` | 9 words | 13 | 0% |
+| `Congress Events.short_title` | 9 words | 11 | 0% |
+| `Events.Name` (state) | 9 words | 15 | 0% |
+
+Nothing truncates in the renderer, so the median card ran ~44 words of text
+before its meta and link lines — roughly twice any other section's, five times
+over.
+
+- **The short title already existed and was being thrown away.** The cluster
+  prompt has always returned `name` — *"concise title of the development, 5-10
+  words, no candidate name, sentence case"* — and `build_clean_row` used it only
+  as an empty-`headline` fallback, so it never reached Airtable. It is now
+  stored as `short_title`.
+- **The raw gate is asked for one too.** 118 of 175 rows (67%) are
+  single-article and bypass the cluster call entirely — the same shape as the
+  `why_it_matters` split — so the clean-layer fix alone would have missed two
+  thirds of the table. `candidates/pipeline.py`
+  now asks for a 6-12 word `short_title` and `single_row_development` carries it
+  through.
+- **The digest reads `short_title or headline`**, the same fallback the congress
+  and federal sections use. Rows written before the field existed keep printing
+  the sentence rather than going blank; both tables auto-create the column on
+  their next run.
+- **Takes effect as rows are rewritten, not retroactively.** Clustered
+  developments get a short title on the next `candidates/dedupe.py` run whatever
+  their raw rows look like, since the cluster call mints `name` itself.
+  Single-article rows need a raw row scraped after this change, so the older
+  two thirds of the table keeps falling back until it ages out of the window.
+
+### State dedupe runs daily — 2026-09-02
+
+The clean `Events` table refreshed only on Mondays, so the dashboard was stale
+by up to six days — one of the two documented reasons the tracker "looked
+empty" mid-week. It now clusters every day, immediately after its own ingest,
+the pairing congress and federal already used.
+
+The cadence change is three lines of `weekly.yml`. It was gated on two fixes
+that had to land first, and **the order was the point**: run daily against the
+old delete-and-rewrite code and every event in the trailing week would have
+been deleted and re-created with a fresh record id *every day*, multiplying the
+damage rather than fixing the staleness.
+
+- **`Raw Events` gained `ingested_at`, and the dedupe windows on it** instead of
+  the LLM-extracted action `date`. The gate backdates `date` to the government
+  action, so an article scraped today about a six-week-old action carried a
+  six-week-old date and fell outside every future window — it never clustered at
+  all. Measured on the 428-row table: **56 rows (13%) had an ingest lag over 7
+  days** and were structurally unreachable; widening the current 7-day window
+  recovered 7 rows (24 → 31). Rows predating the field fall back to `date`.
+- **`Events` is upserted on a stable `event_id`** instead of being deleted and
+  rewritten. Writes go through `shared.airtable.upsert` with
+  `preserve=REVIEW_FIELDS`, and the table gained `review_status` /
+  `reviewer_notes` — a human verdict on a state event previously had nowhere
+  durable to live.
+- **An event is written once and then only accretes sources.** `event_id` is
+  minted at first sighting and never changes. Later runs match a cluster to an
+  existing event by **source-URL overlap**, not by re-hashing its URL set: the
+  set grows as more outlets cover the same action, so a content hash would
+  change and mint a duplicate. A matched event gets its provenance updated
+  (`source_urls`, `source_outlets`, `source_type`, `article_count`) and every
+  `FROZEN_FIELDS` value left as first written — `headline`, `Notes`,
+  `why_it_matters`, `date`, `competency`, `relevance`, `topic_tags`, actor
+  fields. Nothing is deleted: under first-writer-wins nothing is superseded by
+  re-clustering, so `state/dedupe.py` no longer prunes.
+- **The steady state is free.** A state whose every windowed article already
+  belongs to an event is skipped before any LLM call. Verified end to end:
+  run 1 → 29 new events, 29 classify calls; run 2 over the same window → 20 of
+  20 states skipped, "Nothing new to cluster", zero model calls and zero
+  writes; then with one article artificially marked unseen, it re-attached to
+  its existing event with **all 12 frozen fields byte-identical**, same record
+  id, same `event_id`.
+- **`--reclassify`** regenerates the frozen fields for events already in the
+  table, for a `rubrics/rubric.md` edit. Verified to change no `event_id` and no
+  record id (29/29 stable) while re-writing `headline` on 16 of 29 and
+  `why_it_matters` on 18 of 29.
+- **Migration:** `tools/backfill_state_ingested_at.py`, run once, three steps in
+  order. It fills `ingested_at` from each row's Airtable `createdTime` — which
+  *is* the moment the pipeline wrote the row — rewrites the old `uuid4`
+  event_ids into hashes so the first upsert updates rows rather than
+  duplicating them, and collapses any rows left sharing an id (keeping one that
+  carries a human verdict over one that doesn't, then the most recent). Ran
+  against 428 raw and 343 clean rows; idempotent on re-run.
+- **One fossil duplicate collapsed.** Exactly one pair shared a URL set: the
+  same single NH veto article, written twice, dated 07-11 and 07-13 a week
+  apart. That's the old path's signature — it cleared clean rows whose `date`
+  fell in the window, so a row the clusterer re-dated *out* of the window
+  survived the clear and got a twin. Neither `upsert` nor `prune_orphans` can
+  collapse such a pair alone: they share an id, so the upsert index keeps one
+  and the prune skips both. Hence step 3 of the migration.
+
+Two things this deliberately did **not** change:
+
+- **Candidate dedupe is still Mondays-only.** `candidates/dedupe.py` already
+  windows on `ingested_at` but is still delete-and-rewrite, so daily would churn
+  every row in its window every day. It wants the same upsert first.
+- **Freezing the text is deliberate, and it has a cost.** An event first seen
+  through one thin article keeps that article's headline, summary and
+  competency even after five more outlets cover it. That bites hardest on
+  `competency`: the default web view hides competency-empty events, so an event
+  classified `none` on thin early evidence stays hidden even once later coverage
+  makes the capacity angle obvious. `--reclassify` is the escape hatch.
+
+  Attribution for *why* freezing was needed — measured on two consecutive runs
+  of the pre-freeze code, split by whether the state called the clustering model:
+
+  | | events | `headline` changed | `why_it_matters` changed |
+  |---|---|---|---|
+  | states with >1 article (`cluster_state` ran) | 17 | 16/17 | 17/17 |
+  | states with 1 article (LLM bypassed) | 11 | 0/11 | 0/11 |
+
+  The drift was entirely the clustering call, not the classifier — a
+  single-article event already copies its raw row verbatim. So caching the
+  classify call alone would not have fixed it; the synthesis had to freeze too.
+
+**A one-time catch-up recovered the rows the old bug had stranded.** After the
+switch, 19 raw rows were found that had never reached `Events` at all —
+ingested between 2026-06-23 and 2026-08-19 and dropped by the old `date`
+window. A single `--days 72` run swept them in: **15 new events created, 8
+existing events gained a source, 82 known events kept their stored
+classification and cost no model call.** `Raw Events` now has zero unpromoted
+rows, and `Events` went from 349 to 364.
+
+That run also surfaced **5 groups of pre-existing duplicate events** — the same
+government action written separately at different procedural stages, which the
+old delete-and-rewrite path produced across weekly windows. The clusterer now
+recognises each group as one event, but merging them would mean choosing whose
+frozen text survives, so they are reported rather than merged. They need a
+human call:
+
+| state | event_ids | what it is |
+|---|---|---|
+| IL | `be021d9d…`, `199a55c9…` | Dept of Early Childhood launch, written twice |
+| IL | `faaf4c6f…`, `4d664955…` | Pritzker AI-regulation signing |
+| NC | `9d2c564d…`, `97edf5a8…` | the $34B budget: passed, then signed |
+| VA | `8fda1904…`, `1671dfa1…` | SCC / Dominion data-centre rate action |
+| VA | `88eb1e46…`, `fa8bcc32…`, `8cacc227…` | the $205B biennial budget, in three stages |
+
+**Stragglers fixed, and the reported duplicates collapsed — 2026-09-03.**
+
+- **Two windows, not one.** `--days` is now only the *trigger* window (which
+  states have something unseen); the new `--context-days` (default 30) is the
+  wider *clustering* window a triggered state is clustered against. A late
+  article therefore meets siblings that have aged out of `--days` and attaches
+  to their event instead of duplicating it. A/B on a real pair ingested six days
+  apart: at `--context-days 16` the late article produced a **new** event; at
+  `--context-days 30` it reported `+src` against the existing one, kept the
+  stored text and cost no classify call. The daily workflow run inherits the
+  30-day default. Quiet states are still skipped, so the wider context is free.
+- **The 5 reported duplicate groups were collapsed into their latest stage**
+  with the new `tools/collapse_state_events.py`, removing 6 rows. The survivor
+  is the row with the greatest `date` — a bill is agreed, then passed, then
+  signed, and the signing is the one worth keeping. The losers' sources are
+  merged into the survivor *before* deletion, which matters: an orphaned source
+  URL belongs to no event, so the next run would see it as unseen and re-create
+  the row just removed. Verified afterwards that `Raw Events` still has zero
+  unpromoted rows. Reviewer annotations are carried across rather than dropped.
+  One judgment call is flagged in that tool's output — see below.
+
+**Collapsing nests later rows under the FIRST iteration — 2026-09-03.** The
+first pass of this tool kept the *latest stage* row and, briefly, re-synthesized
+its text from all the merged sources. Both were wrong, and the second was
+wronger: re-deriving text whenever coverage accumulates is exactly the churn the
+freeze exists to prevent, and it produced an Illinois headline the user
+(rightly) rejected.
+
+The rule is now the same one the daily dedupe follows: **the earliest `date`
+survives** (ties broken by whichever saw more sources), its text and competency
+are kept untouched, and the later rows' sources nest under it. A later article
+about an action already recorded is not a new judgment about it.
+
+- The cost, stated plainly: the surviving headline describes the stage the
+  action was at when FIRST seen. A budget first recorded as "the Assembly passed
+  X" keeps that framing after the governor signs it. That is the intended trade
+  — an event resurfacing week after week as coverage trickles in is worse than a
+  slightly stale verb.
+- `--resynthesize` remains as an explicit opt-out for the case where a first
+  pass is genuinely wrong rather than merely early. It is not the default.
+- `dedupe.synthesize_one` / `MERGE_PROMPT` back that flag. They read the
+  ORIGINAL raw articles rather than the clean rows, and never downgrade a
+  classified event to `none` — the classifier is not deterministic and the
+  default web view hides competency-empty rows.
+
+**The five groups collapsed earlier used the old latest-stage rule**, so in each
+one the *later* row survived and the first was deleted. Re-running under the new
+rule cannot undo that: the earlier rows are gone from `Events`. Their record ids
+are listed below so they can be restored from Airtable's trash if wanted, after
+which re-collapsing would keep the restored row.
+
+| group | deleted (the first iteration) | record id |
+|---|---|---|
+| IL Early Childhood | `199a55c9…` 07-01 | `rec9l2E7TRJvFeAUA` |
+| IL AI | `faaf4c6f…` 07-06 | `recrHvF2mG9zzWryo` |
+| NC budget | `97edf5a8…` 06-30 | `rec04gEvfAdGASuXH` |
+| VA SCC | `8fda1904…` 07-15 | `reclu9xo4ejjMZyk6` |
+| VA budget | `fa8bcc32…` 06-22 | `recoJ7KS2ulEQA8zH` |
+| VA budget | `8cacc227…` 06-19 | `recabVBuXmTw3l83p` |
+
+The daily dedupe now also attaches an ambiguous cluster to whichever existing
+event came first, rather than to whichever shares the most sources.
+
+The migration script gained a guard at the same time. Step 2 mints an
+`event_id` from a row's sources, and once events started accreting sources the
+stored id legitimately diverged from `event_id_for(current urls)` — so a second
+run would have rewritten the ids of 8 live events and split them from their own
+history. It now only ever touches a legacy `uuid4` or a blank, and reports how
+many it left alone.
+
+Two gaps left open on purpose:
+
+- Rows whose `date` the gate got *wrong* now promote instead of being silently
+  dropped. One in the first window reads `2025-01-01` against an ingest date of
+  2026-08-28 — a 604-day lag, almost certainly hallucinated. The web view sorts
+  newest-first on `date`, so it lands at the bottom of the feed rather than
+  nowhere at all.
+- A straggler arriving more than `--days` after its siblings still mints a
+  second row, because they have aged out of the window and it shares no URL with
+  anything stored. Within-window stragglers attach correctly. Healing the late
+  case needs a periodic `--days 21` pass; not scheduled. One live instance, a
+  Maine labor agreement held as two rows dated 08-21 and 08-25.
+
 ### Digest: real recipients, and one message per person — 2026-08-31
 
 `updates.recodingamerica.org` is verified, so the digest now sends from
@@ -376,6 +761,39 @@ The classification model the tracker still uses today.
 ---
 
 # Calibration log
+
+## 2026-08-31 — Congress and Federal event validation sheets (hand-marked)
+
+**Corpus.** Two sheets, committed as `data/Event Validation - Congress.csv` (111
+rows) and `data/Event Validation - Federal.csv` (67 rows). Each row carries the
+title, summary, why_it_matters, agency, competency, outlets and link the tracker
+produced, plus three reviewer columns: include Y/N, good/bad/unclear for state
+capacity, and free notes.
+
+**Congress: the gate over-includes.** 111 rows marked, and the verdict was
+**29 include, 70 exclude, 12 unsure** — roughly a quarter kept. The notes say
+why, repeatedly and in the same words: *"Seems a bit out of scope"*, *"out of
+scope"*, *"I don't think this fits in scope but I could be wrong"*, *"May be a
+bit out of scope for state capacity"*, and on one bill *"Language is too
+vague"*. The rejections are not misclassifications inside the four competencies;
+they are events that should not have reached a competency at all. That points at
+the congress gate prompt, not the dedupe or the rubric.
+
+**Federal: mostly right, and the judgments are substantive.** 51 of 67 rows
+marked, **32 include / 19 exclude**, with 31 good-bad-unclear calls written as
+prose rather than a label — *"good (feedback loops!)"*, *"good (step in the right
+direction toward making it easier to move in & out of civil service)"*, *"Good
+(aligns with field proposals to use probationary periods as an evaluative tool +
+streamline the appeals process)"*, against *"BAD"* on two and *"probably good;
+the dismissal appeals process is a convoluted mess"* on another. 16 rows are
+unmarked, so the federal inclusion rate is a floor, not a rate.
+
+**Nothing has changed as a result yet. Still open.** The congress inclusion rate
+is the actionable finding and no prompt, rubric or keyword list has moved on the
+strength of it. Two things to be careful of when it is picked up: the
+good/bad/unclear column is a *policy* judgment about the action, not a
+relevance judgment about the row, so it must not be fed to a gate; and the
+free-text column mixes both, as the *"see 53"* entry shows.
 
 ## 2026-08-31 — why_it_matters prose calibration (Atharv, blind A/B)
 

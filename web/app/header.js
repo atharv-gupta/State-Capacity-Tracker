@@ -12,7 +12,7 @@ export default function Header({ active }) {
   return (
     <header className="head">
       <h1>State Capacity Tracker</h1>
-      <p className="sub">What state governments are actually doing, in Recoding America&apos;s capacities</p>
+      <p className="sub">What governments are doing in the world of state capacity</p>
       <nav className="tabs">
         <Link href="/" className={`tab ${active === "map" ? "on" : ""}`}>
           States
