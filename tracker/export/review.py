@@ -12,6 +12,7 @@ being asked to decide.
     python export_review.py --tracker federal --days 7
     python export_review.py --all --out ~/Desktop
     python export_review.py --relevant-only            # drop the `none` rows
+    python export_review.py --tracker congress --single-tab   # one sheet for a reviewer
 
 Whatever reviewers write in the workbook has to be typed back into Airtable's
 review_status / reviewer_notes to survive — the export is one-way on purpose.
@@ -70,6 +71,7 @@ FEDERAL_EVENTS = {
     "table": "Federal Events",
     "sheet": "Federal events",
     "date_field": "date",
+    "kind": "action",
     "columns": [
         ("date", "date", 11),
         ("lane", "lane", 16),
@@ -99,6 +101,7 @@ CONGRESS_EVENTS = {
     "table": "Congress Events",
     "sheet": "Committee activity",
     "date_field": "date",
+    "kind": "activity",
     "columns": [
         ("date", "date", 11),
         ("committee", "committee", 16),
@@ -126,6 +129,7 @@ CONGRESS_HEARINGS = {
     "table": "Congress Hearings",
     "sheet": "Hearings",
     "date_field": "date",
+    "kind": "hearing",
     "columns": [
         ("date", "date", 11),
         ("committee", "committee", 16),
@@ -149,6 +153,7 @@ CONGRESS_BILLS = {
     "table": "Congress Bills",
     "sheet": "Bills",
     "date_field": "date",
+    "kind": "bill",
     "columns": [
         ("committee action date", "committee_action_date", 13),
         ("bill", "bill_number", 12),
@@ -184,6 +189,7 @@ FEDERAL_RAW = {
     "table": "Federal Raw",
     "sheet": "Federal raw items",
     "date_field": "date",
+    "raw": True,
     "relevance_field": "pillars",
     "columns": [
         ("date", "date", 11),
@@ -209,6 +215,7 @@ CONGRESS_RAW = {
     "table": "Congress Raw",
     "sheet": "Congress raw items",
     "date_field": "date",
+    "raw": True,
     "relevance_field": "pillars",
     "columns": [
         ("date", "date", 11),
@@ -318,7 +325,172 @@ READ_ME = {
 }
 
 
-def write_readme(wb, kind, window_label, counts):
+# ---------------------------------------------------------------------------
+# One-tab mode. A reviewer asked to read a workbook should not have to learn
+# which of four sheets a row lives on — the question we are asking is identical
+# for a committee letter, a hearing and a bill. This flattens the deduped
+# layers onto one shared column set, taking the first field a given row type
+# actually carries (a bill has a `sponsor` where an action has an `actor`; a
+# hearing's prose lives in `agenda_summary`, not `summary`).
+#
+# The raw layers are deliberately excluded: they answer a different question
+# ("did the gate drop something it shouldn't have?") against a different field
+# (`pillars`, not `competency`), and mixing them in would put two incompatible
+# classifications in one column.
+#
+# Each entry is (header, [field candidates, first non-empty wins], width).
+# "_kind" is the spec's own label rather than an Airtable field.
+# ---------------------------------------------------------------------------
+COMBINED_COLUMNS = {
+    "congress": [
+        ("type", ["_kind"], 10),
+        ("date", ["committee_action_date", "date"], 11),
+        ("committee", ["committee"], 16),
+        ("chamber", ["chamber"], 9),
+        ("what happened", ["activity_type", "meeting_type", "committee_action"], 18),
+        ("competency", ["competency"], 22),
+        ("relevance", ["relevance"], 9),
+        ("topic tags", ["topic_tags"], 24),
+        ("title", ["short_title", "title"], 52),
+        ("summary", ["summary", "agenda_summary"], 75),
+        ("why it matters", ["why_it_matters"], 50),
+        ("who", ["actor", "sponsor"], 24),
+        ("bills", ["bill_refs", "bill_number"], 16),
+        ("status", ["status", "hearing_status", "bill_status"], 14),
+        ("sources", ["article_count"], 8),
+        ("link", ["source_urls"], 40),
+        ("airtable review_status", ["review_status"], 16),
+    ],
+    "federal": [
+        ("type", ["_kind"], 10),
+        ("date", ["date"], 11),
+        ("lane", ["lane"], 16),
+        ("branch", ["branch"], 10),
+        ("agency", ["agency"], 18),
+        ("instrument", ["instrument_type"], 20),
+        ("instrument id", ["instrument_id"], 14),
+        ("verification", ["verification"], 13),
+        ("competency", ["competency"], 22),
+        ("relevance", ["relevance"], 9),
+        ("topic tags", ["topic_tags"], 24),
+        ("title", ["short_title"], 52),
+        ("summary", ["summary"], 75),
+        ("why it matters", ["why_it_matters"], 50),
+        ("actor", ["actor"], 24),
+        ("status", ["status"], 16),
+        ("sources", ["article_count"], 8),
+        ("link", ["source_urls"], 40),
+        ("primary document", ["document_url"], 40),
+        ("airtable review_status", ["review_status"], 16),
+    ],
+}
+
+# Read me entries that only make sense when the raw sheet is in the workbook.
+RAW_ONLY_READ_ME = {"Layers", "Two layers", "gate pillars vs competency"}
+
+# Entries whose wording assumes the multi-sheet layout and has to be restated
+# when everything is on one tab.
+SINGLE_TAB_OVERRIDES = {
+    "congress": {
+        "What this is": (
+            "The Recoding America Congressional Tracker: committee and member activity "
+            "(clustered from press feeds), hearings, and bills, on one sheet. Hearings "
+            "and bills come from the Congress.gov API; activity is scraped from "
+            "committee and member press feeds. The tracker runs daily; this is a "
+            "snapshot."),
+    },
+    "federal": {},
+}
+
+ONE_SHEET_NOTE = {
+    "congress": ("Everything is on the 'Review' sheet. The 'type' column says what a row "
+                 "is: activity = a committee or member action clustered from press feeds, "
+                 "hearing and bill = Congress.gov API records. Rows are sorted strongest "
+                 "competency fit first; the grey rows at the bottom matched no competency "
+                 "and are there so you can catch anything we wrongly let through."),
+    "federal": ("Everything is on the 'Review' sheet, one row per executive-branch action. "
+                "Rows are sorted strongest competency fit first; the grey rows at the "
+                "bottom matched no competency and are there so you can catch anything we "
+                "wrongly let through."),
+}
+
+
+def pick(fields, candidates, kind_label):
+    """First candidate the row actually carries. Row types share a column but
+    not a field name, and an absent field is not the same as an empty one."""
+    for c in candidates:
+        if c == "_kind":
+            return kind_label
+        v = fields.get(c)
+        if v not in (None, "", [], 0):
+            return v
+    return ""
+
+
+def write_combined(wb, tracker, loaded):
+    """loaded: list of (spec, records). One sheet, sorted so the rows the
+    reviewer is most likely to disagree with come first: strongest competency
+    fit at the top, `none` rows shaded at the bottom."""
+    columns = COMBINED_COLUMNS[tracker]
+    ws = wb.create_sheet("Review")
+    headers = [h for h, _, _ in columns] + REVIEW_COLUMNS
+    ws.append(headers)
+    for i, _ in enumerate(headers, start=1):
+        c = ws.cell(row=1, column=i)
+        c.fill = HEADER_FILL
+        c.font = HEADER_FONT
+        c.alignment = Alignment(vertical="center", wrap_text=True)
+    ws.row_dimensions[1].height = 26
+
+    rows = []
+    for spec, records in loaded:
+        for rec in records:
+            rows.append((spec["kind"], rec["fields"]))
+    rows.sort(key=lambda r: (r[1].get("relevance") or 0,
+                             pick(r[1], ["committee_action_date", "date"], "")),
+              reverse=True)
+
+    for r, (kind_label, f) in enumerate(rows, start=2):
+        for i, (_, candidates, _) in enumerate(columns, start=1):
+            value = pick(f, candidates, kind_label)
+            if candidates[0] in ("source_urls", "document_url"):
+                url = first_url(value) if candidates[0] == "source_urls" else (value or "")
+                if candidates[0] == "document_url" and url == first_url(f.get("source_urls")):
+                    url = ""
+                cell = ws.cell(row=r, column=i, value=url)
+                if url:
+                    cell.hyperlink = url
+                    cell.font = Font(color="2563EB", underline="single", size=10)
+                continue
+            cell = ws.cell(row=r, column=i, value=joined(value))
+            # Long prose spills into the next column when its neighbour is
+            # blank, which reads as a merged cell. Wrapping keeps each field
+            # inside its own column whatever the row next to it holds.
+            if candidates[0] in ("summary", "why_it_matters", "short_title"):
+                cell.alignment = Alignment(wrap_text=True, vertical="top")
+        if not f.get("competency"):
+            for i in range(1, len(headers) + 1):
+                ws.cell(row=r, column=i).fill = NONE_FILL
+        for i in range(len(columns) + 1, len(headers) + 1):
+            ws.cell(row=r, column=i).fill = REVIEW_FILL
+
+    for i, (_, _, width) in enumerate(columns, start=1):
+        ws.column_dimensions[get_column_letter(i)].width = width
+    for i, _ in enumerate(REVIEW_COLUMNS, start=len(columns) + 1):
+        ws.column_dimensions[get_column_letter(i)].width = 22
+
+    last_row = max(2, len(rows) + 1)
+    ws.auto_filter.ref = f"A1:{get_column_letter(len(headers))}{last_row}"
+    ws.freeze_panes = "B2"
+
+    dv = DataValidation(type="list", formula1=f'"{",".join(VERDICT_CHOICES)}"', allow_blank=True)
+    ws.add_data_validation(dv)
+    verdict_col = get_column_letter(len(columns) + 1)
+    dv.add(f"{verdict_col}2:{verdict_col}{last_row}")
+    return len(rows)
+
+
+def write_readme(wb, kind, window_label, counts, single_tab=False):
     ws = wb.create_sheet("Read me", 0)
     ws.column_dimensions["A"].width = 26
     ws.column_dimensions["B"].width = 110
@@ -332,7 +504,13 @@ def write_readme(wb, kind, window_label, counts):
         ws.cell(row=row, column=2, value=f"{n} rows")
         row += 1
     row += 1
-    for label, text in READ_ME[kind]:
+    entries = list(READ_ME[kind])
+    if single_tab:
+        overrides = SINGLE_TAB_OVERRIDES[kind]
+        entries = [(l, overrides.get(l, t)) for l, t in entries
+                   if l not in RAW_ONLY_READ_ME]
+        entries.insert(0, ("One sheet", ONE_SHEET_NOTE[kind]))
+    for label, text in entries:
         c = ws.cell(row=row, column=1, value=label)
         c.font = Font(bold=True)
         c.alignment = Alignment(vertical="top")
@@ -420,16 +598,24 @@ def load(api, spec, cutoff, relevant_only):
     return out
 
 
-def build(api, kind, specs, cutoff, window_label, relevant_only, out_dir):
+def build(api, kind, specs, cutoff, window_label, relevant_only, out_dir,
+          single_tab=False):
     wb = Workbook()
     wb.remove(wb.active)
     counts = {}
-    for spec in specs:
-        records = load(api, spec, cutoff, relevant_only)
-        counts[spec["sheet"]] = write_sheet(wb, spec, records)
-    write_readme(wb, kind, window_label, counts)
+    if single_tab:
+        loaded = [(s, load(api, s, cutoff, relevant_only))
+                  for s in specs if not s.get("raw")]
+        write_combined(wb, kind, loaded)
+        counts = {f"{s['kind']} rows": len(r) for s, r in loaded}
+    else:
+        for spec in specs:
+            records = load(api, spec, cutoff, relevant_only)
+            counts[spec["sheet"]] = write_sheet(wb, spec, records)
+    write_readme(wb, kind, window_label, counts, single_tab)
     wb.active = 0
-    path = os.path.join(out_dir, f"{kind}-activity-{date.today().isoformat()}.xlsx")
+    stem = "review" if single_tab else "activity"
+    path = os.path.join(out_dir, f"{kind}-{stem}-{date.today().isoformat()}.xlsx")
     wb.save(path)
     total = sum(counts.values())
     print(f"  {path}  ({total} rows: "
@@ -444,6 +630,8 @@ def main():
     ap.add_argument("--all", action="store_true", help="ignore the window")
     ap.add_argument("--relevant-only", action="store_true",
                     help="drop rows that matched no competency")
+    ap.add_argument("--single-tab", action="store_true",
+                    help="one 'Review' sheet across all deduped layers, no raw sheets")
     ap.add_argument("--out", default="review")
     args = ap.parse_args()
 
@@ -461,11 +649,11 @@ def main():
     # most reviewers will read — then the raw layer behind it.
     if args.tracker in ("federal", "both"):
         build(api, "federal", [FEDERAL_EVENTS, FEDERAL_RAW], cutoff, window_label,
-              args.relevant_only, args.out)
+              args.relevant_only, args.out, args.single_tab)
     if args.tracker in ("congress", "both"):
         build(api, "congress",
               [CONGRESS_EVENTS, CONGRESS_RAW, CONGRESS_HEARINGS, CONGRESS_BILLS],
-              cutoff, window_label, args.relevant_only, args.out)
+              cutoff, window_label, args.relevant_only, args.out, args.single_tab)
     return 0
 
 
