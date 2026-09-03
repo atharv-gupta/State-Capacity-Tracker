@@ -440,7 +440,7 @@
           <dt>Feeds forget fast</dt>
           <dd>About 95 of the 171 hold less than 7 days. WordPress feeds get paged backwards up to 30
           pages, but roughly 44 non-WordPress feeds ignore paging completely. That is why ingest runs
-          <b>daily</b> even though clustering is weekly.</dd>
+          <b>daily</b>. Clustering is daily too now on state, congress and federal.</dd>
           <dt>Keep it current</dt>
           <dd>The registry is <code>tracker/state/sources.py</code>, RSS-verified 2026-06-09. The
           methodology tab shows a generated snapshot of it.</dd>
@@ -1280,7 +1280,7 @@
 
     <div class="cell">
       <div class="hd mono">Events</div>
-      <div class="sub">Window rebuilt each Monday; history outside it is never touched</div>
+      <div class="sub">Upserted daily; an event is written once, then only accretes sources</div>
     </div>
     <div class="cell">
       <div class="hd mono">Congress Events</div>
@@ -1641,7 +1641,7 @@
       </ul>
     </div>
     <div class="panel flag">
-      <h3>A straggler article still duplicates an event</h3>
+      <h3>A straggler beyond the context window still duplicates</h3>
       <p class="ph">state + congress + federal dedupe</p>
       <ul>
 <li>Closed 2026-09-03 by splitting the one window in two.
@@ -2092,7 +2092,7 @@
 <footer>
   <span>Recoding America · Government Capacity Tracker</span>
   <span>Sources of truth: <span class="mono">rubrics/</span> · <span class="mono">tracker/shared/wim.py</span> · <span class="mono">tracker/digest.py</span> · <span class="mono">web/app/</span></span>
-  <span>Reflects <span class="mono">digest-candidates-trim</span> @ <span class="mono">0379420</span></span>
+  <span>Reflects <span class="mono">digest-candidates-trim</span> @ <span class="mono">5f27f89</span></span>
 </footer>
 
 </div>
