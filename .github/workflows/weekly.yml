@@ -2,11 +2,12 @@ name: Tracker run
 
 on:
   schedule:
-    - cron: "0 13 * * *"   # daily 13:00 UTC (~7am MT): ingest; Mondays also dedupe
+    - cron: "0 13 * * *"   # daily 13:00 UTC (~7am MT): ingest + cluster;
+                           # Mondays also candidate dedupe + digest
   workflow_dispatch:        # manual trigger from the Actions tab
     inputs:
       dedupe:
-        description: "Also run dedupe after ingest"
+        description: "Also run the candidate dedupe (state clusters every run)"
         type: boolean
         default: false
       digest:
@@ -29,16 +30,30 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
           AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+      # Runs DAILY and immediately after its own ingest, like the congress and
+      # federal pairs below. It was Mondays-only, which left the dashboard
+      # stale by up to six days and was half of why the tracker looked empty.
+      # Daily is only safe because dedupe.py now upserts on a stable event_id
+      # instead of deleting the window and rewriting it, and freezes an event's
+      # text at first write — see its docstring. --days is only the trigger
+      # window; clustering context defaults to 30 days so a late article joins
+      # its siblings rather than duplicating their event.
+      - name: Cluster and classify into Events
+        run: python -m tracker.state.dedupe --days 7
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
       - name: Ingest candidate developments into Candidate Developments
         run: python -m tracker.candidates.pipeline --days 7
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
           AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
-      # The congress steps run DAILY, both of them — unlike the state pipeline,
-      # whose dedupe is Mondays only. Upcoming hearings are perishable: a
-      # Monday-only classify would surface a Wednesday hearing notice after the
-      # hearing had already happened.
+      # The congress steps run DAILY, both of them. Upcoming hearings are
+      # perishable: a Monday-only classify would surface a Wednesday hearing
+      # notice after the hearing had already happened. The state pair above now
+      # runs daily too; only the candidate dedupe is still Mondays-only.
       - name: Ingest congressional press into Congress Raw
         run: python -m tracker.congress.pipeline --days 7
         env:
@@ -77,13 +92,9 @@ jobs:
       - name: Check day of week
         id: day
         run: echo "dow=$(date -u +%u)" >> "$GITHUB_OUTPUT"
-      - name: Dedupe into Events (Mondays, or manual opt-in)
-        if: (github.event_name == 'schedule' && steps.day.outputs.dow == '1') || (github.event_name == 'workflow_dispatch' && inputs.dedupe)
-        run: python -m tracker.state.dedupe --days 7
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
-          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+      # Still Mondays-only: candidates/dedupe.py is delete-and-rewrite, so a
+      # daily run would churn every row in the window every day. Moving it to
+      # daily wants the same event_id upsert the state side just got.
       - name: Dedupe candidate developments into Candidate Events (Mondays, or manual opt-in)
         if: (github.event_name == 'schedule' && steps.day.outputs.dow == '1') || (github.event_name == 'workflow_dispatch' && inputs.dedupe)
         run: python -m tracker.candidates.dedupe --days 7
