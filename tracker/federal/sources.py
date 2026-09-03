@@ -245,6 +245,14 @@ def fedreg_specs():
     for term in FEDREG_TERMS:
         out.append({
             "name": f"FR term — {term.strip(chr(34))}", "agency": "",
+            # A term sweep is not agency-scoped, so pipeline.build_row would
+            # otherwise label the raw row with this spec's whole NAME — and the
+            # name carries an em dash, which is the delimiter dedupe's
+            # single-row shortcut strips on. That left the search phrase in the
+            # event title ("improper payments — Privacy Act matching…").
+            # Every one of these documents is published in the Register, so say
+            # so: it matches what the /api/federal route already displays.
+            "outlet": "Federal Register",
             "kind": "fedreg-api", "query": {"conditions[term]": term},
         })
     return out
