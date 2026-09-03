@@ -37,6 +37,158 @@ Dates are the date of the work, not of the write-up.
 
 ## Unreleased
 
+### Review export: one tab for a reviewer — 2026-09-03
+
+`export_review.py --single-tab` flattens the deduped layers onto one shared
+column set. A reviewer asked to read a workbook should not have to learn which
+of four sheets a row lives on: the question being asked is identical for a
+committee letter, a hearing and a bill. Each column takes the first field a
+given row type actually carries — a bill has a `sponsor` where an action has an
+`actor`, a hearing's prose lives in `agenda_summary` rather than `summary` — and
+each spec gained a `kind` label so the flattened sheet can still say what a row
+is.
+
+The raw layers are deliberately excluded. They answer a different question ("did
+the gate drop something it shouldn't have?") against a different field
+(`pillars`, not `competency`), and mixing them in would put two incompatible
+classifications in one column.
+
+### Digest: the state leads the headline — 2026-09-03
+
+State events and Governors '26 items printed the state postal code in the faint
+12px meta line under the headline, where it was too small to scan — and the
+state loader was actively *stripping* the `MD — ` prefix that `Events.Name`
+already carries. The state now leads the headline instead:
+
+    MD: State university system agrees to negotiated pay raises
+    WI: Executive directive restricting county Flock surveillance camera use
+
+- **Removed from the meta line in both sections**, so it is not printed twice.
+  State events now read `budget · MD Governor's Office`; governors items read
+  `David Crowley (D) · Toss-up · 3 sources`.
+- **The `Name` prefix is the fallback** where a row has no `state` field, so a
+  legacy row still gets its code.
+- **The dry-run governors block** dropped its separate state column, which the
+  headline now carries.
+- Both renderers pick this up from `item["title"]`, so HTML and plain text moved
+  together.
+
+### Defaults: seven days, competitive seats, new banner line — 2026-09-03
+
+Three unrelated defaults, changed together.
+
+- **Seven days is the default window on every tab.** Congress, Federal and
+  Governors '26 opened on 30 days; the State Map already opened on Week. The
+  `hasFilters` tests and the Clear buttons on Congress and Federal were keyed to
+  the old default and moved with it, so "clear" still returns to what the page
+  loads with rather than silently leaving a filter on.
+- **Governors '26 opens on competitive seats.** `ratingF` defaults to
+  `competitive`, which `ratingClass` defines as anything that is not a Toss-up
+  or a Lean — 21 of the 87 live candidates, across 10 states. The All pill is
+  unchanged and one click away.
+- **The banner sub-line** is now "What governments are doing in the world of
+  state capacity", replacing "What state governments are actually doing, in
+  Recoding America's capacities". The same sentence is the document
+  `description` in `layout.js`, so it moved too — the tab title and the share
+  preview would otherwise contradict the banner.
+
+What the seven-day default actually shows, measured on 2026-09-03 against the
+live payloads, competency filter at its own default:
+
+| Feed | 7d | 30d | 90d |
+|---|---|---|---|
+| Federal events | 19 | 78 | 87 |
+| Congress activity | 2 | 13 | 18 |
+| Congress hearings | 1 | 3 | 8 |
+| Congress bills | 1 | 9 | 20 |
+| State events | 4 | 29 | 88 |
+| Candidate developments (competitive) | 8 | 18 | 26 |
+
+Federal and candidates read fine. **Congress opens nearly empty** — 2 activity
+rows, 1 hearing, 1 bill — because its cadence is committee-shaped and slower
+than a news feed's. Left at seven days as asked; if it reads as broken rather
+than as quiet, that tab is the one to reconsider.
+
+### One prose block per event on the Federal and Congress tabs — 2026-09-03
+
+An expanded federal news row printed the same event three times: `headline` as
+a full sentence (median 23 words), `summary` opening on the same facts in
+identical grey 12.5px type 2px below it (median 55 words), then
+`why_it_matters` (median 22). Six stacked blocks, a median of **104 words of
+prose**, and a `.whymatters` rail nested inside `.itembody`'s own rail. On the
+Pentagon/ChatGPT row all three blocks said "DoD approved ChatGPT for
+unclassified use after a security review"; only one clause in the whole 74
+words — "does not extend to classified military networks" — appeared once.
+
+The dropdown now renders one prose block: `why_it_matters`, falling back to
+`summary` where it is empty. The title already carries what happened; the why
+is the one thing it cannot carry. Styled `.itemsummary` rather than
+`.whymatters`, because the blue rail exists to separate the why from a summary
+above it and there is no longer one to separate from.
+
+- **The fallback is not cosmetic.** 29 of 137 `Federal Events` (21%) carry no
+  `why_it_matters`, and not as legacy data: `dedupe.single_row_event` hardcodes
+  it empty, so any raw row alone in its agency group that window skips the
+  cluster call that would have written one. Rulemaking is worst hit (13 of the
+  29) — a term sweep routinely pulls one document from an agency nothing else
+  covered. `Congress Events` has 1 of 33. Without the fallback those rows would
+  expand to a drawer holding no prose at all. Measured against the live
+  payloads afterwards: 108 federal rows show the why, 29 the summary, **0 show
+  nothing**; congress 32 / 1 / 0.
+- **Federal `ActionItem` and Congress `ActivityItem`** only. Hearings and bills
+  keep both blocks: their first block is an agenda or a bill summary, which is
+  not a restatement of the title.
+- **`hasMore` is keyed to what the body can actually show** — either prose
+  field, the actor/status line, or the tags. Keying it to the why alone would
+  have hidden the tag and source rows on a row that has no why.
+- **Nothing changed in the data.** `headline` and `summary` stay on the API
+  payload and in Airtable; the digest and the review export read them.
+
+The raw-layer fix — having the federal gate produce a `why_it_matters` the way
+the candidates pipeline now does, so single-row events get a real one instead
+of a summary — is still open, and is the better answer for those 29 rows.
+
+### Rulemaking titles no longer lead with the search phrase — 2026-09-03
+
+Nine rows on the Federal tab's Rulemaking & notices lane rendered as
+*"improper payments — Privacy Act matching program notice for Do Not Pay"* —
+a lowercase phrase, an em dash, and then the actual title. The phrase was the
+Federal Register full-text query that found the document, leaking out of the
+source name and into the reader's view.
+
+Three things had to line up for it, and each one is defensible alone:
+
+- `sources.fedreg_specs` names every term query `FR term — improper payments`
+  so the dry-run funnel reports yield per query, and leaves `agency` empty
+  because a term sweep is not agency-scoped.
+- `pipeline.build_row` labels a raw row `f"{agency or outlet} — {name}"`, and
+  with no agency and no `outlet` on the spec, `outlet` fell back to the spec's
+  whole name: `FR term — improper payments — Privacy Act matching…`.
+- `dedupe.single_row_event` recovers the title with `split(" — ", 1)[-1]`,
+  which peels off exactly one segment. It assumes the label holds no em dash.
+
+Only the 18 term queries were affected — the `FR agency —` and `FR type —`
+specs carry a real agency slug, so their label is a bare `mspb` or
+`white-house` and the strip lands where it should. Only single-article rows,
+too: a clustered event takes its name from the model, not from the raw `Name`.
+
+- **The term specs now declare `"outlet": "Federal Register"`**, which is both
+  true of every document they return and already what `/api/federal` displays
+  for a source named `FR *`. The label holds no delimiter, so the strip works.
+- **`source` is untouched**, so the funnel keeps per-query granularity and a
+  term that stops matching is still visible as its own row.
+- **`tools/strip_fr_term_prefixes.py`** backfills the 14 raw rows and 9 event
+  rows already written. The raw half is the half that matters: the dedupe
+  re-reads raw rows by `ingested_at` and upserts on `event_id`, so fixing only
+  the clean table would have let the next run write the phrase back.
+- **The digest had the same leak on a second surface**, found while sending a
+  test copy: it labelled federal links with the raw `source_outlets` string, so
+  three links read "FR term — improper payments" and three more "GAO reports".
+  `digest.py` now normalises them through `federal_outlet()` — the same map the
+  web route has had. Only 'Federal Events' carries registry-shaped outlet names
+  (13 of its 20 distinct strings); 'Congress Events' has none, so the congress
+  loader is left alone.
+
 ### Candidate developments carry a short title — 2026-09-03
 
 The Governors '26 section of the digest read as the longest thing in the email
@@ -78,7 +230,6 @@ over.
   their raw rows look like, since the cluster call mints `name` itself.
   Single-article rows need a raw row scraped after this change, so the older
   two thirds of the table keeps falling back until it ages out of the window.
-
 
 ### State dedupe runs daily — 2026-09-02
 
@@ -610,6 +761,39 @@ The classification model the tracker still uses today.
 ---
 
 # Calibration log
+
+## 2026-08-31 — Congress and Federal event validation sheets (hand-marked)
+
+**Corpus.** Two sheets, committed as `data/Event Validation - Congress.csv` (111
+rows) and `data/Event Validation - Federal.csv` (67 rows). Each row carries the
+title, summary, why_it_matters, agency, competency, outlets and link the tracker
+produced, plus three reviewer columns: include Y/N, good/bad/unclear for state
+capacity, and free notes.
+
+**Congress: the gate over-includes.** 111 rows marked, and the verdict was
+**29 include, 70 exclude, 12 unsure** — roughly a quarter kept. The notes say
+why, repeatedly and in the same words: *"Seems a bit out of scope"*, *"out of
+scope"*, *"I don't think this fits in scope but I could be wrong"*, *"May be a
+bit out of scope for state capacity"*, and on one bill *"Language is too
+vague"*. The rejections are not misclassifications inside the four competencies;
+they are events that should not have reached a competency at all. That points at
+the congress gate prompt, not the dedupe or the rubric.
+
+**Federal: mostly right, and the judgments are substantive.** 51 of 67 rows
+marked, **32 include / 19 exclude**, with 31 good-bad-unclear calls written as
+prose rather than a label — *"good (feedback loops!)"*, *"good (step in the right
+direction toward making it easier to move in & out of civil service)"*, *"Good
+(aligns with field proposals to use probationary periods as an evaluative tool +
+streamline the appeals process)"*, against *"BAD"* on two and *"probably good;
+the dismissal appeals process is a convoluted mess"* on another. 16 rows are
+unmarked, so the federal inclusion rate is a floor, not a rate.
+
+**Nothing has changed as a result yet. Still open.** The congress inclusion rate
+is the actionable finding and no prompt, rubric or keyword list has moved on the
+strength of it. Two things to be careful of when it is picked up: the
+good/bad/unclear column is a *policy* judgment about the action, not a
+relevance judgment about the row, so it must not be fed to a gate; and the
+free-text column mixes both, as the *"see 53"* entry shows.
 
 ## 2026-08-31 — why_it_matters prose calibration (Atharv, blind A/B)
 
