@@ -69,7 +69,18 @@ EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 # the list grows past what a person will actually keep up with, replace this
 # with a tokenised /api/unsubscribe route on the Vercel app and have it write
 # status=unsubscribed back to the table.
-UNSUBSCRIBE_MAILTO = os.environ.get("UNSUBSCRIBE_MAILTO", "digest@updates.recodingamerica.org")
+# `or` rather than a get() default: a GitHub Actions secret that is not set
+# resolves to an empty string, not to a missing key, and an empty value here
+# would render `mailto:?subject=...` — a dead unsubscribe that still looks like
+# a link. Both of these must therefore be non-empty to take effect.
+UNSUBSCRIBE_MAILTO = (os.environ.get("UNSUBSCRIBE_MAILTO")
+                      or "digest@updates.recodingamerica.org")
+
+# Where a reader's reply goes. The From address is a Resend sending identity and
+# does not necessarily receive mail, so without this a "can you add me?" reply
+# lands nowhere. Defaults to the unsubscribe address because the same person
+# handles both.
+DIGEST_REPLY_TO = os.environ.get("DIGEST_REPLY_TO") or UNSUBSCRIBE_MAILTO
 
 # Substituted per recipient just before send, so one render serves everyone.
 UNSUB_TOKEN = "{{UNSUBSCRIBE_URL}}"
@@ -1063,6 +1074,8 @@ def send_email(subject: str, html: str, text: str, recipients: list[dict]) -> No
             "subject": subject,
             "html": html.replace(UNSUB_TOKEN, escape(link)),
             "text": text.replace(UNSUB_TOKEN, link),
+            # So a reply reaches a person rather than the sending identity.
+            "reply_to": [DIGEST_REPLY_TO],
             # Lets Gmail and Outlook show their own unsubscribe control, which
             # people use instead of reporting spam.
             "headers": {"List-Unsubscribe": f"<{link}>"},
