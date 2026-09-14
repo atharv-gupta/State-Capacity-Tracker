@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import Header from "../../header";
 import { GROUPS, chipColor } from "../specs-meta";
+import { loadJSON } from "../../lib/datacache";
 
 function Value({ field, spec }) {
   const v = spec[field.key];
@@ -45,16 +46,13 @@ export default function StateProfile() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch("/api/state-specs")
-      .then((r) => r.json())
+    loadJSON("/api/state-specs")
       .then((d) => (d.error ? setError(d.error) : setStates(d.states)))
       .catch((e) => setError(String(e)));
-    fetch("/api/events")
-      .then((r) => r.json())
+    loadJSON("/api/events")
       .then((d) => setEvents(d.events || []))
       .catch(() => setEvents([]));
-    fetch("/api/candidates")
-      .then((r) => r.json())
+    loadJSON("/api/candidates")
       .then((d) => setCandidates(d.candidates || []))
       .catch(() => setCandidates([]));
   }, []);
@@ -112,7 +110,7 @@ export default function StateProfile() {
           <section className="feedcard">
             <div className="feedhead">
               <h3>Recent activity</h3>
-              <Link href="/" className="feedlink">
+              <Link href="/states" className="feedlink">
                 full feed →
               </Link>
             </div>

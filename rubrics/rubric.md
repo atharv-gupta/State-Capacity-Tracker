@@ -8,6 +8,11 @@ real government action). Your job is fit, not provenance. For each event, output
    fits exactly one. Assign **two** only when the action is genuinely, substantially about both —
    e.g. legislative **oversight of a failing benefits/IT system** is both `digital` (the system)
    and `incentives` (the oversight). Do not pad the list; a second competency must stand on its own.
+   **Order matters: list the primary competency first** — the one the event is most centrally
+   about, the one a reader filing this in a single folder would pick. The oversight-of-an-IT-system
+   example is usually `digital` first: the system is the story, the oversight is how it surfaced.
+   Downstream the first entry is the only one some readers see, so do not list them in the order
+   they appear above out of habit.
 2. **relevance** — 1–3, how *central an example* of those competencies this is (see scale); for a
    two-competency event, score the stronger fit. Events that match no competency get no score.
 3. **topic_tags** — one or more descriptive tags (independent of competency).

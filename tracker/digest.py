@@ -109,18 +109,33 @@ COMPETENCY_COLORS = {
     "incentives": "#7c3aed",
 }
 
-# An event spanning two competencies appears in EACH relevant section on the
-# state side: state volume is high, overlap is uncommon, and repeating the
-# occasional dual-competency event is cheaper than hiding it.
+# An event spanning two competencies prints ONCE, under its primary competency,
+# on both halves of the digest. The competencies it did not print under ride on
+# the item's meta line ("also digital"), so nothing is lost — a reader scanning
+# the four sections meets each event exactly once.
 #
-# On the federal side it appears ONCE, in the first competency it matches. There
-# `incentives` is nearly co-extensive with "a watchdog published something", so
-# without this the Incentives subsection restates most of Digital and Civil
-# service — 22 slots for 15 events in the first week we tried it. The
-# competencies it did not print under are shown on the item's meta line instead,
-# so nothing is actually lost.
-STATE_DEDUPE_ACROSS_SECTIONS = False
-FEDERAL_DEDUPE_ACROSS_SECTIONS = True
+# The state side used to repeat such an event in every section it matched, on
+# the theory that overlap was rare enough that repeating was cheaper than
+# hiding. It is rare — 10% of scored state events carry two competencies — but
+# the repeats concentrate in the one pair a reader is least likely to read as
+# two stories: an audit of an IT system is `digital` + `incentives`, seven of
+# those fifteen. The federal side has always printed once; there `incentives` is
+# nearly co-extensive with "a watchdog published something", and without this
+# the Incentives subsection restated most of Digital and Civil service — 22
+# slots for 15 events in the first week we tried it.
+#
+# PRIMARY IS THE COMPETENCY THE CLASSIFIER LISTED FIRST, not a fixed ranking of
+# the four. Airtable preserves multi-select write order, so the classifier's own
+# sense of what an event is mostly about survives into the table, and
+# rubrics/rubric.md now asks for that order explicitly rather than leaving it to
+# habit. This beats any ranking we could write down: no single order fits all
+# three streams — the best-fitting one differs for state, congress and agencies
+# — and the order this code used to fall back on (the display order, civil
+# service first) agreed with the classifier on only 40% of multi-competency
+# state events and 33% of congress ones. That fallback is why Colorado's OIT
+# layoffs, classified `digital` then `civil-service`, would file under Civil
+# service.
+ONE_SECTION_PER_EVENT = True
 
 # Display labels. The tables store slugs; an email is not the place for them.
 COMMITTEE_LABELS = {
@@ -572,7 +587,23 @@ def rank(r: dict):
     return (-r["article_count"], -r["date_epoch"])
 
 
-def select(rows: list[dict], comp: str, cap: int = 5) -> list[dict]:
+def primary_competency(row: dict) -> str | None:
+    """The one competency an event prints under — the first one classified.
+
+    Airtable returns a multi-select in the order it was written, and the
+    classifier writes the competencies in the order it named them, so this is
+    the classifier's own answer to "what is this event mostly about" rather than
+    a ranking imposed here. See the constants above. Guards against a stray
+    value because the field is a multi-select and hand edits happen.
+    """
+    for c in row.get("competency") or []:
+        if c in COMPETENCIES:
+            return c
+    return None
+
+
+def select(rows: list[dict], comp: str, cap: int = 5,
+           primary_only: bool = False) -> list[dict]:
     """The best `cap` items in this competency: threes first, then twos.
 
     `cap` used to bind only on the twos — every relevance-3 item was taken and
@@ -580,27 +611,33 @@ def select(rows: list[dict], comp: str, cap: int = 5) -> list[dict]:
     true on the state side and false on the federal one: in a normal week every
     agency item is a three, so digital alone printed nine against a cap of five
     and the agency section ran twice the length of the whole state section.
+
+    `primary_only` narrows the section to events whose PRIMARY competency is
+    `comp`, which is how an event ends up in exactly one section. Note that it
+    narrows before the cap, not after: dropping an already-printed event from a
+    finished selection would cost the section a slot and leave it short of `cap`
+    while a qualifying event sat unprinted.
     """
-    in_comp = [r for r in rows if comp in (r["competency"] or [])]
+    if primary_only:
+        in_comp = [r for r in rows if primary_competency(r) == comp]
+    else:
+        in_comp = [r for r in rows if comp in (r["competency"] or [])]
     threes = sorted((r for r in in_comp if r["relevance"] == 3), key=rank)
     twos = sorted((r for r in in_comp if r["relevance"] == 2), key=rank)
     return (threes + twos)[:cap]
 
 
 def select_by_competency(rows: list[dict], cap: int = 5,
-                        dedupe: bool = False) -> dict[str, list[dict]]:
+                        dedupe: bool = True) -> dict[str, list[dict]]:
     """Per-competency selection in COMPETENCIES order.
 
-    With `dedupe`, an event prints under the first competency it matches and
-    carries the others on its meta line — see the constants above for why the
-    two halves of the digest differ here.
+    With `dedupe`, an event prints under its primary competency only and carries
+    the others on its meta line — see the constants above.
     """
-    out, seen = {}, set()
+    out = {}
     for comp in COMPETENCIES:
-        chosen = select(rows, comp, cap)
+        chosen = select(rows, comp, cap, primary_only=dedupe)
         if dedupe:
-            chosen = [r for r in chosen if r["item"]["title"] not in seen]
-            seen.update(r["item"]["title"] for r in chosen)
             for r in chosen:
                 others = [COMPETENCY_LABELS[c].lower()
                           for c in COMPETENCIES
@@ -620,7 +657,7 @@ def build(days: int, since: str | None) -> dict:
     return {
         "state": {
             "by_comp": select_by_competency(
-                state_rows, dedupe=STATE_DEDUPE_ACROSS_SECTIONS),
+                state_rows, dedupe=ONE_SECTION_PER_EVENT),
             "governors": select_governors(load_candidate_devs(days, since), load_roster()),
             "total": len(state_rows),
         },
@@ -628,10 +665,15 @@ def build(days: int, since: str | None) -> dict:
             "upcoming": upcoming[:8],
             "recent": recent[:4],
             "bills": load_bills(days, since)[:5],
+            # Five, the same cap as a state section. It was four while a
+            # two-competency item could eat a subsection's slot without filling
+            # it — four real items beat five with a hole in them. Now that an
+            # item is only ever a candidate in its own section, the cap buys
+            # five distinct items, so the two halves can hold the same number.
             "congress_by_comp": select_by_competency(
-                congress_rows, cap=4, dedupe=FEDERAL_DEDUPE_ACROSS_SECTIONS),
+                congress_rows, cap=5, dedupe=ONE_SECTION_PER_EVENT),
             "agency_by_comp": select_by_competency(
-                federal_rows, cap=4, dedupe=FEDERAL_DEDUPE_ACROSS_SECTIONS),
+                federal_rows, cap=5, dedupe=ONE_SECTION_PER_EVENT),
             "total": len(congress_rows) + len(federal_rows),
         },
     }

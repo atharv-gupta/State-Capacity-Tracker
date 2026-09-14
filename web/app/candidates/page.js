@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Header from "../header";
+import { loadJSON } from "../lib/datacache";
 
 const STATE_NAMES = {
   AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "California",
@@ -252,12 +253,10 @@ export default function Candidates() {
   );
 
   useEffect(() => {
-    fetch("/api/candidates")
-      .then((r) => r.json())
+    loadJSON("/api/candidates")
       .then((d) => (d.error ? setError(d.error) : setCandidates(d.candidates)))
       .catch((e) => setError(String(e)));
-    fetch("/api/candidate-developments")
-      .then((r) => r.json())
+    loadJSON("/api/candidate-developments")
       .then((d) => setDevs(d.developments || []))
       .catch(() => setDevs([]));
   }, []);

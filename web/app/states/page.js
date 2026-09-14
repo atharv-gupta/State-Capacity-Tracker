@@ -1,194 +1,304 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import usa from "@svg-maps/usa";
 import Header from "../header";
-import { LENSES, TABLE_BUCKETS, STATE_COL, COL_LABELS, chipColor, GROUPS } from "./specs-meta";
+import { loadJSON } from "../lib/datacache";
 
 const STATE_NAMES = Object.fromEntries(usa.locations.map((l) => [l.id.toUpperCase(), l.name]));
 
-function Chip({ v }) {
-  if (v === undefined || v === null || v === "") return <span className="dash">—</span>;
-  if (Array.isArray(v)) {
-    return (
-      <span className="chiprow">
-        {v.map((x) => (
-          <span key={x} className="spec-chip" style={{ "--c": chipColor(x) }}>
-            {x}
-          </span>
-        ))}
-      </span>
-    );
+const COMPETENCIES = [
+  { key: "civil-service", label: "Civil service", color: "#059669" },
+  { key: "procedure", label: "Procedure", color: "#d97706" },
+  { key: "digital", label: "Digital", color: "#2563eb" },
+  { key: "incentives", label: "Incentives", color: "#7c3aed" },
+];
+const COMPETENCY_COLOR = Object.fromEntries(COMPETENCIES.map((c) => [c.key, c.color]));
+
+// The four competencies are what's selected by default. Events that fit none of
+// them (competency === "none") are hidden unless the "Show other activity" box is on.
+const DEFAULT_COMPETENCIES = COMPETENCIES.map((c) => c.key);
+
+// Sector tags describe the policy area (often on "none" events); capacity tags
+// describe the machinery. We tint the two differently in the UI.
+const SECTOR_TAGS = new Set([
+  "data-center", "tax-incentives", "energy-utility", "health-human-services",
+  "higher-ed", "k12-education", "child-welfare",
+]);
+
+const TIME_WINDOWS = [
+  { key: "week", label: "Week", days: 7 },
+  { key: "month", label: "Month", days: 31 },
+  { key: "all", label: "All", days: null },
+];
+
+const PAGE_SIZE = 10;
+
+// e.g. 1 … 4 5 6 … 12 — full list when it's short
+function pagesToShow(current, total) {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const wanted = [...new Set([1, current - 1, current, current + 1, total])]
+    .filter((p) => p >= 1 && p <= total)
+    .sort((a, b) => a - b);
+  const out = [];
+  let prev = 0;
+  for (const p of wanted) {
+    if (p - prev > 1) out.push("…");
+    out.push(p);
+    prev = p;
   }
-  return (
-    <span className="spec-chip" style={{ "--c": chipColor(v) }}>
-      {v}
-    </span>
-  );
+  return out;
 }
 
-export default function StatesPage() {
-  const router = useRouter();
-  const [states, setStates] = useState(null);
+function cutoffFor(key) {
+  const w = TIME_WINDOWS.find((t) => t.key === key);
+  if (!w || !w.days) return null;
+  const d = new Date();
+  d.setDate(d.getDate() - w.days);
+  return d.toISOString().slice(0, 10);
+}
+
+export default function Home() {
+  const [events, setEvents] = useState(null);
   const [error, setError] = useState(null);
-  const [lens, setLens] = useState("trifecta");
+  const [stateFilter, setStateFilter] = useState(null);
+  const [competencyFilter, setCompetencyFilter] = useState(() => new Set(DEFAULT_COMPETENCIES));
+  const [showOther, setShowOther] = useState(false);
+  const [topicFilter, setTopicFilter] = useState("");
+  const [activityFilter, setActivityFilter] = useState("");
+  const [actorFilter, setActorFilter] = useState("");
+  const [timeFilter, setTimeFilter] = useState("week");
   const [hovered, setHovered] = useState(null);
-  const [filters, setFilters] = useState({}); // colKey -> value (persists across buckets)
-  const [sortCol, setSortCol] = useState("postal");
-  const [sortDir, setSortDir] = useState(1);
-  const [selected, setSelected] = useState([]); // postals for side-by-side
-  const [tableBucket, setTableBucket] = useState("basic");
+  const [page, setPage] = useState(1);
+  const listRef = useRef(null);
 
   useEffect(() => {
-    fetch("/api/state-specs")
-      .then((r) => r.json())
-      .then((d) => (d.error ? setError(d.error) : setStates(d.states)))
+    setPage(1);
+  }, [stateFilter, competencyFilter, showOther, topicFilter, activityFilter, actorFilter, timeFilter]);
+
+  useEffect(() => {
+    loadJSON("/api/events")
+      .then((d) => (d.error ? setError(d.error) : setEvents(d.events)))
       .catch((e) => setError(String(e)));
   }, []);
 
-  const byPostal = useMemo(
-    () => Object.fromEntries((states || []).map((s) => [s.postal, s])),
-    [states]
+  const activityTypes = useMemo(
+    () => [...new Set((events || []).map((e) => e.activity_type).filter(Boolean))].sort(),
+    [events]
+  );
+  const actorTypes = useMemo(
+    () => [...new Set((events || []).map((e) => e.actor_type).filter(Boolean))].sort(),
+    [events]
+  );
+  // Topic tags present in the data, most common first (most "interesting" up top).
+  const topicTags = useMemo(() => {
+    const c = {};
+    for (const e of events || []) for (const t of e.topic_tags || []) c[t] = (c[t] || 0) + 1;
+    return Object.entries(c)
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([t]) => t);
+  }, [events]);
+
+  // Everything except the state filter — drives both map shading and the list
+  const baseFiltered = useMemo(() => {
+    if (!events) return [];
+    const cutoff = cutoffFor(timeFilter);
+    return events.filter((e) => {
+      if (cutoff && (!e.date || e.date < cutoff)) return false;
+      const comps = e.competency || [];
+      if (comps.length === 0) {
+        if (!showOther) return false;
+      } else if (competencyFilter.size && !comps.some((c) => competencyFilter.has(c))) {
+        return false;
+      }
+      if (topicFilter && !(e.topic_tags || []).includes(topicFilter)) return false;
+      if (activityFilter && e.activity_type !== activityFilter) return false;
+      if (actorFilter && e.actor_type !== actorFilter) return false;
+      return true;
+    });
+  }, [events, competencyFilter, showOther, topicFilter, activityFilter, actorFilter, timeFilter]);
+
+  const countsByState = useMemo(() => {
+    const c = {};
+    for (const e of baseFiltered) c[e.state] = (c[e.state] || 0) + 1;
+    return c;
+  }, [baseFiltered]);
+
+  const shown = useMemo(
+    () => (stateFilter ? baseFiltered.filter((e) => e.state === stateFilter) : baseFiltered),
+    [baseFiltered, stateFilter]
   );
 
-  const lensCfg = LENSES.find((l) => l.key === lens);
+  const totalPages = Math.max(1, Math.ceil(shown.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pageItems = shown.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
+  const goTo = (n) => {
+    setPage(n);
+    listRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const maxCount = Math.max(1, ...Object.values(countsByState));
   const fillFor = (code) => {
-    const s = byPostal[code];
-    if (!s) return "#e8edf2";
-    return lensCfg.colors[s[lens]] || "#e8edf2";
+    const n = countsByState[code] || 0;
+    if (!n) return "#e8edf2";
+    const t = n / maxCount;
+    const alpha = 0.25 + 0.75 * t;
+    return `rgba(37, 99, 235, ${alpha.toFixed(2)})`;
   };
 
-  // State column + the columns of the active bucket
-  const activeBucket = TABLE_BUCKETS.find((b) => b.key === tableBucket) || TABLE_BUCKETS[0];
-  const cols = [STATE_COL, ...activeBucket.cols];
-
-  // distinct values per filterable column (across all buckets), for the dropdowns
-  const allCols = useMemo(() => TABLE_BUCKETS.flatMap((b) => b.cols), []);
-  const colValues = useMemo(() => {
-    const out = {};
-    for (const c of allCols) {
-      if (!c.filter) continue;
-      const vals = new Set();
-      for (const s of states || []) {
-        const v = s[c.key];
-        if (Array.isArray(v)) v.forEach((x) => vals.add(x));
-        else if (v) vals.add(v);
-      }
-      out[c.key] = [...vals].sort();
-    }
-    return out;
-  }, [states, allCols]);
-
-  const rows = useMemo(() => {
-    let r = [...(states || [])];
-    for (const [k, v] of Object.entries(filters)) {
-      if (!v) continue;
-      r = r.filter((s) => (Array.isArray(s[k]) ? s[k].includes(v) : s[k] === v));
-    }
-    r.sort((a, b) => {
-      const av = a[sortCol] ?? "";
-      const bv = b[sortCol] ?? "";
-      return String(av).localeCompare(String(bv), undefined, { numeric: true }) * sortDir;
-    });
-    return r;
-  }, [states, filters, sortCol, sortDir]);
-
-  const toggleSort = (k) => {
-    if (sortCol === k) setSortDir(-sortDir);
-    else {
-      setSortCol(k);
-      setSortDir(1);
-    }
+  const toggleCompetency = (key) => {
+    const next = new Set(competencyFilter);
+    next.has(key) ? next.delete(key) : next.add(key);
+    setCompetencyFilter(next);
   };
 
-  const toggleSelect = (postal) => {
-    setSelected((cur) =>
-      cur.includes(postal) ? cur.filter((p) => p !== postal) : cur.length < 4 ? [...cur, postal] : cur
-    );
+  const clearAll = () => {
+    setStateFilter(null);
+    setCompetencyFilter(new Set(DEFAULT_COMPETENCIES));
+    setShowOther(false);
+    setTopicFilter("");
+    setActivityFilter("");
+    setActorFilter("");
+    setTimeFilter("week");
   };
 
-  const anyFilter = Object.values(filters).some(Boolean);
+  const competencyIsDefault =
+    !showOther &&
+    competencyFilter.size === DEFAULT_COMPETENCIES.length &&
+    DEFAULT_COMPETENCIES.every((k) => competencyFilter.has(k));
+
+  const hasFilters =
+    stateFilter ||
+    !competencyIsDefault ||
+    topicFilter ||
+    activityFilter ||
+    actorFilter ||
+    timeFilter !== "week";
 
   return (
     <main className="wrap">
-      <Header />
+      <Header active="states" />
 
-      {/* No tab highlights this view any more — it is reached from the State Map
-          page — so the page names itself. */}
-      <div className="pagelead">
-        <h2 className="pagetitle">State Profiles</h2>
-      </div>
+      <section className="pagelead">
+        <h2 className="pagetitle">State Map</h2>
+        <nav className="leadcta" aria-label="Other state views">
+          <Link href="/states/profiles" className="ctabtn">
+            State Profiles
+            <span className="ctaarrow" aria-hidden="true">→</span>
+          </Link>
+          <Link href="/candidates" className="ctabtn">
+            Governors &rsquo;26
+            <span className="ctaarrow" aria-hidden="true">→</span>
+          </Link>
+        </nav>
+      </section>
 
       <section className="top">
         <div className="mapcard">
-          <svg viewBox={usa.viewBox} role="img" aria-label="US map of state profiles">
+          <svg viewBox={usa.viewBox} role="img" aria-label="US map of events">
             {usa.locations.map((loc) => {
               const code = loc.id.toUpperCase();
-              const has = !!byPostal[code];
+              const selected = stateFilter === code;
               return (
                 <path
                   key={loc.id}
                   d={loc.path}
-                  className="state"
-                  fill={fillFor(code)}
-                  onClick={() => has && router.push(`/states/${code}`)}
+                  className={`state ${selected ? "selected" : ""}`}
+                  fill={selected ? "#1e3a8a" : fillFor(code)}
+                  onClick={() => setStateFilter(selected ? null : code)}
                   onMouseEnter={() => setHovered(code)}
                   onMouseLeave={() => setHovered(null)}
-                  style={{ cursor: has ? "pointer" : "default" }}
                 >
-                  <title>{`${loc.name}${has ? ` — ${byPostal[code][lens] || "?"} · click for profile` : ""}`}</title>
+                  <title>{`${loc.name}: ${countsByState[code] || 0} event${(countsByState[code] || 0) === 1 ? "" : "s"}`}</title>
                 </path>
               );
             })}
           </svg>
           <div className="maplegend">
-            {hovered && byPostal[hovered] ? (
+            {hovered ? (
               <span>
-                <strong>{STATE_NAMES[hovered]}</strong> — {byPostal[hovered][lens] || "—"} · click for
-                profile
+                <strong>{STATE_NAMES[hovered]}</strong> — {countsByState[hovered] || 0} event
+                {(countsByState[hovered] || 0) === 1 ? "" : "s"} · click to filter
               </span>
             ) : (
-              <span className="leg">
-                {lensCfg.legend.map(([name, c]) => (
-                  <span key={name} className="legitem">
-                    <i style={{ background: c }} /> {name}
-                  </span>
-                ))}
-              </span>
+              <span>Darker = more events · click a state to filter</span>
             )}
           </div>
         </div>
 
         <aside className="panel">
           <div className="panelrow">
-            <label>Color map by</label>
+            <label>Time window</label>
             <div className="timebtns">
-              {LENSES.map((l) => (
+              {TIME_WINDOWS.map((t) => (
                 <button
-                  key={l.key}
-                  className={`timebtn ${lens === l.key ? "on" : ""}`}
-                  onClick={() => setLens(l.key)}
+                  key={t.key}
+                  className={`timebtn ${timeFilter === t.key ? "on" : ""}`}
+                  onClick={() => setTimeFilter(t.key)}
                 >
-                  {l.label}
+                  {t.label}
                 </button>
               ))}
             </div>
           </div>
 
           <div className="panelrow">
-            <label>Jump to a state</label>
-            <select
-              value=""
-              onChange={(e) => {
-                if (e.target.value) window.location.href = `/states/${e.target.value}`;
-              }}
-            >
-              <option value="">Select a state…</option>
-              {(states || []).map((s) => (
-                <option key={s.postal} value={s.postal}>
-                  {s.state}
+            <label>Competency</label>
+            <div className="pillarbtns">
+              {COMPETENCIES.map((c) => (
+                <button
+                  key={c.key}
+                  className={`pill ${competencyFilter.has(c.key) ? "on" : ""}`}
+                  style={{ "--c": c.color }}
+                  onClick={() => toggleCompetency(c.key)}
+                >
+                  {c.label}
+                </button>
+              ))}
+            </div>
+            <label className="checkrow">
+              <input
+                type="checkbox"
+                checked={showOther}
+                onChange={(e) => setShowOther(e.target.checked)}
+              />
+              Show other activity
+            </label>
+          </div>
+
+          <div className="panelrow">
+            <label>Activity type</label>
+            <select value={activityFilter} onChange={(e) => setActivityFilter(e.target.value)}>
+              <option value="">All</option>
+              {activityTypes.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="panelrow">
+            <label>Government actor</label>
+            <select value={actorFilter} onChange={(e) => setActorFilter(e.target.value)}>
+              <option value="">All</option>
+              {actorTypes.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="panelrow">
+            <label>Topic tag</label>
+            <select value={topicFilter} onChange={(e) => setTopicFilter(e.target.value)}>
+              <option value="">All</option>
+              {topicTags.map((t) => (
+                <option key={t} value={t}>
+                  {t}
                 </option>
               ))}
             </select>
@@ -196,168 +306,110 @@ export default function StatesPage() {
 
           <div className="panelfoot">
             <span className="count">
-              {states ? `${rows.length} of ${states.length} states` : "Loading…"}
+              {events ? `${shown.length} event${shown.length === 1 ? "" : "s"}` : "Loading…"}
+              {stateFilter ? ` · ${STATE_NAMES[stateFilter] || stateFilter}` : ""}
             </span>
-            {anyFilter ? (
-              <button className="clear" onClick={() => setFilters({})}>
-                Clear filters
+            {hasFilters ? (
+              <button className="clear" onClick={clearAll}>
+                Reset
               </button>
             ) : null}
           </div>
         </aside>
       </section>
 
-      {error ? <p className="error">Error loading state specs: {error}</p> : null}
+      {error ? <p className="error">Error loading events: {error}</p> : null}
 
-      {selected.length >= 2 ? (
-        <section className="sidebyside">
-          <div className="sbs-head">
-            <h2>Side-by-side ({selected.length})</h2>
-            <button className="clear" onClick={() => setSelected([])}>
-              Clear
-            </button>
-          </div>
-          <div className="sbs-scroll">
-            <table className="sbs-table">
-              <thead>
-                <tr>
-                  <th></th>
-                  {selected.map((p) => (
-                    <th key={p}>
-                      <Link href={`/states/${p}`}>{byPostal[p]?.state || p}</Link>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {GROUPS.flatMap((g) =>
-                  g.fields.map((f) => (
-                    <tr key={f.key}>
-                      <td className="sbs-label">{f.label}</td>
-                      {selected.map((p) => (
-                        <td key={p}>
-                          {f.plain ? (
-                            byPostal[p]?.[f.key] || <span className="dash">—</span>
-                          ) : (
-                            <Chip v={byPostal[p]?.[f.key]} />
-                          )}
-                        </td>
-                      ))}
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      ) : null}
-
-      <section className="tablecard">
-        <div className="buckettabs">
-          {TABLE_BUCKETS.map((b) => (
-            <button
-              key={b.key}
-              className={`bucketbtn ${tableBucket === b.key ? "on" : ""}`}
-              onClick={() => setTableBucket(b.key)}
-            >
-              {b.label}
-            </button>
-          ))}
-        </div>
-
-        {anyFilter ? (
-          <div className="activefilters">
-            <span className="aflabel">Filters:</span>
-            {Object.entries(filters)
-              .filter(([, v]) => v)
-              .map(([k, v]) => (
-                <button
-                  key={k}
-                  className="afchip"
-                  onClick={() => setFilters((f) => ({ ...f, [k]: undefined }))}
-                  title="Remove filter"
+      <section className="list" ref={listRef}>
+        {pageItems.map((e) => (
+          <article key={e.id} className="card">
+            <div className="cardtop">
+              <span className="statechip">{e.state}</span>
+              <time>{e.date}</time>
+              {e.activity_type ? <span className="chip">{e.activity_type}</span> : null}
+              {e.actor_type ? <span className="chip actor">{e.actor_type}</span> : null}
+              {(e.competency || []).map((c) => (
+                <span
+                  key={c}
+                  className="chip pillar"
+                  style={{ "--c": COMPETENCY_COLOR[c] || "#64748b" }}
                 >
-                  {COL_LABELS[k] || k}: <strong>{v}</strong> ✕
-                </button>
+                  {c}
+                </span>
               ))}
-          </div>
-        ) : null}
-
-        <div className="tablehint">
-          Pick a bucket above to switch columns · click a column to sort · filter with the
-          dropdowns (filters stick across buckets, so you can combine them) · check up to 4 states
-          to compare side-by-side · click a state for its full profile
-        </div>
-        <div className="table-scroll">
-          <table className="compare">
-            <thead>
-              <tr>
-                <th className="selcol"></th>
-                {cols.map((c) => (
-                  <th key={c.key}>
-                    <button className="sortbtn" onClick={() => toggleSort(c.key)}>
-                      {c.label}
-                      {sortCol === c.key ? (sortDir === 1 ? " ▲" : " ▼") : ""}
-                    </button>
-                    {c.filter ? (
-                      <select
-                        className="colfilter"
-                        value={filters[c.key] || ""}
-                        onChange={(e) =>
-                          setFilters((f) => ({ ...f, [c.key]: e.target.value || undefined }))
-                        }
-                      >
-                        <option value="">all</option>
-                        {(colValues[c.key] || []).map((v) => (
-                          <option key={v} value={v}>
-                            {v}
-                          </option>
-                        ))}
-                      </select>
-                    ) : null}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((s) => (
-                <tr key={s.postal} className={selected.includes(s.postal) ? "selrow" : ""}>
-                  <td className="selcol">
-                    <input
-                      type="checkbox"
-                      checked={selected.includes(s.postal)}
-                      onChange={() => toggleSelect(s.postal)}
-                      aria-label={`Select ${s.state}`}
-                    />
-                  </td>
-                  {cols.map((c) =>
-                    c.key === "postal" ? (
-                      <td key={c.key} className="namecell">
-                        <Link href={`/states/${s.postal}`}>{s.state}</Link>
-                      </td>
-                    ) : c.plain ? (
-                      <td key={c.key} className="plaincell">
-                        {s[c.key] ?? <span className="dash">—</span>}
-                      </td>
-                    ) : (
-                      <td key={c.key}>
-                        <Chip v={s[c.key]} />
-                      </td>
-                    )
-                  )}
-                </tr>
-              ))}
-              {states && !rows.length ? (
-                <tr>
-                  <td colSpan={cols.length + 1} className="empty">
-                    No states match these filters.
-                  </td>
-                </tr>
+              {e.relevance ? (
+                <span className="sig" title={`Relevance ${e.relevance}/3`}>
+                  {"●".repeat(e.relevance)}
+                </span>
               ) : null}
-            </tbody>
-          </table>
-        </div>
+            </div>
+            <h2>{e.name.replace(/^[A-Z]{2} — /, "")}</h2>
+            {e.notes ? <p className="notes">{e.notes}</p> : null}
+            {e.topic_tags?.length ? (
+              <div className="tags">
+                {e.topic_tags.map((t) => (
+                  <button
+                    key={t}
+                    className={`tag ${SECTOR_TAGS.has(t) ? "sector" : ""} ${
+                      topicFilter === t ? "on" : ""
+                    }`}
+                    onClick={() => setTopicFilter(topicFilter === t ? "" : t)}
+                    title="Filter by this tag"
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            <div className="cardfoot">
+              {e.gov_actor ? <span className="actor-name">{e.gov_actor}</span> : null}
+              <span className="links">
+                {e.urls.map((u, i) => (
+                  <a key={u} href={u} target="_blank" rel="noreferrer">
+                    {e.outlets[i] || new URL(u).hostname.replace(/^www\./, "")}
+                  </a>
+                ))}
+              </span>
+              {e.article_count > 1 ? <span className="merged">{e.article_count} articles merged</span> : null}
+            </div>
+          </article>
+        ))}
+        {events && !shown.length ? <p className="empty">No events match these filters.</p> : null}
       </section>
+
+      {totalPages > 1 ? (
+        <nav className="pager" aria-label="Event list pages">
+          <button className="pagebtn" disabled={safePage === 1} onClick={() => goTo(safePage - 1)}>
+            ← Prev
+          </button>
+          {pagesToShow(safePage, totalPages).map((p, i) =>
+            p === "…" ? (
+              <span key={`gap${i}`} className="pagegap">
+                …
+              </span>
+            ) : (
+              <button
+                key={p}
+                className={`pagebtn num ${p === safePage ? "on" : ""}`}
+                onClick={() => goTo(p)}
+              >
+                {p}
+              </button>
+            )
+          )}
+          <button
+            className="pagebtn"
+            disabled={safePage === totalPages}
+            onClick={() => goTo(safePage + 1)}
+          >
+            Next →
+          </button>
+          <span className="pageinfo">
+            {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, shown.length)} of{" "}
+            {shown.length}
+          </span>
+        </nav>
+      ) : null}
     </main>
   );
 }

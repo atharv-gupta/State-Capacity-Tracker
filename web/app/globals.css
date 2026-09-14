@@ -1776,3 +1776,647 @@ a.devheadline:hover {
   gap: 4px 16px;
   align-items: baseline;
 }
+
+/* =========================================================================
+   Landing page (/)
+   =========================================================================
+   The one page on the site that is not a table. It has three jobs — get the
+   reader subscribed, get them into the right tab, get out of the way — and the
+   layout is in that order down the page.
+
+   It is also the loading cover. Every tab fetches its whole Airtable table on
+   mount, so a cold click used to land on an empty page for the length of that
+   round-trip; the page's staged reveal is timed to that wait, and the counters
+   only move once real numbers arrive (see app/page.js). Everything here is
+   `both`-filled, so if the reveal never runs the content is simply there.
+
+   The palette is the site's, not a new one: the ink is the same #0f172a the
+   tables use, and the four accent colours are the four competency colours from
+   lib/competencies.js. Nothing here introduces a token the rest of the site
+   doesn't already have. */
+
+.home {
+  margin: 0;
+}
+
+.homewrap {
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: 0 20px 64px;
+}
+
+/* ---------- hero ---------- */
+
+/* Full-bleed dark band. The only dark surface on the site, which is the point:
+   the reader should know at a glance that this is the front door and not
+   another view of the data. */
+.hero {
+  background: #0f172a;
+  color: #fff;
+  padding: 46px 20px 54px;
+  margin-bottom: 40px;
+}
+
+.herowrap {
+  max-width: 1060px;
+  margin: 0 auto;
+}
+
+/* Four segments in the four competency colours — the site's one piece of
+   ornament, and it earns its place by being the same four colours the reader
+   will meet again as filters on every tab. */
+.rule {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 26px;
+}
+.rule i {
+  display: block;
+  width: 46px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--c);
+  transform-origin: left center;
+  animation: ruledraw 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i) * 80ms);
+}
+
+@keyframes ruledraw {
+  from {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+/* Two columns: the pitch, and what the pitch means. Collapses to one at the
+   width where a 46ch measure and a definition list stop fitting side by side. */
+.herogrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 48px;
+  align-items: start;
+}
+
+.herolens {
+  border-left: 1px solid #1e293b;
+  padding-left: 22px;
+  margin-top: 6px;
+  animation: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i) * 90ms + 240ms);
+}
+.herolens h2 {
+  margin: 0 0 14px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+.herolens ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 13px;
+}
+.herolens li {
+  padding-left: 15px;
+  position: relative;
+}
+.herolens li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 2px;
+  background: var(--c);
+}
+.herolens b {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 650;
+  color: #f1f5f9;
+  margin-bottom: 2px;
+}
+.herolens span {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: #94a3b8;
+}
+
+.herotitle {
+  margin: 0 0 14px;
+  font-size: clamp(34px, 6.2vw, 62px);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  max-width: 15ch;
+}
+.herotitle span {
+  display: inline-block;
+  animation: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i) * 90ms + 240ms);
+}
+
+.herotag {
+  margin: 0 0 18px;
+  font-size: clamp(16px, 2.1vw, 20px);
+  line-height: 1.45;
+  color: #e2e8f0;
+  max-width: 46ch;
+  animation: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i) * 90ms + 240ms);
+}
+
+.heroblurb {
+  margin: 0 0 28px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: #94a3b8;
+  max-width: 58ch;
+  animation: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i) * 90ms + 240ms);
+}
+
+.herocta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  animation: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i) * 90ms + 240ms);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.hbtn {
+  display: inline-flex;
+  align-items: center;
+  padding: 11px 20px;
+  border-radius: 8px;
+  font-size: 14.5px;
+  font-weight: 650;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+}
+.hbtn:hover {
+  transform: translateY(-1px);
+}
+.hbtn.primary {
+  background: #fff;
+  color: #0f172a;
+}
+.hbtn.primary:hover {
+  background: #e2e8f0;
+}
+.hbtn.ghost {
+  border-color: #334155;
+  color: #e2e8f0;
+}
+.hbtn.ghost:hover {
+  border-color: #64748b;
+  background: #1e293b;
+}
+
+/* ---------- the three doors ---------- */
+
+.doors {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 40px;
+}
+
+/* A card, not a button: the blurb and the live count are the reason to click,
+   so they have to be readable before the click. The top edge carries the
+   section's competency-ish colour and is the only thing that moves on hover. */
+.door {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 18px 16px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  text-decoration: none;
+  color: inherit;
+  overflow: hidden;
+  transition: border-color 0.14s ease, transform 0.14s ease, box-shadow 0.14s ease;
+  animation: rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i) * 80ms + 620ms);
+}
+.door::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: var(--c);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.door:hover {
+  border-color: #cbd5e1;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.07);
+}
+.door:hover::before {
+  transform: scaleX(1);
+}
+.door:focus-visible {
+  outline: 2px solid var(--c);
+  outline-offset: 2px;
+}
+
+.doornum {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--c);
+  margin-bottom: 8px;
+}
+
+.door h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+}
+
+.door p {
+  margin: 0 0 18px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: #64748b;
+  flex: 1;
+}
+
+.doorfoot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 12px;
+}
+
+.doorstat {
+  font-size: 12.5px;
+  color: #64748b;
+}
+
+/* Tabular figures so a counter ticking 0 → 1,284 doesn't reflow the row it
+   sits in on every frame. */
+.statnum {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: #0f172a;
+}
+.statnum.pending {
+  color: #cbd5e1;
+}
+
+.doorarrow {
+  font-size: 15px;
+  color: #94a3b8;
+  transition: transform 0.14s ease, color 0.14s ease;
+}
+.door:hover .doorarrow {
+  transform: translateX(3px);
+  color: var(--c);
+}
+
+/* ---------- subscribe ---------- */
+
+/* The one thing on the page we're actually asking for, so it gets the widest
+   block, the darkest heading and no competition on its row. */
+.subscribe {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 10px 40px;
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-top: 3px solid #0f172a;
+  border-radius: 10px;
+  padding: 28px 26px 24px;
+  margin-bottom: 26px;
+  animation: rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 860ms;
+}
+
+.subcopy h2 {
+  margin: 0 0 8px;
+  font-size: 24px;
+  letter-spacing: -0.025em;
+  max-width: 22ch;
+}
+
+.subcopy p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #64748b;
+  max-width: 62ch;
+}
+
+.subform {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Form and its status line are one block in the right column, so an empty
+   status doesn't open a second grid row under the whole card. */
+.subaction {
+  min-width: 0;
+}
+
+.subform input[type="email"] {
+  flex: 1;
+  min-width: 220px;
+  padding: 11px 13px;
+  font-size: 14.5px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #0f172a;
+}
+.subform input[type="email"]:focus {
+  outline: none;
+  border-color: #0f172a;
+  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
+}
+
+.subform button {
+  padding: 11px 22px;
+  font-size: 14.5px;
+  font-weight: 650;
+  color: #fff;
+  background: #0f172a;
+  border: 1px solid #0f172a;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+.subform button:hover:not(:disabled) {
+  background: #1e293b;
+}
+.subform button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* Reserves its line whether or not there is a message, so submitting doesn't
+   shove the page down. */
+.substatus {
+  margin: 10px 0 0;
+  font-size: 13px;
+  min-height: 18px;
+}
+.substatus.done {
+  color: #047857;
+  font-weight: 600;
+}
+.substatus.error {
+  color: #b91c1c;
+}
+
+/* ---------- the two secondary panels ---------- */
+
+.pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 34px;
+}
+
+.panel {
+  position: relative;
+  display: block;
+  padding: 20px 46px 18px 20px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.14s ease, background 0.14s ease;
+  animation: rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 940ms;
+}
+.panel:hover {
+  border-color: #cbd5e1;
+  background: #fcfdff;
+}
+
+.panel h3 {
+  margin: 0 0 7px;
+  font-size: 16.5px;
+  letter-spacing: -0.015em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.panel p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: #64748b;
+}
+
+.panelarrow {
+  position: absolute;
+  right: 20px;
+  top: 21px;
+  color: #94a3b8;
+  transition: transform 0.14s ease;
+}
+.panel:hover .panelarrow {
+  transform: translateX(3px);
+}
+
+/* Says "not finished" without saying "broken". Same amber the federal tab
+   already uses for an unverified row. */
+.badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid #fde68a;
+  background: #fffbeb;
+  color: #92400e;
+  white-space: nowrap;
+}
+
+/* ---------- foot ---------- */
+
+.homefoot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 18px;
+}
+.homefoot p {
+  margin: 0;
+  font-size: 12.5px;
+  color: #94a3b8;
+}
+.homefoot a {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #0f172a;
+  text-decoration: none;
+  border-bottom: 1px solid #cbd5e1;
+  padding-bottom: 1px;
+}
+.homefoot a:hover {
+  border-color: #0f172a;
+}
+
+/* ---------- the under-construction page ---------- */
+
+.stub {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 22px 24px;
+  max-width: 680px;
+}
+.stub h3 {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+  color: #475569;
+  font-weight: 600;
+}
+
+/* ---------- shared bits the landing page introduced ---------- */
+
+.homelink {
+  color: inherit;
+  text-decoration: none;
+}
+.homelink:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Marks the one tab that has no page behind it yet. */
+.tabsoon {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #92400e;
+  vertical-align: 1px;
+}
+.tab.on .tabsoon {
+  background: #fbbf24;
+  color: #451a03;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 960px) {
+  .herogrid {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  .herolens {
+    border-left: none;
+    border-top: 1px solid #1e293b;
+    padding: 20px 0 0;
+    margin-top: 0;
+  }
+  .herolens ul {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 24px;
+  }
+}
+
+@media (max-width: 860px) {
+  .doors {
+    grid-template-columns: 1fr;
+  }
+  .pair {
+    grid-template-columns: 1fr;
+  }
+  .subscribe {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  .subcopy p {
+    margin-bottom: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .hero {
+    padding: 34px 20px 40px;
+  }
+  .subscribe {
+    padding: 22px 18px 18px;
+  }
+  .subform button {
+    width: 100%;
+  }
+}
+
+/* One switch for the whole page. The reveal is a nicety; the content underneath
+   it is the page, and it must never be what a reader is waiting on. */
+@media (prefers-reduced-motion: reduce) {
+  .rule i,
+  .herotitle span,
+  .herotag,
+  .heroblurb,
+  .herocta,
+  .herolens,
+  .door,
+  .subscribe,
+  .panel {
+    animation: none;
+  }
+  .hbtn,
+  .door,
+  .doorarrow,
+  .panelarrow,
+  .door::before {
+    transition: none;
+  }
+}

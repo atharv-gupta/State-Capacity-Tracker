@@ -1303,7 +1303,7 @@
     <div class="rowlab">Website<em>reads Airtable server-side</em></div>
 
     <div class="cell">
-      <div class="hd mono">/ · /states/[postal]</div>
+      <div class="hd mono">/states · /states/[postal]</div>
       <div class="sub">US map shaded by count, five filters, event list beneath</div>
     </div>
     <div class="cell">
@@ -1329,7 +1329,7 @@
     <div class="cell probe" tabindex="0">
       <span class="tab">+</span>
       <div class="hd">STATE · four competency sections</div>
-      <div class="sub">Cap 5 each · empty sections still print</div>
+      <div class="sub">Cap 5 each · empty sections still print · one section per event</div>
       <div class="detail">
         <div class="pkicker">Digest · state half</div>
         <div class="ptitle">All four competencies, every week, even when empty</div>
@@ -1344,10 +1344,13 @@
           ordered by most-covered then newest. The cap applies to the <em>whole</em> list, not just
           the top-up. It used to take every 3 and cap only the 2s, which let one federal competency
           print nine items against a cap of five.</dd>
-          <dt>Repeats across sections</dt>
-          <dd class="keep">A state event with two competencies prints in <b>both</b> sections. State
-          volume is high and overlap is uncommon, so repeating the occasional double is better than
-          hiding it. The federal half does the opposite.</dd>
+          <dt>One section per event</dt>
+          <dd class="keep">An event with two competencies prints under its <b>primary</b> one and
+          carries the other on its meta line as "also civil service". Primary is the competency the
+          classifier listed <em>first</em> &mdash; Airtable keeps multi-select write order, so the
+          model's own sense of what the event is mostly about survives into the table. State used to
+          print such an event in both sections; it now matches the federal half, which never
+          repeated.</dd>
         </dl>
         <div class="pfoot"><span>select_by_competency()</span><span>cap 5</span></div>
       </div>
@@ -1356,7 +1359,7 @@
     <div class="cell probe" tabindex="0">
       <span class="tab">+</span>
       <div class="hd">FEDERAL › Congress</div>
-      <div class="sub">Cap 4 · empty sections dropped · no repeats across sections</div>
+      <div class="sub">Cap 5 · empty sections dropped · one section per event</div>
       <div class="detail">
         <div class="pkicker">Digest · federal half</div>
         <div class="ptitle">Why the federal half behaves differently</div>
@@ -1369,11 +1372,12 @@
         </div>
         <dl>
           <dt>So</dt>
-          <dd class="keep">A federal item prints under the <em>first</em> competency it matches and
-          carries the rest on its meta line as "also incentives". Nothing is lost and nothing
-          repeats.</dd>
+          <dd class="keep">A federal item prints under its <em>primary</em> competency &mdash; the
+          first one the classifier listed, not the first one the display order happens to reach
+          &mdash; and carries the rest on its meta line as "also incentives". Nothing is lost and
+          nothing repeats.</dd>
         </dl>
-        <div class="pfoot"><span>FEDERAL_DEDUPE_ACROSS_SECTIONS</span><span>cap 4</span></div>
+        <div class="pfoot"><span>ONE_SECTION_PER_EVENT</span><span>cap 5</span></div>
       </div>
     </div>
 
@@ -1405,7 +1409,7 @@
 
     <div class="cell">
       <div class="hd">FEDERAL › Agencies</div>
-      <div class="sub">Cap 4 · same no-repeat rule as Congress</div>
+      <div class="sub">Cap 5 · same one-section rule as Congress</div>
     </div>
 
     <div class="cell probe" tabindex="0">
@@ -1453,7 +1457,7 @@
     <thead>
       <tr>
         <th scope="col">Field</th>
-        <th scope="col">State map<span>/ and /states</span></th>
+        <th scope="col">State map<span>/states and /states/profiles</span></th>
         <th scope="col">Congress tab<span>/congress</span></th>
         <th scope="col">Federal tab<span>/federal</span></th>
         <th scope="col">Governors tab<span>/candidates</span></th>
@@ -1515,7 +1519,7 @@
         <td>Committee · <code class="icode">party_source</code> (majority/minority only) · <code class="icode">activity_type</code>.</td>
         <td>Up to 2 agency chips · branch (when not executive) · <code class="icode">instrument_type</code> · <code class="icode">instrument_id</code> · verification (when not official).</td>
         <td>Date · state · candidate.</td>
-        <td>One dot-joined line, built per section — plus "also incentives" on deduped federal items.</td>
+        <td>One dot-joined line, built per section — plus "also incentives" on any item carrying a second competency.</td>
       </tr>
       <tr>
         <th scope="row">Sources</th>
@@ -2068,13 +2072,10 @@
     <div class="fix">
       <div class="num">—</div>
       <div>
-        <h4>Four splits worth keeping</h4>
+        <h4>Three splits worth keeping</h4>
         <p class="now"><b>State prints all four competencies even when empty; federal drops empty
         ones.</b> The state rhythm is the spine readers learn; the federal half would print eight
         "nothing notable" lines.<br>
-        <b>State repeats a two-competency event across sections; federal prints it once with "also
-        X".</b> On the federal side <code class="icode">incentives</code> overlaps almost completely
-        with the other two.<br>
         <b>The federal lane comes from the source, not the model.</b> The whole point is that
         provenance can't be inferred from content.<br>
         <b>State regex wraps the whole alternation in <code class="icode">\b(?:…)\b</code>; congress

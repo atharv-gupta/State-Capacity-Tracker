@@ -5,7 +5,7 @@ import congress from "./congress-sources.json";
 import federal from "./federal-sources.json";
 
 export const metadata = {
-  title: "Sources & methodology — State Capacity Tracker",
+  title: "Sources & methodology — State Capacity News Tracker",
 };
 
 const STATE_NAMES = Object.fromEntries(usa.locations.map((l) => [l.id.toUpperCase(), l.name]));
