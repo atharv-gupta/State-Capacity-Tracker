@@ -8,6 +8,7 @@ import {
   cutoffFor,
   today,
 } from "../lib/competencies";
+import { loadJSON } from "../lib/datacache";
 
 const COMMITTEES = [
   { key: "hsgac", label: "HSGAC", chamber: "senate", full: "Senate Homeland Security & Governmental Affairs" },
@@ -329,8 +330,7 @@ export default function Congress() {
 
   useEffect(() => {
     const load = (path, set, key) =>
-      fetch(path)
-        .then((r) => r.json())
+      loadJSON(path)
         .then((d) => (d.error ? setError(d.error) : set(d[key])))
         .catch((e) => setError(String(e)));
     load("/api/congress", setEvents, "events");

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Header from "../header";
 import { COMPETENCIES, DEFAULT_COMPETENCIES, cutoffFor } from "../lib/competencies";
+import { loadJSON } from "../lib/datacache";
 
 /**
  * Federal tab — the executive branch, the watchdogs auditing it, and the trade
@@ -356,8 +357,7 @@ export default function Federal() {
     });
 
   useEffect(() => {
-    fetch("/api/federal")
-      .then((r) => r.json())
+    loadJSON("/api/federal")
       .then((d) => (d.error ? setError(d.error) : setEvents(d.events)))
       .catch((e) => setError(String(e)));
   }, []);
