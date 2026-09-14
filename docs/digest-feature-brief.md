@@ -9,6 +9,11 @@
 > Also stale below: §1 and §9 describe `dedupe.py` as a Monday-only step. **The state
 > dedupe has run daily since 2026-09-02**; the digest is still Mondays-only and still
 > runs last, so its position in the workflow is unchanged.
+>
+> And §4's decision on two-competency events was reversed on 2026-09-14. They no longer
+> appear in each matching section; every event prints once, under the competency the
+> classifier listed first, with the rest on its meta line. The flag is
+> `ONE_SECTION_PER_EVENT` and it now governs both halves of the digest.
 
 # Feature brief: weekly email digest (`digest.py`)
 
