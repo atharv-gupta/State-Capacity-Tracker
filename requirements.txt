@@ -2,6 +2,8 @@ anthropic>=0.40.0
 beautifulsoup4>=4.12.0
 feedparser>=6.0.11
 googlenewsdecoder>=0.1.7
+# googlenewsdecoder 0.2.1 imports selectolax.parser, which selectolax 1.0 removed
+selectolax>=0.4.12,<1.0
 pyairtable>=3.0.0
 python-dotenv>=1.0.1
 requests>=2.31.0
