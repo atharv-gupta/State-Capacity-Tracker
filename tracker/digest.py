@@ -694,7 +694,13 @@ def build(days: int, since: str | None) -> dict:
 # --------------------------------------------------------------------------- #
 
 BRIEF_MODEL = "claude-sonnet-4-6"   # the model the dedupe steps classify with
-BRIEF_MAX_WORDS = 18                # per sentence; ~30-36 words per competency
+# Asked for in the prompt, and enforced in code only at BRIEF_HARD_MAX. The
+# first version enforced the ask itself (18, +2 slack) and the model's lines
+# land at 19-24 words, so on the first test send it silently dropped one line
+# in three and two whole competencies. A 25-word sentence is a fine brief; a
+# missing competency is not.
+BRIEF_MAX_WORDS = 20
+BRIEF_HARD_MAX = 28
 
 BRIEF_SYSTEM = """You write the opening brief of a weekly email digest on government capacity.
 
@@ -703,8 +709,9 @@ For each competency you get two lists of items that appear further down the emai
 state list and ONE sentence for the federal list, each %d words or fewer.
 
 - A sentence may only use facts from its own list. Never move a fact between lists.
-- Name the one or two most consequential developments. Do not try to cover everything, and
-  do not summarise vaguely ("took steps on", "acted on several fronts").
+- Each sentence is about ONE development: the most consequential item in its list. Never join
+  two items into one sentence ("X, yet Y"; "X, while Y"). Do not summarise vaguely ("took
+  steps on", "acted on several fronts").
 - Take agency and actor names exactly from the item's "who" field; never infer an agency
   from an acronym.
 - Plain, flat register. Say what happened. Do not guess at intent or at impact not yet
@@ -724,7 +731,7 @@ def _brief_lines(rows: list[dict]) -> str:
 
 def _brief_ok(text) -> bool:
     return (isinstance(text, str) and text.strip() != ""
-            and len(text.split()) <= BRIEF_MAX_WORDS + 2
+            and len(text.split()) <= BRIEF_HARD_MAX
             and "—" not in text and ";" not in text)
 
 
@@ -758,7 +765,7 @@ def write_brief(d: dict) -> dict[str, dict[str, str | None]]:
         for attempt in range(2):
             msg = body if attempt == 0 else (
                 body + f"\n\nYour previous answer: {json.dumps(out)}\nSome sentences are over "
-                f"{BRIEF_MAX_WORDS} words or use a semicolon or em dash. Return the full JSON "
+                f"{BRIEF_HARD_MAX} words or use a semicolon or em dash. Return the full JSON "
                 "again with those fixed.")
             resp = client.messages.create(model=BRIEF_MODEL, max_tokens=1200,
                                           system=BRIEF_SYSTEM,
@@ -774,10 +781,13 @@ def write_brief(d: dict) -> dict[str, dict[str, str | None]]:
     brief = {}
     for c, (s_rows, f_rows) in groups.items():
         got = out.get(c) or {}
-        brief[c] = {
-            "state": got.get("state") if s_rows and _brief_ok(got.get("state")) else None,
-            "federal": got.get("federal") if f_rows and _brief_ok(got.get("federal")) else None,
-        }
+        brief[c] = {}
+        for side, rows in (("state", s_rows), ("federal", f_rows)):
+            text = got.get(side)
+            brief[c][side] = text if rows and _brief_ok(text) else None
+            if rows and not brief[c][side]:
+                # Loud, so a thin brief is explained in the run log.
+                print(f"  (brief: dropped {c}/{side}: {text!r})")
     return {c: v for c, v in brief.items() if v["state"] or v["federal"]}
 
 
