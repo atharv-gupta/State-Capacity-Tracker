@@ -24,8 +24,8 @@ Structure notes worth knowing before editing:
   * Congress comes before agencies inside FEDERAL, and the calendar comes before
     both, because upcoming hearings are the only perishable thing in the email.
   * Every section prints at most SECTION_CAP items, and the email opens with
-    "The week in brief": per competency, one generated sentence on the states
-    and one on Washington, written only from the items printed below it.
+    "The week in brief": two generated sentences per competency, written only
+    from the items printed below it.
 
 Usage:
     python digest.py --days 7              # compose + send to the active recipients
@@ -694,91 +694,190 @@ def build(days: int, since: str | None) -> dict:
 # --------------------------------------------------------------------------- #
 
 BRIEF_MODEL = "claude-sonnet-4-6"   # the model the dedupe steps classify with
-BRIEF_MAX_WORDS = 18                # per sentence; ~30-36 words per competency
+# Per sentence. The prompt asks for 15-18; the code rejects only past
+# BRIEF_MAX_WORDS. The first version enforced its own ask (18) and silently
+# dropped one line in three, because the model's sentences land at 19-24.
+BRIEF_MAX_WORDS = 30
+
+# For checking that a must-cover state item made it into its blurb. A copy of
+# tracker/candidates/pipeline.py's POSTAL_TO_NAME, deliberately not imported:
+# that module loads googlenewsdecoder at import time, which is what took the
+# whole daily run down on 2026-10-03, and the digest should not share its fate.
+STATE_NAMES = {
+    "AL": "Alabama", "AK": "Alaska", "AZ": "Arizona", "AR": "Arkansas",
+    "CA": "California", "CO": "Colorado", "CT": "Connecticut", "DE": "Delaware",
+    "FL": "Florida", "GA": "Georgia", "HI": "Hawaii", "ID": "Idaho",
+    "IL": "Illinois", "IN": "Indiana", "IA": "Iowa", "KS": "Kansas",
+    "KY": "Kentucky", "LA": "Louisiana", "ME": "Maine", "MD": "Maryland",
+    "MA": "Massachusetts", "MI": "Michigan", "MN": "Minnesota",
+    "MS": "Mississippi", "MO": "Missouri", "MT": "Montana", "NE": "Nebraska",
+    "NV": "Nevada", "NH": "New Hampshire", "NJ": "New Jersey",
+    "NM": "New Mexico", "NY": "New York", "NC": "North Carolina",
+    "ND": "North Dakota", "OH": "Ohio", "OK": "Oklahoma", "OR": "Oregon",
+    "PA": "Pennsylvania", "RI": "Rhode Island", "SC": "South Carolina",
+    "SD": "South Dakota", "TN": "Tennessee", "TX": "Texas", "UT": "Utah",
+    "VT": "Vermont", "VA": "Virginia", "WA": "Washington",
+    "WV": "West Virginia", "WI": "Wisconsin", "WY": "Wyoming",
+}
 
 BRIEF_SYSTEM = """You write the opening brief of a weekly email digest on government capacity.
 
-For each competency you get two lists of items that appear further down the email: "state"
-(state governments) and "federal" (Congress and federal agencies). Write ONE sentence for the
-state list and ONE sentence for the federal list, each %d words or fewer.
+For each competency you get the items that appear further down the email. Each item is
+marked [state: XX] (a state government) or [federal] (Congress or a federal agency). Write
+EXACTLY two sentences per competency that read naturally together: 15 to 18 words each,
+about 35 words for the pair. Shorter is better.
 
-- A sentence may only use facts from its own list. Never move a fact between lists.
-- Name the one or two most consequential developments. Do not try to cover everything, and
-  do not summarise vaguely ("took steps on", "acted on several fronts").
-- Take agency and actor names exactly from the item's "who" field; never infer an agency
-  from an acronym.
+- Usually each sentence is one development: the two most consequential items, whichever
+  side they come from. When three or more items share a clear pattern (several audits finding
+  the same gap, several states moving on the same thing), one sentence may name that pattern
+  and the items in it. Never chain two separate developments into one sentence with "and"
+  or "while".
+- An item marked MUST COVER is a top-rated state item: one of the two sentences must be about
+  it and name its state. Choose the other sentence as usual.
+- Attribute every fact to the government it belongs to. Never describe a federal item as a
+  state action, or the reverse.
+- Only use facts in the items. Take agency and actor names from the item's "who" field;
+  never infer an agency from an acronym. No comparisons or superlatives an item does not
+  state ("first", "largest", "in years").
+- Write "the State Department", never a bare "State" for it, which reads as a state government.
 - Plain, flat register. Say what happened. Do not guess at intent or at impact not yet
-  observed. No comparisons or superlatives an item does not state ("first", "largest",
-  "in years").
-- No semicolons, no em dashes, no rhetorical questions.
-- Return null for a list marked (none).
+  observed. Do not summarise vaguely ("took steps on", "acted on several fronts").
+- No semicolons, no em dashes, no rhetorical questions, no labels like "States:".
 
-Return JSON only: {"civil-service": {"state": "...", "federal": "..."}, ...} with one key per
-competency you were given.""" % BRIEF_MAX_WORDS
+Return JSON only: {"civil-service": "Sentence one. Sentence two.", ...} with one key per
+competency you were given."""
 
 
-def _brief_lines(rows: list[dict]) -> str:
-    return "\n".join(f"- {r['item']['title']} :: {r['item']['summary']} :: who: {r['item']['meta']}"
-                     for r in rows) or "(none)"
+def _state_of(row: dict) -> str | None:
+    m = re.match(r"^([A-Z]{2}):", row["item"]["title"])
+    return m.group(1) if m else None
 
 
-def _brief_ok(text) -> bool:
-    return (isinstance(text, str) and text.strip() != ""
-            and len(text.split()) <= BRIEF_MAX_WORDS + 2
-            and "—" not in text and ";" not in text)
+def _must_cover(state_rows: list[dict]) -> dict | None:
+    """The state item a competency's blurb has to include: its top relevance-3
+    state item, if it has one. Selection already orders threes first, most
+    covered then newest, so the first three is the strongest. One, not all: two
+    sentences cannot carry four required items and still read naturally."""
+    return next((r for r in state_rows if r["relevance"] == 3 and _state_of(r)), None)
 
 
-def write_brief(d: dict) -> dict[str, dict[str, str | None]]:
-    """{competency: {"state": sentence|None, "federal": sentence|None}}.
+def _brief_lines(rows: list[dict], side: str, must: dict | None = None) -> list[str]:
+    out = []
+    for r in rows:
+        it = r["item"]
+        tag = "federal"
+        if side == "state":
+            st = _state_of(r)
+            tag = f"state: {st}" if st else "state"
+        flag = "MUST COVER " if r is must else ""
+        out.append(f"- {flag}[{tag}] {it['title']} :: {it['summary']} :: who: {it['meta']}")
+    return out
+
+
+_NOT_A_SENTENCE_END = re.compile(r"(?:\b(?:[A-Z]\.)+|\b(?:Sen|Rep|Gov|Dept|St|No|Inc|vs)\.)$")
+
+
+def _sentences(text: str) -> list[str]:
+    """Split on sentence ends, but not after "H.R.", "U.S.", "Sen." and the like."""
+    out, cur = [], ""
+    for part in re.split(r"(?<=[.!?])\s+", (text or "").strip()):
+        cur = f"{cur} {part}".strip()
+        if not _NOT_A_SENTENCE_END.search(cur):
+            out.append(cur)
+            cur = ""
+    if cur:
+        out.append(cur)
+    return out
+
+
+def _names_state(text: str, postal: str) -> bool:
+    name = STATE_NAMES.get(postal, postal)
+    return bool(re.search(rf"\b(?:{re.escape(name)}|{postal})\b", text))
+
+
+def _brief_problem(text, must_state: str | None = None) -> str | None:
+    """Why a blurb fails, or None: two sentences, each within the cap, and the
+    must-cover state named when there is one."""
+    if not isinstance(text, str) or not text.strip():
+        return "empty"
+    if must_state and not _names_state(text, must_state):
+        return f"does not cover the MUST COVER {STATE_NAMES.get(must_state, must_state)} item"
+    if "—" in text or ";" in text:
+        return "semicolon or em dash"
+    sents = _sentences(text)
+    if len(sents) != 2:
+        return f"{len(sents)} sentences, not 2"
+    long = [len(x.split()) for x in sents if len(x.split()) > BRIEF_MAX_WORDS]
+    return f"a sentence of {long[0]} words" if long else None
+
+
+def write_brief(d: dict) -> dict[str, str]:
+    """{competency: two-sentence blurb}, for the competencies with items.
 
     Written from the items the email actually prints, never the whole window,
     so every sentence points at something the reader can find below it. The
-    state and federal items go in as separate lists and come back as separate
-    fields: in the trial, asking for "a states sentence, then a Washington one"
-    over one mixed list put a GAO finding about ICE in the states' sentence.
+    blurb is free to draw on state and federal items alike, except that a
+    competency with a relevance-3 state item must cover its top one, checked
+    here by the state's name rather than trusted to the prompt. Each item carries
+    its side, because in the trial an unlabelled mix let a GAO finding about
+    ICE be described as something "states face".
 
-    Never blocks the send. Any failure (no key, API error, unparseable reply, a
-    sentence that is still over length after one retry) drops the brief, or the
-    one sentence, and the digest goes out without it.
+    A blurb that breaks the rules gets one retry. After that a slightly long
+    one is kept, since a 33-word sentence beats a blank competency, and only an
+    empty or unparseable one is dropped, with a line in the run log. Any API
+    failure drops the brief entirely and the digest goes out without it.
     """
     state, fed = d["state"]["by_comp"], d["federal"]
-    groups = {}
+    groups, must_state = {}, {}
     for c in COMPETENCIES:
-        s_rows = state.get(c) or []
-        f_rows = (fed["congress_by_comp"].get(c) or []) + (fed["agency_by_comp"].get(c) or [])
-        if s_rows or f_rows:
-            groups[c] = (s_rows, f_rows)
+        must = _must_cover(state.get(c) or [])
+        if must:
+            must_state[c] = _state_of(must)
+        lines = (_brief_lines(state.get(c) or [], "state", must)
+                 + _brief_lines((fed["congress_by_comp"].get(c) or [])
+                                + (fed["agency_by_comp"].get(c) or []), "federal"))
+        if lines:
+            groups[c] = lines
     if not groups or not os.environ.get("ANTHROPIC_API_KEY"):
         return {}
-    body = "\n\n".join(f"## {c}\n### state\n{_brief_lines(s)}\n### federal\n{_brief_lines(f)}"
-                       for c, (s, f) in groups.items())
+    body = "\n\n".join(f"## {c}\n" + "\n".join(lines) for c, lines in groups.items())
     try:
         client = anthropic.Anthropic()
-        out = {}
+        out, msg = {}, body
         for attempt in range(2):
-            msg = body if attempt == 0 else (
-                body + f"\n\nYour previous answer: {json.dumps(out)}\nSome sentences are over "
-                f"{BRIEF_MAX_WORDS} words or use a semicolon or em dash. Return the full JSON "
-                "again with those fixed.")
             resp = client.messages.create(model=BRIEF_MODEL, max_tokens=1200,
                                           system=BRIEF_SYSTEM,
                                           messages=[{"role": "user", "content": msg}])
             text = "".join(b.text for b in resp.content if b.type == "text")
             m = re.search(r"\{.*\}", text, re.S)
-            out = json.loads(m.group(0)) if m else {}
-            if all(_brief_ok(v) for c in groups for v in (out.get(c) or {}).values() if v):
+            got = json.loads(m.group(0)) if m else {}
+            # Keep the better answer per competency across attempts.
+            for c in groups:
+                ms = must_state.get(c)
+                if c not in out or (_brief_problem(out[c], ms)
+                                    and not _brief_problem(got.get(c), ms)):
+                    out[c] = got.get(c)
+            problems = {c: _brief_problem(out.get(c), must_state.get(c)) for c in groups}
+            problems = {c: p for c, p in problems.items() if p}
+            if not problems:
                 break
+            msg = (body + f"\n\nYour previous answer: {json.dumps(out)}\nThese break the "
+                   f"rules (exactly two sentences, each {BRIEF_MAX_WORDS} words or fewer, no "
+                   "semicolons or em dashes, MUST COVER items included): "
+                   f"{json.dumps(problems)}. Return the full JSON again with those fixed.")
     except Exception as e:
         print(f"  (brief skipped: {e})")
         return {}
     brief = {}
-    for c, (s_rows, f_rows) in groups.items():
-        got = out.get(c) or {}
-        brief[c] = {
-            "state": got.get("state") if s_rows and _brief_ok(got.get("state")) else None,
-            "federal": got.get("federal") if f_rows and _brief_ok(got.get("federal")) else None,
-        }
-    return {c: v for c, v in brief.items() if v["state"] or v["federal"]}
+    for c in groups:
+        text, problem = out.get(c), _brief_problem(out.get(c), must_state.get(c))
+        if problem in ("empty",) or not isinstance(text, str):
+            print(f"  (brief: dropped {c}: {problem})")
+            continue
+        if problem:
+            print(f"  (brief: kept {c} despite {problem})")
+        brief[c] = text.strip()
+    return brief
 
 
 # --------------------------------------------------------------------------- #
@@ -929,31 +1028,23 @@ def h_by_competency(by_comp: dict[str, list[dict]], skip_empty: bool) -> str:
 
 
 def h_brief(brief: dict) -> str:
-    """The week in brief: one row per competency, a state line and a federal
-    line, in the competency's colour so it doubles as a key to the sections."""
+    """The week in brief: a two-sentence paragraph per competency, under the
+    competency's colour so it doubles as a key to the sections below."""
     if not brief:
         return ""
     rows = []
     for comp in COMPETENCIES:
-        b = brief.get(comp)
-        if not b:
+        text = brief.get(comp)
+        if not text:
             continue
         color = COMPETENCY_COLORS[comp]
-        lines = []
-        for side, label in (("state", "State"), ("federal", "Federal")):
-            text = b.get(side) or "Nothing notable last week."
-            tone = "#334155" if b.get(side) else FAINT
-            lines.append(
-                f'<div style="font-family:{FONT};font-size:13.5px;color:{tone};'
-                f'line-height:1.5;margin:2px 0 0;">'
-                f'<span style="font-size:10.5px;font-weight:700;color:{MUTED};'
-                f'text-transform:uppercase;letter-spacing:.06em;">{label}</span>'
-                f'&nbsp; {escape(text)}</div>')
         rows.append(
             f'<div style="border-left:3px solid {color};padding:0 0 0 11px;margin:0 0 14px;">'
             f'<div style="font-family:{FONT};font-size:11.5px;font-weight:700;color:{color};'
-            f'text-transform:uppercase;letter-spacing:.07em;margin:0 0 2px;">'
-            f'{escape(COMPETENCY_LABELS[comp])}</div>{"".join(lines)}</div>')
+            f'text-transform:uppercase;letter-spacing:.07em;margin:0 0 3px;">'
+            f'{escape(COMPETENCY_LABELS[comp])}</div>'
+            f'<div style="font-family:{FONT};font-size:13.5px;color:#334155;line-height:1.55;">'
+            f'{escape(text)}</div></div>')
     return (f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" '
             f'border="0" style="margin:22px 0 0;"><tr>'
             f'<td bgcolor="#f8fafc" style="background-color:#f8fafc;padding:16px 18px 4px;'
@@ -1134,13 +1225,8 @@ def render_text(d: dict, generated_on: date, window_days: int) -> str:
     if brief:
         lines += ["THE WEEK IN BRIEF", ""]
         for comp in COMPETENCIES:
-            b = brief.get(comp)
-            if not b:
-                continue
-            lines.append(COMPETENCY_LABELS[comp].upper())
-            lines.append(f"  State: {b.get('state') or 'Nothing notable last week.'}")
-            lines.append(f"  Federal: {b.get('federal') or 'Nothing notable last week.'}")
-            lines.append("")
+            if brief.get(comp):
+                lines += [COMPETENCY_LABELS[comp].upper(), f"  {brief[comp]}", ""]
 
     lines += ["=" * 62, "STATE", "=" * 62,
               "What state governments did to their own capacity, by competency.", ""]
@@ -1303,11 +1389,8 @@ def print_dry_run(d: dict, cutoff: str, window_days: int) -> None:
     brief = d.get("brief") or {}
     print("THE WEEK IN BRIEF" + ("" if brief else "  (none generated)"))
     for comp in COMPETENCIES:
-        b = brief.get(comp)
-        if b:
-            print(f"  [{COMPETENCY_LABELS[comp]}]")
-            print(f"     state:   {b.get('state') or '-'}")
-            print(f"     federal: {b.get('federal') or '-'}")
+        if brief.get(comp):
+            print(f"  [{COMPETENCY_LABELS[comp]}] {brief[comp]}")
     print()
 
     print("=" * 60)

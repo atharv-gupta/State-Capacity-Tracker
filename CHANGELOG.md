@@ -42,11 +42,17 @@ Dates are the date of the work, not of the write-up.
 Readers found the digest overwhelming: 40-53 items, with nothing to tell them
 where to start. Two changes, both live from the Oct 5 send.
 
-- **The week in brief.** The email now opens with one block per competency: one
-  sentence on the states and one on Washington (Congress and agencies), 18 words
-  or fewer each, written by `claude-sonnet-4-6` from the items printed below it.
-  It is generated at send time (`write_brief`), and any failure drops it rather
-  than blocking the send. `--no-brief` turns it off.
+- **The week in brief.** The email now opens with two flowing sentences per
+  competency (about 35-40 words), written by `claude-sonnet-4-6` from the items
+  printed below it, state and federal alike. A sentence names one development,
+  or a pattern when three or more items share one. A competency with a
+  relevance-3 state item must cover its top one, checked in code by the state's
+  name, with one retry. It is generated at send time
+  (`write_brief`), and any failure drops it rather than blocking the send.
+  `--no-brief` turns it off. The first cut had a labelled State line and Federal
+  line per competency; it read as a form, a quiet week left one line blank, and
+  its 18-word check silently dropped one line in three. Now the check is 30 words
+  per sentence, and an over-long blurb is kept and logged rather than dropped.
 - **Four items per section, at most** (`SECTION_CAP`). Covers every competency on
   both halves, the governors, the calendar, recently held and bills moved. It was
   five (eight for upcoming hearings).
@@ -54,9 +60,8 @@ where to start. Two changes, both live from the Oct 5 send.
 Chosen from three openers trialled against the Sept 21 and Sept 28 sends (brief,
 table of contents, top five). The trial found the first prompt putting a federal
 GAO finding in the states' sentence when both sides came in one list, and
-calling the FAR Council "FAA". So the state and federal items now go in as
-separate lists and come back as separate fields, and agency names must come from
-the item's own actor line. The sentences are still generated: read the brief
+calling the FAR Council "FAA". So every item now goes in tagged with its side,
+and agency names must come from the item's own actor line. The sentences are still generated: read the brief
 before forwarding a send.
 
 ### Digest: a reply and an unsubscribe that reach a person — 2026-09-03
