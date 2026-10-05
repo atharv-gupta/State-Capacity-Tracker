@@ -23,6 +23,9 @@ Structure notes worth knowing before editing:
     "nothing notable" lines is a wall of nothing.
   * Congress comes before agencies inside FEDERAL, and the calendar comes before
     both, because upcoming hearings are the only perishable thing in the email.
+  * Every section prints at most SECTION_CAP items, and the email opens with
+    "The week in brief": per competency, one generated sentence on the states
+    and one on Washington, written only from the items printed below it.
 
 Usage:
     python digest.py --days 7              # compose + send to the active recipients
@@ -32,6 +35,7 @@ Usage:
 """
 
 import argparse
+import json
 import os
 import re
 import sys
@@ -39,6 +43,7 @@ import urllib.parse
 from datetime import date, datetime, timedelta
 from html import escape
 
+import anthropic
 import requests
 from dotenv import load_dotenv
 from pyairtable import Api
@@ -136,6 +141,13 @@ COMPETENCY_COLORS = {
 # layoffs, classified `digital` then `civil-service`, would file under Civil
 # service.
 ONE_SECTION_PER_EVENT = True
+
+# The most items any one section prints: each competency on both halves, the
+# governors, the calendar, recently held, and bills moved. It was five (eight
+# for upcoming hearings), and with the federal side reliably full that came to
+# 40-50 items, which readers called overwhelming. Four keeps the shape and
+# takes the fifth, weakest item out of every section.
+SECTION_CAP = 4
 
 # Display labels. The tables store slugs; an email is not the place for them.
 COMMITTEE_LABELS = {
@@ -523,7 +535,7 @@ def dev_sources(d: dict) -> tuple[list[tuple[str, str]], list[str]]:
     return [], []
 
 
-GOVERNORS_CAP = 5
+GOVERNORS_CAP = SECTION_CAP
 
 
 def select_governors(devs: list[dict], roster: dict) -> tuple[list[dict], int]:
@@ -602,7 +614,7 @@ def primary_competency(row: dict) -> str | None:
     return None
 
 
-def select(rows: list[dict], comp: str, cap: int = 5,
+def select(rows: list[dict], comp: str, cap: int = SECTION_CAP,
            primary_only: bool = False) -> list[dict]:
     """The best `cap` items in this competency: threes first, then twos.
 
@@ -627,7 +639,7 @@ def select(rows: list[dict], comp: str, cap: int = 5,
     return (threes + twos)[:cap]
 
 
-def select_by_competency(rows: list[dict], cap: int = 5,
+def select_by_competency(rows: list[dict], cap: int = SECTION_CAP,
                         dedupe: bool = True) -> dict[str, list[dict]]:
     """Per-competency selection in COMPETENCIES order.
 
@@ -662,21 +674,111 @@ def build(days: int, since: str | None) -> dict:
             "total": len(state_rows),
         },
         "federal": {
-            "upcoming": upcoming[:8],
-            "recent": recent[:4],
-            "bills": load_bills(days, since)[:5],
-            # Five, the same cap as a state section. It was four while a
-            # two-competency item could eat a subsection's slot without filling
-            # it — four real items beat five with a hole in them. Now that an
-            # item is only ever a candidate in its own section, the cap buys
-            # five distinct items, so the two halves can hold the same number.
+            "upcoming": upcoming[:SECTION_CAP],
+            "recent": recent[:SECTION_CAP],
+            "bills": load_bills(days, since)[:SECTION_CAP],
+            # The same cap as a state section, so the two halves hold the same
+            # number. Each item is only ever a candidate in its own section
+            # (ONE_SECTION_PER_EVENT), so the cap buys distinct items.
             "congress_by_comp": select_by_competency(
-                congress_rows, cap=5, dedupe=ONE_SECTION_PER_EVENT),
+                congress_rows, dedupe=ONE_SECTION_PER_EVENT),
             "agency_by_comp": select_by_competency(
-                federal_rows, cap=5, dedupe=ONE_SECTION_PER_EVENT),
+                federal_rows, dedupe=ONE_SECTION_PER_EVENT),
             "total": len(congress_rows) + len(federal_rows),
         },
     }
+
+
+# --------------------------------------------------------------------------- #
+# The week in brief — two generated sentences per competency, at the top
+# --------------------------------------------------------------------------- #
+
+BRIEF_MODEL = "claude-sonnet-4-6"   # the model the dedupe steps classify with
+BRIEF_MAX_WORDS = 18                # per sentence; ~30-36 words per competency
+
+BRIEF_SYSTEM = """You write the opening brief of a weekly email digest on government capacity.
+
+For each competency you get two lists of items that appear further down the email: "state"
+(state governments) and "federal" (Congress and federal agencies). Write ONE sentence for the
+state list and ONE sentence for the federal list, each %d words or fewer.
+
+- A sentence may only use facts from its own list. Never move a fact between lists.
+- Name the one or two most consequential developments. Do not try to cover everything, and
+  do not summarise vaguely ("took steps on", "acted on several fronts").
+- Take agency and actor names exactly from the item's "who" field; never infer an agency
+  from an acronym.
+- Plain, flat register. Say what happened. Do not guess at intent or at impact not yet
+  observed. No comparisons or superlatives an item does not state ("first", "largest",
+  "in years").
+- No semicolons, no em dashes, no rhetorical questions.
+- Return null for a list marked (none).
+
+Return JSON only: {"civil-service": {"state": "...", "federal": "..."}, ...} with one key per
+competency you were given.""" % BRIEF_MAX_WORDS
+
+
+def _brief_lines(rows: list[dict]) -> str:
+    return "\n".join(f"- {r['item']['title']} :: {r['item']['summary']} :: who: {r['item']['meta']}"
+                     for r in rows) or "(none)"
+
+
+def _brief_ok(text) -> bool:
+    return (isinstance(text, str) and text.strip() != ""
+            and len(text.split()) <= BRIEF_MAX_WORDS + 2
+            and "—" not in text and ";" not in text)
+
+
+def write_brief(d: dict) -> dict[str, dict[str, str | None]]:
+    """{competency: {"state": sentence|None, "federal": sentence|None}}.
+
+    Written from the items the email actually prints, never the whole window,
+    so every sentence points at something the reader can find below it. The
+    state and federal items go in as separate lists and come back as separate
+    fields: in the trial, asking for "a states sentence, then a Washington one"
+    over one mixed list put a GAO finding about ICE in the states' sentence.
+
+    Never blocks the send. Any failure (no key, API error, unparseable reply, a
+    sentence that is still over length after one retry) drops the brief, or the
+    one sentence, and the digest goes out without it.
+    """
+    state, fed = d["state"]["by_comp"], d["federal"]
+    groups = {}
+    for c in COMPETENCIES:
+        s_rows = state.get(c) or []
+        f_rows = (fed["congress_by_comp"].get(c) or []) + (fed["agency_by_comp"].get(c) or [])
+        if s_rows or f_rows:
+            groups[c] = (s_rows, f_rows)
+    if not groups or not os.environ.get("ANTHROPIC_API_KEY"):
+        return {}
+    body = "\n\n".join(f"## {c}\n### state\n{_brief_lines(s)}\n### federal\n{_brief_lines(f)}"
+                       for c, (s, f) in groups.items())
+    try:
+        client = anthropic.Anthropic()
+        out = {}
+        for attempt in range(2):
+            msg = body if attempt == 0 else (
+                body + f"\n\nYour previous answer: {json.dumps(out)}\nSome sentences are over "
+                f"{BRIEF_MAX_WORDS} words or use a semicolon or em dash. Return the full JSON "
+                "again with those fixed.")
+            resp = client.messages.create(model=BRIEF_MODEL, max_tokens=1200,
+                                          system=BRIEF_SYSTEM,
+                                          messages=[{"role": "user", "content": msg}])
+            text = "".join(b.text for b in resp.content if b.type == "text")
+            m = re.search(r"\{.*\}", text, re.S)
+            out = json.loads(m.group(0)) if m else {}
+            if all(_brief_ok(v) for c in groups for v in (out.get(c) or {}).values() if v):
+                break
+    except Exception as e:
+        print(f"  (brief skipped: {e})")
+        return {}
+    brief = {}
+    for c, (s_rows, f_rows) in groups.items():
+        got = out.get(c) or {}
+        brief[c] = {
+            "state": got.get("state") if s_rows and _brief_ok(got.get("state")) else None,
+            "federal": got.get("federal") if f_rows and _brief_ok(got.get("federal")) else None,
+        }
+    return {c: v for c, v in brief.items() if v["state"] or v["federal"]}
 
 
 # --------------------------------------------------------------------------- #
@@ -826,6 +928,41 @@ def h_by_competency(by_comp: dict[str, list[dict]], skip_empty: bool) -> str:
     return "".join(out)
 
 
+def h_brief(brief: dict) -> str:
+    """The week in brief: one row per competency, a state line and a federal
+    line, in the competency's colour so it doubles as a key to the sections."""
+    if not brief:
+        return ""
+    rows = []
+    for comp in COMPETENCIES:
+        b = brief.get(comp)
+        if not b:
+            continue
+        color = COMPETENCY_COLORS[comp]
+        lines = []
+        for side, label in (("state", "State"), ("federal", "Federal")):
+            text = b.get(side) or "Nothing notable last week."
+            tone = "#334155" if b.get(side) else FAINT
+            lines.append(
+                f'<div style="font-family:{FONT};font-size:13.5px;color:{tone};'
+                f'line-height:1.5;margin:2px 0 0;">'
+                f'<span style="font-size:10.5px;font-weight:700;color:{MUTED};'
+                f'text-transform:uppercase;letter-spacing:.06em;">{label}</span>'
+                f'&nbsp; {escape(text)}</div>')
+        rows.append(
+            f'<div style="border-left:3px solid {color};padding:0 0 0 11px;margin:0 0 14px;">'
+            f'<div style="font-family:{FONT};font-size:11.5px;font-weight:700;color:{color};'
+            f'text-transform:uppercase;letter-spacing:.07em;margin:0 0 2px;">'
+            f'{escape(COMPETENCY_LABELS[comp])}</div>{"".join(lines)}</div>')
+    return (f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" '
+            f'border="0" style="margin:22px 0 0;"><tr>'
+            f'<td bgcolor="#f8fafc" style="background-color:#f8fafc;padding:16px 18px 4px;'
+            f'border:1px solid {RULE};border-radius:6px;">'
+            f'<div style="font-family:{FONT};font-size:11.5px;font-weight:700;color:{INK};'
+            f'text-transform:uppercase;letter-spacing:.08em;margin:0 0 12px;">'
+            f'The week in brief</div>{"".join(rows)}</td></tr></table>')
+
+
 def render_html(d: dict, generated_on: date, window_days: int) -> str:
     state, fed = d["state"], d["federal"]
     n_state = sum(len(v) for v in state["by_comp"].values())
@@ -876,6 +1013,8 @@ def render_html(d: dict, generated_on: date, window_days: int) -> str:
                f'text-decoration:none;font-weight:600;">see the full news tracker</a>. '
                f'<a href="{UNSUB_TOKEN}" style="color:{MUTED};'
                f'text-decoration:underline;">Unsubscribe</a>.</div>')
+
+    out.append(h_brief(d.get("brief") or {}))
 
     # --- STATE
     out.append(h_banner("State", "What state governments did to their own capacity, "
@@ -990,6 +1129,18 @@ def render_text(d: dict, generated_on: date, window_days: int) -> str:
     lines += ["A sampling of the week, not everything we tracked.",
               f"See the full news tracker: {TRACKER_URL}",
               f"Unsubscribe: {UNSUB_TOKEN}", ""]
+
+    brief = d.get("brief") or {}
+    if brief:
+        lines += ["THE WEEK IN BRIEF", ""]
+        for comp in COMPETENCIES:
+            b = brief.get(comp)
+            if not b:
+                continue
+            lines.append(COMPETENCY_LABELS[comp].upper())
+            lines.append(f"  State: {b.get('state') or 'Nothing notable last week.'}")
+            lines.append(f"  Federal: {b.get('federal') or 'Nothing notable last week.'}")
+            lines.append("")
 
     lines += ["=" * 62, "STATE", "=" * 62,
               "What state governments did to their own capacity, by competency.", ""]
@@ -1149,6 +1300,15 @@ def print_dry_run(d: dict, cutoff: str, window_days: int) -> None:
     state, fed = d["state"], d["federal"]
     print(f"Window: since {cutoff} ({window_days} days)")
     print(f"Subject: {SUBJECT}\n")
+    brief = d.get("brief") or {}
+    print("THE WEEK IN BRIEF" + ("" if brief else "  (none generated)"))
+    for comp in COMPETENCIES:
+        b = brief.get(comp)
+        if b:
+            print(f"  [{COMPETENCY_LABELS[comp]}]")
+            print(f"     state:   {b.get('state') or '-'}")
+            print(f"     federal: {b.get('federal') or '-'}")
+    print()
 
     print("=" * 60)
     print(f"STATE  ({state['total']} events in window)")
@@ -1205,6 +1365,8 @@ def main() -> None:
     ap.add_argument("--send", action="store_true",
                     help="Send even when --html-out was given.")
     ap.add_argument("--to", default=None, help="Override recipient (post-DNS only).")
+    ap.add_argument("--no-brief", action="store_true",
+                    help="Leave out the generated 'week in brief' at the top.")
     args = ap.parse_args()
 
     generated_on = date.today()
@@ -1212,6 +1374,7 @@ def main() -> None:
     window_days = (generated_on - date.fromisoformat(cutoff)).days
 
     d = build(args.days, args.since)
+    d["brief"] = {} if args.no_brief else write_brief(d)
     html = render_html(d, generated_on, window_days)
     text = render_text(d, generated_on, window_days)
 
