@@ -699,6 +699,27 @@ BRIEF_MODEL = "claude-sonnet-4-6"   # the model the dedupe steps classify with
 # dropped one line in three, because the model's sentences land at 19-24.
 BRIEF_MAX_WORDS = 30
 
+# For checking that a must-cover state item made it into its blurb. A copy of
+# tracker/candidates/pipeline.py's POSTAL_TO_NAME, deliberately not imported:
+# that module loads googlenewsdecoder at import time, which is what took the
+# whole daily run down on 2026-10-03, and the digest should not share its fate.
+STATE_NAMES = {
+    "AL": "Alabama", "AK": "Alaska", "AZ": "Arizona", "AR": "Arkansas",
+    "CA": "California", "CO": "Colorado", "CT": "Connecticut", "DE": "Delaware",
+    "FL": "Florida", "GA": "Georgia", "HI": "Hawaii", "ID": "Idaho",
+    "IL": "Illinois", "IN": "Indiana", "IA": "Iowa", "KS": "Kansas",
+    "KY": "Kentucky", "LA": "Louisiana", "ME": "Maine", "MD": "Maryland",
+    "MA": "Massachusetts", "MI": "Michigan", "MN": "Minnesota",
+    "MS": "Mississippi", "MO": "Missouri", "MT": "Montana", "NE": "Nebraska",
+    "NV": "Nevada", "NH": "New Hampshire", "NJ": "New Jersey",
+    "NM": "New Mexico", "NY": "New York", "NC": "North Carolina",
+    "ND": "North Dakota", "OH": "Ohio", "OK": "Oklahoma", "OR": "Oregon",
+    "PA": "Pennsylvania", "RI": "Rhode Island", "SC": "South Carolina",
+    "SD": "South Dakota", "TN": "Tennessee", "TX": "Texas", "UT": "Utah",
+    "VT": "Vermont", "VA": "Virginia", "WA": "Washington",
+    "WV": "West Virginia", "WI": "Wisconsin", "WY": "Wyoming",
+}
+
 BRIEF_SYSTEM = """You write the opening brief of a weekly email digest on government capacity.
 
 For each competency you get the items that appear further down the email. Each item is
@@ -711,6 +732,8 @@ about 35 words for the pair. Shorter is better.
   the same gap, several states moving on the same thing), one sentence may name that pattern
   and the items in it. Never chain two separate developments into one sentence with "and"
   or "while".
+- An item marked MUST COVER is a top-rated state item: one of the two sentences must be about
+  it and name its state. Choose the other sentence as usual.
 - Attribute every fact to the government it belongs to. Never describe a federal item as a
   state action, or the reverse.
 - Only use facts in the items. Take agency and actor names from the item's "who" field;
@@ -725,15 +748,29 @@ Return JSON only: {"civil-service": "Sentence one. Sentence two.", ...} with one
 competency you were given."""
 
 
-def _brief_lines(rows: list[dict], side: str) -> list[str]:
+def _state_of(row: dict) -> str | None:
+    m = re.match(r"^([A-Z]{2}):", row["item"]["title"])
+    return m.group(1) if m else None
+
+
+def _must_cover(state_rows: list[dict]) -> dict | None:
+    """The state item a competency's blurb has to include: its top relevance-3
+    state item, if it has one. Selection already orders threes first, most
+    covered then newest, so the first three is the strongest. One, not all: two
+    sentences cannot carry four required items and still read naturally."""
+    return next((r for r in state_rows if r["relevance"] == 3 and _state_of(r)), None)
+
+
+def _brief_lines(rows: list[dict], side: str, must: dict | None = None) -> list[str]:
     out = []
     for r in rows:
         it = r["item"]
         tag = "federal"
         if side == "state":
-            m = re.match(r"^([A-Z]{2}):", it["title"])
-            tag = f"state: {m.group(1)}" if m else "state"
-        out.append(f"- [{tag}] {it['title']} :: {it['summary']} :: who: {it['meta']}")
+            st = _state_of(r)
+            tag = f"state: {st}" if st else "state"
+        flag = "MUST COVER " if r is must else ""
+        out.append(f"- {flag}[{tag}] {it['title']} :: {it['summary']} :: who: {it['meta']}")
     return out
 
 
@@ -753,10 +790,18 @@ def _sentences(text: str) -> list[str]:
     return out
 
 
-def _brief_problem(text) -> str | None:
-    """Why a blurb fails, or None. Two sentences, each within the cap."""
+def _names_state(text: str, postal: str) -> bool:
+    name = STATE_NAMES.get(postal, postal)
+    return bool(re.search(rf"\b(?:{re.escape(name)}|{postal})\b", text))
+
+
+def _brief_problem(text, must_state: str | None = None) -> str | None:
+    """Why a blurb fails, or None: two sentences, each within the cap, and the
+    must-cover state named when there is one."""
     if not isinstance(text, str) or not text.strip():
         return "empty"
+    if must_state and not _names_state(text, must_state):
+        return f"does not cover the MUST COVER {STATE_NAMES.get(must_state, must_state)} item"
     if "—" in text or ";" in text:
         return "semicolon or em dash"
     sents = _sentences(text)
@@ -771,7 +816,9 @@ def write_brief(d: dict) -> dict[str, str]:
 
     Written from the items the email actually prints, never the whole window,
     so every sentence points at something the reader can find below it. The
-    blurb is free to draw on state and federal items alike. Each item carries
+    blurb is free to draw on state and federal items alike, except that a
+    competency with a relevance-3 state item must cover its top one, checked
+    here by the state's name rather than trusted to the prompt. Each item carries
     its side, because in the trial an unlabelled mix let a GAO finding about
     ICE be described as something "states face".
 
@@ -781,9 +828,12 @@ def write_brief(d: dict) -> dict[str, str]:
     failure drops the brief entirely and the digest goes out without it.
     """
     state, fed = d["state"]["by_comp"], d["federal"]
-    groups = {}
+    groups, must_state = {}, {}
     for c in COMPETENCIES:
-        lines = (_brief_lines(state.get(c) or [], "state")
+        must = _must_cover(state.get(c) or [])
+        if must:
+            must_state[c] = _state_of(must)
+        lines = (_brief_lines(state.get(c) or [], "state", must)
                  + _brief_lines((fed["congress_by_comp"].get(c) or [])
                                 + (fed["agency_by_comp"].get(c) or []), "federal"))
         if lines:
@@ -803,22 +853,24 @@ def write_brief(d: dict) -> dict[str, str]:
             got = json.loads(m.group(0)) if m else {}
             # Keep the better answer per competency across attempts.
             for c in groups:
-                if c not in out or (_brief_problem(out[c]) and not _brief_problem(got.get(c))):
+                ms = must_state.get(c)
+                if c not in out or (_brief_problem(out[c], ms)
+                                    and not _brief_problem(got.get(c), ms)):
                     out[c] = got.get(c)
-            problems = {c: _brief_problem(out.get(c)) for c in groups}
+            problems = {c: _brief_problem(out.get(c), must_state.get(c)) for c in groups}
             problems = {c: p for c, p in problems.items() if p}
             if not problems:
                 break
             msg = (body + f"\n\nYour previous answer: {json.dumps(out)}\nThese break the "
                    f"rules (exactly two sentences, each {BRIEF_MAX_WORDS} words or fewer, no "
-                   f"semicolons or em dashes): {json.dumps(problems)}. Return the full JSON "
-                   "again with those fixed.")
+                   "semicolons or em dashes, MUST COVER items included): "
+                   f"{json.dumps(problems)}. Return the full JSON again with those fixed.")
     except Exception as e:
         print(f"  (brief skipped: {e})")
         return {}
     brief = {}
     for c in groups:
-        text, problem = out.get(c), _brief_problem(out.get(c))
+        text, problem = out.get(c), _brief_problem(out.get(c), must_state.get(c))
         if problem in ("empty",) or not isinstance(text, str):
             print(f"  (brief: dropped {c}: {problem})")
             continue

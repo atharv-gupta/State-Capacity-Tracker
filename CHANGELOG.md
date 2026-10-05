@@ -45,7 +45,9 @@ where to start. Two changes, both live from the Oct 5 send.
 - **The week in brief.** The email now opens with two flowing sentences per
   competency (about 35-40 words), written by `claude-sonnet-4-6` from the items
   printed below it, state and federal alike. A sentence names one development,
-  or a pattern when three or more items share one. It is generated at send time
+  or a pattern when three or more items share one. A competency with a
+  relevance-3 state item must cover its top one, checked in code by the state's
+  name, with one retry. It is generated at send time
   (`write_brief`), and any failure drops it rather than blocking the send.
   `--no-brief` turns it off. The first cut had a labelled State line and Federal
   line per competency; it read as a form, a quiet week left one line blank, and
