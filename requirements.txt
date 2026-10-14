@@ -1,7 +1,9 @@
 anthropic>=0.40.0
 beautifulsoup4>=4.12.0
 feedparser>=6.0.11
-googlenewsdecoder>=0.1.7
+# Pinned: 0.2.1 renamed its result key status -> success with no error, which
+# silently zeroed candidate article bodies for three weeks. Bump deliberately.
+googlenewsdecoder>=0.2.1,<0.3
 # googlenewsdecoder 0.2.1 imports selectolax.parser, which selectolax 1.0 removed
 selectolax>=0.4.12,<1.0
 pyairtable>=3.0.0
