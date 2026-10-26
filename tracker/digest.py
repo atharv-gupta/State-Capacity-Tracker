@@ -218,6 +218,14 @@ def window_cutoff(days: int, since: str | None) -> str:
     return since or (date.today() - timedelta(days=days)).isoformat()
 
 
+def in_window(d: str, cutoff: str) -> bool:
+    """Half-open [cutoff, today). Both ends used to be inclusive, which made a
+    7-day window 8 days wide: an event dated on a send Monday went out that
+    Monday and again the next one (the Alaska payroll RFP dated 2026-10-05 was
+    in both the 10-05 and 10-12 sends). Today's items wait for next week."""
+    return bool(d) and cutoff <= d < date.today().isoformat()
+
+
 def api_base():
     if not all([AIRTABLE_TOKEN, AIRTABLE_BASE_ID]):
         sys.exit("Missing AIRTABLE_TOKEN / AIRTABLE_BASE_ID; see .env_example.")
@@ -330,7 +338,7 @@ def load_state_events(days: int, since: str | None) -> list[dict]:
     out = []
     for f in read_table(EVENTS_TABLE):
         d = f.get("date", "")
-        if not d or d < cutoff:
+        if not in_window(d, cutoff):
             continue
         urls = lines_of(f.get("source_urls"))
         outlets = commas_of(f.get("source_outlets"))
@@ -359,7 +367,7 @@ def load_congress_events(days: int, since: str | None) -> list[dict]:
     out = []
     for f in read_table(CONGRESS_EVENTS_TABLE):
         d = f.get("date", "")
-        if not d or d < cutoff:
+        if not in_window(d, cutoff):
             continue
         urls = lines_of(f.get("source_urls"))
         outlets = lines_of(f.get("source_outlets"))
@@ -378,7 +386,7 @@ def load_federal_events(days: int, since: str | None) -> list[dict]:
     out = []
     for f in read_table(FEDERAL_EVENTS_TABLE):
         d = f.get("date", "")
-        if not d or d < cutoff:
+        if not in_window(d, cutoff):
             continue
         urls = lines_of(f.get("source_urls"))
         outlets = [federal_outlet(o) for o in lines_of(f.get("source_outlets"))]
@@ -453,7 +461,7 @@ def load_bills(days: int, since: str | None) -> list[dict]:
     out = []
     for f in read_table(CONGRESS_BILLS_TABLE):
         d = f.get("committee_action_date") or f.get("date") or ""
-        if not d or d < cutoff:
+        if not in_window(d, cutoff):
             continue
         if (f.get("committee_action") or "") not in ("marked-up", "reported"):
             continue
@@ -501,7 +509,7 @@ def load_candidate_devs(days: int, since: str | None) -> list[dict]:
     devs = []
     for f in read_table(CANDIDATE_EVENTS_TABLE):
         d = f.get("date", "")
-        if not d or d < cutoff or not (f.get("competency") or []):
+        if not in_window(d, cutoff) or not (f.get("competency") or []):
             continue
         devs.append({
             "candidate": (f.get("candidate") or "").strip(),

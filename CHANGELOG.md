@@ -37,6 +37,32 @@ Dates are the date of the work, not of the write-up.
 
 ## Unreleased
 
+### Digest stops double-sending Monday items; candidate article text is back — 2026-10-14
+
+- **The digest window was 8 days, not 7.** Every loader kept rows with
+  `date >= today - 7` and had no upper bound, so an event dated on a send
+  Monday went out that day and again the next Monday. The Alaska payroll RFP
+  (dated Oct 5) was in both the Oct 5 and Oct 12 sends, and so were two federal
+  rules dated Oct 5 (the HHS child-welfare reporting rule and GSAR 541). The
+  window is now half-open, `[today - 7, today)` (`in_window` in
+  `tracker/digest.py`). Anything dated on the send day goes out the following
+  week. Replayed against live data: the Oct 5 items now fall in the Oct 12 send
+  only.
+- **Candidate developments had no article text for three weeks.**
+  googlenewsdecoder 0.2.1 (released 2026-09-20; `requirements.txt` allowed any
+  version from 0.1.7 up) renamed its result key from `status` to `success`.
+  `fetch_body` checked only `status`, so every decode looked like a failure and
+  every item fell back to headline-only. There was no error, and the daily run
+  stayed green. "Article bodies fetched" went from about 57% to 0% starting
+  with the Sept 21 run, and kept items fell from about 15–70 a day to 2–12.
+  `fetch_body` now accepts either key, and the library is pinned to
+  `>=0.2.1,<0.3`. A Nevada dry run after the fix fetched text for 38 of 53
+  items and kept 5. Production had kept one Nevada item on Oct 12. The Oct 5
+  selectolax pin was an earlier symptom of the same upgrade.
+
+  Items that were dropped as headline-only since Sept 21 were never written, so
+  a `--days` backfill would re-judge them. This change does not run one.
+
 ### Digest: "The week in brief" up top, and four items per section — 2026-10-05
 
 Readers found the digest overwhelming: 40-53 items, with nothing to tell them

@@ -445,7 +445,12 @@ def fetch_body(item):
         decoded = gnewsdecoder(item["url"], interval=0)
     except Exception:
         return item
-    if not decoded or not decoded.get("status"):
+    # googlenewsdecoder 0.2.1 (2026-09-20) renamed this key from "status" to
+    # "success". Checking only the old name failed silently: every item fell
+    # back to headline-only from the 09-21 run on, and kept items fell from
+    # ~15-70 a day to 2-12. Accept either, and requirements.txt now pins the
+    # version so a rename can't slip in unnoticed again.
+    if not decoded or not (decoded.get("success") or decoded.get("status")):
         return item
     url = decoded.get("decoded_url") or ""
     if not url:
