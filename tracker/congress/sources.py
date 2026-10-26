@@ -5,8 +5,8 @@ Mirrors sources.py: hardcoded dicts, one generator that flattens them. Adding a
 source is an edit here plus a commit — same contract as the state feeds.
 
 Three source kinds, all press/activity only:
-  wp_api  — HSGAC's WordPress REST API (typed endpoints, full article bodies)
-  rss     — a working RSS feed
+  wp_api  — a WordPress REST API (none at present; see WP_API_SOURCES)
+  rss     — a working RSS feed (paged WordPress feeds; Google News `site:` searches)
   html    — a server-rendered listing page + selector config
 
 Hearings and bills do NOT live here. Congress.gov covers both chambers with
@@ -22,6 +22,7 @@ Every URL here was probed live on 2026-08-13 and returned items.
 
 import json
 import sys
+import urllib.parse
 
 # ---------------------------------------------------------------------------
 # The seven committees. `code` is the Congress.gov systemCode — the join key
@@ -77,29 +78,19 @@ EXTRA_COMMITTEES = {
 }
 
 # ---------------------------------------------------------------------------
-# wp_api — HSGAC. Open, unauthenticated, supports ?after=<ISO>&per_page=100.
-# Returns full content.rendered, so the classifier sees the whole release
-# rather than an RSS blurb.
+# wp_api — none at present. HSGAC and Padilla used this until 2026-10-23, when
+# senate.gov put Akamai in front of its sites: /wp-json/ and the HTML pages
+# now 403 any non-browser client, from CI and locally alike. The WordPress
+# RSS feeds still answer, and carry the same post types with full
+# content:encoded bodies, so those three sources moved to RSS_SOURCES. The
+# fetcher stays for any open WordPress API added later.
 # ---------------------------------------------------------------------------
-WP_API_SOURCES = [
-    {
-        "name": "HSGAC majority", "committee": "hsgac", "party": "majority",
-        "base": "https://www.hsgac.senate.gov/wp-json/wp/v2", "post_type": "rep_press_releases",
-    },
-    {
-        "name": "HSGAC minority", "committee": "hsgac", "party": "minority",
-        "base": "https://www.hsgac.senate.gov/wp-json/wp/v2", "post_type": "dem_press_releases",
-    },
-    # padilla.senate.gov is also WordPress. Its /feed/ is a partial that stops
-    # in Sept 2025; the API has the full press_releases post type.
-    {
-        "name": "Alex Padilla (Sen Rules ranking)", "committee": "senate-rules", "party": "member",
-        "base": "https://www.padilla.senate.gov/wp-json/wp/v2", "post_type": "press_releases",
-    },
-]
+WP_API_SOURCES = []
 
 # Kept out of the press pipeline; congress_api_sync.py reads it to check
 # whether the committee's own CMS posts hearing notices ahead of Congress.gov.
+# Behind the same Akamai block since 2026-10-23, so the cross-check reports
+# "CMS fetch failed" until there is another way in.
 CROSSCHECK_WP_HEARINGS = {
     "committee": "hsgac",
     "base": "https://www.hsgac.senate.gov/wp-json/wp/v2",
@@ -109,12 +100,25 @@ CROSSCHECK_WP_HEARINGS = {
 # ---------------------------------------------------------------------------
 # rss
 # ---------------------------------------------------------------------------
+def _gnews(site):
+    """Google News search for one site path, last 14 days."""
+    q = urllib.parse.quote(f"site:{site} when:14d")
+    return f"https://news.google.com/rss/search?q={q}&hl=en-US&gl=US&ceid=US:en"
+
+
 RSS_SOURCES = [
     # --- committees ---
     {"name": "Senate Approps majority", "committee": "senate-approps", "party": "majority",
      "url": "https://www.appropriations.senate.gov/rss/feeds/?type=majority"},
     {"name": "Senate Approps minority", "committee": "senate-approps", "party": "minority",
      "url": "https://www.appropriations.senate.gov/rss/feeds/?type=minority"},
+    # WordPress post-type feeds — the way past the Akamai block (see
+    # WP_API_SOURCES). Six items a page, so `pages` walks back through the
+    # window; the plain /feed/ is a different, stale post type.
+    {"name": "HSGAC majority", "committee": "hsgac", "party": "majority",
+     "url": "https://www.hsgac.senate.gov/feed/?post_type=rep_press_releases", "pages": 5},
+    {"name": "HSGAC minority", "committee": "hsgac", "party": "minority",
+     "url": "https://www.hsgac.senate.gov/feed/?post_type=dem_press_releases", "pages": 5},
     {"name": "House Approps", "committee": "house-approps", "party": "majority",
      "url": "https://appropriations.house.gov/rss.xml"},
     {"name": "House Rules minority", "committee": "house-rules", "party": "minority",
@@ -125,6 +129,23 @@ RSS_SOURCES = [
      "url": "https://www.paul.senate.gov/feed/"},
     {"name": "Patty Murray (Sen Approps ranking)", "committee": "senate-approps", "party": "member",
      "url": "https://www.murray.senate.gov/feed/"},
+    {"name": "Alex Padilla (Sen Rules ranking)", "committee": "senate-rules", "party": "member",
+     "url": "https://www.padilla.senate.gov/feed/?post_type=press_releases", "pages": 5},
+
+    # --- via Google News ---
+    # Collins, Peters and Senate Rules run the Senate's own CMS, not WordPress:
+    # no feed exists, and the press-release listing pages they were scraped
+    # from 403 behind Akamai since 2026-10-23. A Google News `site:` search is
+    # the public index of the same pages. Titles only — the release pages
+    # themselves are still blocked — and fetch.py resolves each hit back to
+    # the senate.gov URL. Senate Rules posts rarely; its listing page scraped
+    # zero items for months before the block, so a quiet week is normal.
+    {"name": "Susan Collins (Sen Approps chair)", "committee": "senate-approps", "party": "member",
+     "url": _gnews("collins.senate.gov/newsroom"), "gnews": True},
+    {"name": "Gary Peters (HSGAC ranking)", "committee": "hsgac", "party": "member",
+     "url": _gnews("peters.senate.gov/newsroom/press-releases"), "gnews": True},
+    {"name": "Senate Rules releases", "committee": "senate-rules", "party": "majority",
+     "url": _gnews("rules.senate.gov"), "gnews": True},
     # Garcia / Steil / Morelle publish an rss.xml, but it carries district
     # service pages ("Bellflower", "FY2024 Community Project Funding") and
     # stops in 2023 — not press releases. Their listing pages are current, so
@@ -187,21 +208,6 @@ HTML_SOURCES = [
         "url": "https://rules.house.gov/media/press-releases",
         "item": "div.views-row", "date_attr": ("time", "datetime"),
         "base_url": "https://rules.house.gov",
-    },
-    {
-        "name": "Senate Rules releases", "committee": "senate-rules", "party": "majority",
-        "url": "https://www.rules.senate.gov/news/press-releases",
-        "item": "div.ArticleBlock__titleContainer",
-    },
-    {
-        "name": "Susan Collins (Sen Approps chair)", "committee": "senate-approps", "party": "member",
-        "url": "https://www.collins.senate.gov/newsroom/press-releases",
-        "item": "div.ArticleBlock__titleContainer",
-    },
-    {
-        "name": "Gary Peters (HSGAC ranking)", "committee": "hsgac", "party": "member",
-        "url": "https://www.peters.senate.gov/newsroom/press-releases",
-        "item": "div.ArticleBlock",
     },
     {
         "name": "Robert Garcia (Oversight ranking)", "committee": "house-oversight", "party": "member",

@@ -154,20 +154,79 @@ def _entry_date(entry):
     return parse_date_text(entry.get("published") or entry.get("updated") or "")
 
 
+def _rss_entries(spec, min_date):
+    """All entries for a feed. `pages: N` walks WordPress's ?paged= up to N
+    pages, stopping once a page reaches back past the window — the senate.gov
+    WordPress feeds carry only 6 items a page."""
+    entries = []
+    for page in range(1, spec.get("pages", 1) + 1):
+        url = spec["url"]
+        if page > 1:
+            url += ("&" if "?" in url else "?") + f"paged={page}"
+        text = polite_get(url)
+        if text is None:
+            break          # WP returns 404 past the last page
+        batch = feedparser.parse(text).entries
+        entries += batch
+        dates = [d for d in map(_entry_date, batch) if d]
+        if not batch or (dates and min(dates) < min_date):
+            break
+        time.sleep(DELAY)
+    return entries
+
+
+def _slug_title(url):
+    slug = urllib.parse.urlparse(url).path.rstrip("/").rsplit("/", 1)[-1]
+    return urllib.parse.unquote(slug).replace("-", " ").strip().capitalize()
+
+
+def _gnews_item(spec, e, pub):
+    """A Google News search hit, resolved to the senate.gov URL.
+
+    Body stays empty: the release page sits behind the same Akamai block
+    that put this source on Google News, so the classifier sees the title
+    alone. Google News also truncates long titles to "First words..."; the
+    URL slug carries the whole thing, so it stands in when that happens.
+    """
+    from googlenewsdecoder import gnewsdecoder   # import is slow; only these sources need it
+
+    title = e.get("title", "")
+    outlet = (e.get("source") or {}).get("title", "")
+    if outlet and title.endswith(f" - {outlet}"):
+        title = title[: -len(f" - {outlet}")]
+    url = e.get("link", "")
+    try:
+        decoded = gnewsdecoder(url, interval=0) or {}
+        if decoded.get("success") or decoded.get("status"):
+            url = decoded.get("decoded_url") or url
+    except Exception:
+        pass
+    if title.endswith("...") and "news.google." not in url:
+        title = _slug_title(url) or title
+    return _item(spec, "rss", title, url, pub, "")
+
+
 def fetch_rss(spec, min_date):
     try:
-        entries = feedparser.parse(spec["url"]).entries
+        entries = _rss_entries(spec, min_date)
     except Exception as e:
         print(f"  fetch error {spec['url']}: {e}")
         return []
-    out = []
+    out, seen = [], set()
     for e in entries:
         pub = _entry_date(e)
         if pub and pub < min_date:
             continue
-        body = e.get("content", [{}])[0].get("value", "") if e.get("content") else ""
-        out.append(_item(spec, "rss", e.get("title", ""), e.get("link", ""),
-                         pub, body or e.get("summary", "")))
+        if spec.get("gnews"):
+            item = _gnews_item(spec, e, pub)
+        else:
+            body = e.get("content", [{}])[0].get("value", "") if e.get("content") else ""
+            item = _item(spec, "rss", e.get("title", ""), e.get("link", ""),
+                         pub, body or e.get("summary", ""))
+        if item["url"] in seen:
+            continue
+        seen.add(item["url"])
+        out.append(item)
     return out
 
 

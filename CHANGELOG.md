@@ -37,6 +37,30 @@ Dates are the date of the work, not of the write-up.
 
 ## Unreleased
 
+### Six Senate sources are back after senate.gov added bot blocking — 2026-10-26
+
+- **senate.gov put Akamai in front of its sites, starting with the Oct 23 run.**
+  Akamai now returns 403 to any non-browser client on the WordPress API and the
+  press-release pages, both from CI and locally. The run stayed green, and six
+  sources went to zero: HSGAC majority and minority, Padilla, Collins, Peters
+  and Senate Rules. Senate Approps, Murray, Paul and McConnell still answer, so
+  their late-October zeros are the pre-election recess, not the block.
+- **WordPress offices moved to their RSS feeds.** HSGAC and Padilla serve the
+  same post types at `/feed/?post_type=…`, with full `content:encoded` bodies,
+  and Akamai lets feeds through. Those feeds carry six items a page, so
+  `fetch_rss` now takes `pages` and walks `?paged=` back through the window.
+  `WP_API_SOURCES` is empty for now.
+- **Collins, Peters and Senate Rules moved to Google News.** These three run
+  the Senate's own CMS, which has no feed. They now come from a Google News
+  `site:` search (`gnews: True`). Each hit resolves back to its senate.gov URL,
+  and when Google News cuts a title short, the URL slug supplies the full one.
+  These sources are title-only, because the release pages are still blocked.
+- A 7-day dry run fetched 9 Padilla items, 11 from Collins and 3 from Peters.
+  Two Padilla oversight letters (DOJ IG, election committees) passed both gates;
+  neither reached the tracker while the source was blocked.
+- The HSGAC hearings cross-check in `api_sync` still reads `/wp-json/` and
+  reports "CMS fetch failed". It is a manual diagnostic and was left as is.
+
 ### Digest stops double-sending Monday items; candidate article text is back — 2026-10-14
 
 - **The digest window was 8 days, not 7.** Every loader kept rows with

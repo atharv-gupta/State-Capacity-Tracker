@@ -62,27 +62,6 @@
   },
   "sources": [
     {
-      "kind": "wp_api",
-      "name": "HSGAC majority",
-      "committee": "hsgac",
-      "party": "majority",
-      "url": "https://www.hsgac.senate.gov/wp-json/wp/v2/rep_press_releases"
-    },
-    {
-      "kind": "wp_api",
-      "name": "HSGAC minority",
-      "committee": "hsgac",
-      "party": "minority",
-      "url": "https://www.hsgac.senate.gov/wp-json/wp/v2/dem_press_releases"
-    },
-    {
-      "kind": "wp_api",
-      "name": "Alex Padilla (Sen Rules ranking)",
-      "committee": "senate-rules",
-      "party": "member",
-      "url": "https://www.padilla.senate.gov/wp-json/wp/v2/press_releases"
-    },
-    {
       "kind": "rss",
       "name": "Senate Approps majority",
       "committee": "senate-approps",
@@ -95,6 +74,20 @@
       "committee": "senate-approps",
       "party": "minority",
       "url": "https://www.appropriations.senate.gov/rss/feeds/?type=minority"
+    },
+    {
+      "kind": "rss",
+      "name": "HSGAC majority",
+      "committee": "hsgac",
+      "party": "majority",
+      "url": "https://www.hsgac.senate.gov/feed/?post_type=rep_press_releases"
+    },
+    {
+      "kind": "rss",
+      "name": "HSGAC minority",
+      "committee": "hsgac",
+      "party": "minority",
+      "url": "https://www.hsgac.senate.gov/feed/?post_type=dem_press_releases"
     },
     {
       "kind": "rss",
@@ -123,6 +116,34 @@
       "committee": "senate-approps",
       "party": "member",
       "url": "https://www.murray.senate.gov/feed/"
+    },
+    {
+      "kind": "rss",
+      "name": "Alex Padilla (Sen Rules ranking)",
+      "committee": "senate-rules",
+      "party": "member",
+      "url": "https://www.padilla.senate.gov/feed/?post_type=press_releases"
+    },
+    {
+      "kind": "rss",
+      "name": "Susan Collins (Sen Approps chair)",
+      "committee": "senate-approps",
+      "party": "member",
+      "url": "https://news.google.com/rss/search?q=site%3Acollins.senate.gov/newsroom%20when%3A14d&hl=en-US&gl=US&ceid=US:en"
+    },
+    {
+      "kind": "rss",
+      "name": "Gary Peters (HSGAC ranking)",
+      "committee": "hsgac",
+      "party": "member",
+      "url": "https://news.google.com/rss/search?q=site%3Apeters.senate.gov/newsroom/press-releases%20when%3A14d&hl=en-US&gl=US&ceid=US:en"
+    },
+    {
+      "kind": "rss",
+      "name": "Senate Rules releases",
+      "committee": "senate-rules",
+      "party": "majority",
+      "url": "https://news.google.com/rss/search?q=site%3Arules.senate.gov%20when%3A14d&hl=en-US&gl=US&ceid=US:en"
     },
     {
       "kind": "rss",
@@ -200,27 +221,6 @@
       "committee": "house-rules",
       "party": "majority",
       "url": "https://rules.house.gov/media/press-releases"
-    },
-    {
-      "kind": "html",
-      "name": "Senate Rules releases",
-      "committee": "senate-rules",
-      "party": "majority",
-      "url": "https://www.rules.senate.gov/news/press-releases"
-    },
-    {
-      "kind": "html",
-      "name": "Susan Collins (Sen Approps chair)",
-      "committee": "senate-approps",
-      "party": "member",
-      "url": "https://www.collins.senate.gov/newsroom/press-releases"
-    },
-    {
-      "kind": "html",
-      "name": "Gary Peters (HSGAC ranking)",
-      "committee": "hsgac",
-      "party": "member",
-      "url": "https://www.peters.senate.gov/newsroom/press-releases"
     },
     {
       "kind": "html",
